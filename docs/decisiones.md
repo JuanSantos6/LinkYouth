@@ -89,3 +89,43 @@ alojan fuera del país. Esto tiene que quedar declarado en la política de
 privacidad y en los términos de uso, y hay que revisarlo contra la normativa de
 protección de datos personales aplicable antes de salir a producción. Si esa
 revisión lo exige, la decisión se revisa y el proyecto se migra a otra región.
+
+---
+
+## 2026-09-09 — Tags y habilidades como catálogos separados
+
+**Decisión.** Modelar los tags (intereses) y las habilidades (conocimientos
+técnicos) como dos catálogos separados: las tablas `tags` y `habilidades`, con
+sus respectivas tablas puente `perfil_tags` / `perfil_habilidades` y
+`vacante_tags_publicos` / `vacante_habilidades`.
+
+**Alternativas consideradas.**
+
+- Una única tabla `tags` con una columna `categoria` que distinga interés de
+  habilidad.
+
+**Motivo.** El matching de vacantes (RF3.9) necesita distinguir afinidad
+(interés) de competencia (habilidad técnica): son dos señales distintas y pesan
+distinto al calcular el puntaje de compatibilidad. Mezclarlas en una sola tabla
+con una columna discriminadora degrada esa señal, porque obliga a filtrar por
+`categoria` en cada consulta de matching y hace fácil que un error de filtrado
+sume un interés como si fuera una competencia comprobada.
+
+---
+
+## 2026-09-09 — Reseñas habilitadas por postulación en cualquier estado
+
+**Decisión.** Puede publicar una reseña de una empresa cualquier perfil que
+tenga al menos una postulación a esa empresa, sin importar el estado de la
+postulación.
+
+**Alternativas consideradas.**
+
+- Exigir que exista al menos una postulación en estado `aceptada`.
+
+**Motivo.** En una plataforma de primer empleo la mayoría de los usuarios va a
+acumular más rechazos que contrataciones. Exigir el estado `aceptada` dejaría la
+sección de reseñas vacía durante meses, justo cuando más falta hace para que la
+plataforma resulte útil. La experiencia del proceso de selección —tiempos de
+respuesta, trato, claridad de la vacante— es información valiosa aunque la
+postulación no haya prosperado.
