@@ -346,7 +346,7 @@ with check (
   and exists (
     select 1 from postulaciones p
     join vacantes v on v.id = p.vacante_id
-    where p.perfil_id = auth.uid() and v.empresa_id = empresa_id
+    where p.perfil_id = auth.uid() and v.empresa_id = resenias.empresa_id
   )
 );
 
