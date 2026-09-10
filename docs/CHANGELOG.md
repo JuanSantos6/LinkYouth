@@ -15,6 +15,55 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-10
 
+- **`src/types/database.ts` queda fuera de Prettier.** Se agregó a
+  `.prettierignore`.
+  Motivo: lo genera `supabase gen types` sin punto y coma. Formatearlo cambia
+  485 líneas y la próxima regeneración las revierte, así que el archivo
+  aparecía modificado en cada `npm run format` sin que nadie lo hubiera
+  tocado.
+
+- **La capa de datos se reescribe contra `db/schema.sql`.** `src/lib/data/`
+  (`tipos.ts`, `ejemplos.ts`, `consultas.ts`) y `src/lib/acciones/`
+  (`perfil.ts`, `postulaciones.ts`, `eventos.ts`) vuelven a existir, ahora
+  contra el esquema vigente: `inscripciones_evento`, `vacante_tags_publicos`,
+  `vacante_habilidades`, `perfil_habilidades` y `bio`/`foto_url`. Los 18
+  `// TODO: reconectar contra db/schema.sql` quedaron resueltos y el proyecto
+  vuelve a compilar.
+  Motivo: era el Hito 0.1 del plan y lo que bloqueaba todo lo demás.
+  Cierra las deudas 7.1, 7.2 y 7.3 anteriores.
+
+- **Los alias de tipo del esquema viven en `src/lib/data/tipos.ts`.** Cada
+  conjunto cerrado (`TipoOportunidad`, `EstadoPostulacion`, `EstadoFormacion`,
+  `EstadoVacante`, `EstadoEvento`, `TipoCuenta`) va con su función de
+  estrechamiento.
+  Motivo: el esquema usa `text` + `check`, así que `gen types` los devuelve
+  como `string`. No pueden vivir en `src/types/database.ts` porque el próximo
+  `gen types` los pisaría.
+  → [`decisiones.md`](./decisiones.md)
+
+- **`cancelarPostulacion` pasa a ser un cambio de estado.** Actualiza a
+  `cancelada` en vez de borrar la fila.
+  Motivo: de `postulaciones` no se borra nada, y la política
+  `postulaciones_transiciones_permitidas` habilita justamente esa transición
+  al postulante. Cierra la contradicción que quedó registrada como deuda 7.3.
+
+- **La interfaz deja de mostrar lo que el esquema no guarda.** Se quitaron
+  salario, modalidad, ubicación, cupos y conteo de inscriptos, nivel de
+  dominio y categoría de las etiquetas, y años, acreditación y logo de las
+  instituciones. También la insignia de «verificado» y su ícono, que quedó sin
+  uso.
+  Motivo: no inventar columnas. La lista completa quedó en `arquitectura.md`
+  §7.1 para que el equipo decida cuáles vale la pena agregar al esquema; para
+  una plataforma de empleo, salario y modalidad son las dos que más se van a
+  extrañar.
+
+- **El perfil muestra intereses y habilidades por separado.** `tags` y
+  `habilidades` son dos catálogos distintos en el esquema, y la tarjeta de
+  vacante los presenta igual: «áreas de interés» y «habilidades».
+  Motivo: el comentario de `db/schema.sql` lo dice explícitamente — el
+  matching de RF3.9 necesita distinguir «le interesa» de «sabe hacer».
+  Mezclarlos en la interfaz habría borrado esa distinción.
+
 - **Se resuelve el conflicto entre los dos esquemas de base.** El equipo
   decidió mantener `db/schema.sql` + `db/politicas.sql`; `db/migrations/` y
   `db/seed/` se eliminaron.

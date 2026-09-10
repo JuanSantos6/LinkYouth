@@ -3,11 +3,8 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
-// TODO: reconectar contra db/schema.sql
 import { actualizarPerfil } from "@/lib/acciones/perfil";
-// TODO: reconectar contra db/schema.sql
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
-// TODO: reconectar contra db/schema.sql
 import type { PerfilCompleto } from "@/lib/data/tipos";
 
 const CAMPO =
@@ -33,7 +30,14 @@ function Campo({
   );
 }
 
-/** Edición de los datos públicos del perfil (RF1.5 y RF2.2). */
+/**
+ * Edición de los datos públicos del perfil (RF1.5 y RF2.2).
+ *
+ * Solo aparecen los campos que existen en `db/schema.sql`: nombre, apellido,
+ * país y biografía. El nombre de usuario y la fecha de nacimiento se muestran
+ * sin poder editarse, porque cambiarlos toca reglas que hoy no están
+ * resueltas (unicidad del nickname y la restricción de mayoría de edad).
+ */
 export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
   const [estado, enviar, enCurso] = useActionState(
     actualizarPerfil,
@@ -49,7 +53,6 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
             defaultValue={perfil.nombre}
             required
             minLength={2}
-            maxLength={60}
             className={`mt-1.5 ${CAMPO}`}
           />
         </Campo>
@@ -60,47 +63,38 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
             defaultValue={perfil.apellido}
             required
             minLength={2}
-            maxLength={60}
             className={`mt-1.5 ${CAMPO}`}
           />
         </Campo>
       </div>
 
-      <Campo
-        etiqueta="Titular"
-        ayuda="Una línea sobre qué estudiás o qué buscás. Es lo primero que lee una empresa."
-      >
-        <input
-          name="titular"
-          defaultValue={perfil.titular ?? ""}
-          maxLength={120}
-          placeholder="Estudiante de Ingeniería en Computación · Front-end junior"
-          className={`mt-1.5 ${CAMPO}`}
-        />
-      </Campo>
-
       <div className="grid gap-4 sm:grid-cols-2">
-        <Campo etiqueta="Ciudad">
-          <input
-            name="ciudad"
-            defaultValue={perfil.ciudad ?? ""}
-            className={`mt-1.5 ${CAMPO}`}
-          />
-        </Campo>
-
         <Campo etiqueta="País">
           <input
             name="pais"
             defaultValue={perfil.pais}
+            required
             className={`mt-1.5 ${CAMPO}`}
+          />
+        </Campo>
+
+        <Campo
+          etiqueta="Nombre de usuario"
+          ayuda="Por ahora no se puede cambiar desde acá."
+        >
+          <input
+            value={`@${perfil.nombre_usuario}`}
+            readOnly
+            disabled
+            className={`mt-1.5 ${CAMPO} bg-superficie-suave text-tinta-suave`}
           />
         </Campo>
       </div>
 
       <Campo etiqueta="Biografía" ayuda="Hasta 600 caracteres.">
         <textarea
-          name="biografia"
-          defaultValue={perfil.biografia ?? ""}
+          name="bio"
+          defaultValue={perfil.bio ?? ""}
           rows={4}
           maxLength={600}
           className={`mt-1.5 resize-y ${CAMPO}`}

@@ -1,80 +1,58 @@
-// TODO: reconectar contra db/schema.sql
-import type { TagDePerfil } from "@/lib/data/tipos";
-import type { CategoriaTag } from "@/types/database";
-
-const CATEGORIAS: Record<CategoriaTag, string> = {
-  tecnologia: "Tecnología",
-  diseno: "Diseño",
-  datos: "Datos",
-  negocios: "Negocios",
-  idiomas: "Idiomas",
-  habilidades_blandas: "Habilidades blandas",
-};
-
-const ORDEN: CategoriaTag[] = [
-  "tecnologia",
-  "diseno",
-  "datos",
-  "negocios",
-  "idiomas",
-  "habilidades_blandas",
-];
+import { Etiqueta } from "@/components/ui/Etiqueta";
 
 /**
- * Habilidades del perfil agrupadas por categoría (RF2.3).
+ * Intereses y habilidades del perfil (RF2.3, RF2.4.3).
  *
- * El nivel se representa con una barra corta y también en texto: apoyarse
- * solo en la longitud de una barra deja afuera a quien no la puede comparar
- * de un vistazo.
+ * Van en dos grupos separados porque `db/schema.sql` los guarda en catálogos
+ * distintos: `tags` es «me interesa» y `habilidades` es «sé hacer». El
+ * matching de RF3.9 necesita esa distinción, así que la interfaz no los
+ * mezcla.
+ *
+ * No hay nivel de dominio ni categoría: `perfil_tags` y `perfil_habilidades`
+ * son tablas puente sin más columnas que las dos claves.
  */
-export function NubeTags({ tags }: { tags: TagDePerfil[] }) {
-  if (tags.length === 0) {
+export function NubeTags({
+  tags,
+  habilidades,
+}: {
+  tags: string[];
+  habilidades: string[];
+}) {
+  if (tags.length === 0 && habilidades.length === 0) {
     return (
       <p className="text-sm text-tinta-suave">
-        Todavía no elegiste habilidades. Son la base con la que la plataforma te
-        acerca vacantes.
+        Todavía no elegiste intereses ni habilidades. Son la base con la que la
+        plataforma te acerca vacantes y eventos.
       </p>
     );
   }
 
-  const porCategoria = ORDEN.map((categoria) => ({
-    categoria,
-    tags: tags.filter((tag) => tag.categoria === categoria),
-  })).filter((grupo) => grupo.tags.length > 0);
+  const grupos = [
+    {
+      titulo: "Habilidades",
+      ayuda: "Lo que sabés hacer.",
+      elementos: habilidades,
+    },
+    {
+      titulo: "Áreas de interés",
+      ayuda: "Hacia dónde querés ir.",
+      elementos: tags,
+    },
+  ].filter((grupo) => grupo.elementos.length > 0);
 
   return (
     <div className="space-y-5">
-      {porCategoria.map(({ categoria, tags: tagsDeCategoria }) => (
-        <section key={categoria}>
+      {grupos.map(({ titulo, ayuda, elementos }) => (
+        <section key={titulo}>
           <h3 className="text-[11px] font-semibold uppercase tracking-wide text-tinta-suave">
-            {CATEGORIAS[categoria]}
+            {titulo}
           </h3>
+          <p className="mt-0.5 text-xs text-tinta-suave">{ayuda}</p>
 
-          <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-            {tagsDeCategoria.map((tag) => (
-              <li
-                key={tag.slug}
-                className="flex items-center justify-between gap-3 rounded-control border border-borde bg-superficie-suave px-3 py-2"
-              >
-                <span className="truncate text-sm font-medium text-tinta">
-                  {tag.nombre}
-                </span>
-
-                <span className="flex shrink-0 items-center gap-2">
-                  <span className="flex gap-0.5" aria-hidden="true">
-                    {[1, 2, 3, 4, 5].map((paso) => (
-                      <span
-                        key={paso}
-                        className={`h-1.5 w-3 rounded-full ${
-                          paso <= tag.nivel ? "bg-primario" : "bg-borde-fuerte"
-                        }`}
-                      />
-                    ))}
-                  </span>
-                  <span className="font-mono text-xs text-tinta-suave">
-                    {tag.nivel}/5
-                  </span>
-                </span>
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {elementos.map((elemento) => (
+              <li key={elemento}>
+                <Etiqueta>{elemento}</Etiqueta>
               </li>
             ))}
           </ul>

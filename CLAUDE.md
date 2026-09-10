@@ -35,8 +35,8 @@ src/app/(app)/         Pantallas de la aplicación (inicio, empleos, eventos,
                        postulaciones, perfil).
 src/components/        ui/ primitivas · layout/ estructura · empleos/ eventos/
                        perfil/ por dominio.
-src/lib/data/          Lectura. Vacía: pendiente de reescribir.
-src/lib/acciones/      Escritura. Vacía: pendiente de reescribir.
+src/lib/data/          Lectura: tipos.ts, ejemplos.ts, consultas.ts.
+src/lib/acciones/      Escritura: acciones de servidor.
 src/lib/supabase/      Clientes de navegador y de servidor.
 src/types/database.ts  Tipos del esquema.
 ```
@@ -57,7 +57,7 @@ src/types/database.ts  Tipos del esquema.
 
 Ningún cambio se da por terminado sin esto:
 
-1. **Siempre** — una línea en `docs/CHANGELOG.md` con *qué* cambió y *por qué*.
+1. **Siempre** — una línea en `docs/CHANGELOG.md` con _qué_ cambió y _por qué_.
    El qué se ve en el diff; el porqué se pierde si no se escribe.
 2. **Si agregó, borró o cambió una función exportada** — actualizá el catálogo
    en `docs/arquitectura.md` §5. Está escrito a mano y no se regenera solo.
@@ -66,16 +66,6 @@ Ningún cambio se da por terminado sin esto:
 4. **Si hubo alternativas reales que se descartaron** — entrada en
    `docs/decisiones.md`, con fecha, decisión, alternativas y motivo.
 5. **Si resolvió o creó una deuda** — `docs/arquitectura.md` §7.
-
-## Estado de la capa de datos
-
-`src/lib/data/` y `src/lib/acciones/` están vacías. Sus archivos consultaban
-un esquema que se descartó y se eliminaron. Las páginas de `src/app/(app)/` y
-varios componentes quedaron con imports rotos, marcados con
-`// TODO: reconectar contra db/schema.sql`.
-
-Hasta que esa capa se reescriba contra `db/schema.sql`, el proyecto **no
-compila**. Es un estado conocido, no una regresión.
 
 ## Comandos
 
@@ -109,6 +99,7 @@ El esquema completo está en `db/schema.sql` y las políticas de seguridad en
 código que toque la base de datos.
 
 Reglas fijas:
+
 - Nunca se borran filas de `postulaciones`, `resenias` ni `eventos`. Los
   estados se actualizan, no se eliminan registros.
 - Los tags ocultos de una vacante (`vacante_tags_ocultos`) nunca se incluyen

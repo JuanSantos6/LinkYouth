@@ -23,26 +23,20 @@ Antes de escribir una línea de funcionalidad nueva.
 > está aplicado en Supabase. `db/migrations/` y `db/seed/` se eliminaron en
 > `6b6bf86`, junto con la capa de datos que dependía de ellos.
 
-### 0.1 Reescribir la capa de datos contra `schema.sql`
+### 0.1 Reescribir la capa de datos contra `schema.sql` ✔
 
-`src/lib/data/` y `src/lib/acciones/` están vacías: sus archivos consultaban
-el esquema descartado y se eliminaron en `6b6bf86`. **El proyecto no compila.**
-Es el trabajo que bloquea todo lo demás.
+> **Resuelto el 2026-09-10.** `src/lib/data/` y `src/lib/acciones/` se
+> reescribieron contra `db/schema.sql`: consultas con `select` anidado sobre
+> las tablas puente reales, alias de tipo en `src/lib/data/tipos.ts` con su
+> función de estrechamiento, y `cancelarPostulacion` como cambio de estado a
+> `cancelada` en lugar de un `DELETE`. Los 18 `TODO` quedaron resueltos y
+> `lint`, `typecheck` y `build` vuelven a pasar.
+>
+> Lo que la interfaz mostraba y el esquema no guarda —salario, modalidad,
+> ubicación, cupos, niveles, años de estudio, verificación— se quitó de las
+> pantallas en vez de inventarse. Está listado en `arquitectura.md` §7.1 para
+> que el equipo decida si alguna de esas columnas tiene que existir.
 
-- Reescribir las consultas y las acciones contra `db/schema.sql`, atendiendo
-  los 18 imports marcados con `// TODO: reconectar contra db/schema.sql` en 14
-  archivos de `src/app/(app)/` y `src/components/`.
-- Resolver los alias de tipo (`TipoOportunidad`, `CategoriaTag`,
-  `ModalidadTrabajo`, `EstadoPostulacion`, `EstadoFormacion`), que no existen
-  en los tipos generados porque el esquema usa `text` + `check` en vez de
-  enums de Postgres. No pueden vivir en `src/types/database.ts`: el próximo
-  `gen types` los pisa.
-- No repetir la contradicción de `cancelarPostulacion`, que hacía `DELETE`
-  contra la regla de `CLAUDE.md`. `db/schema.sql` acepta el estado
-  `cancelada`.
-
-**Terminado cuando** `npm run lint && npm run typecheck && npm run build`
-pasan, y las cinco pantallas cargan leyendo de la base.
 
 ---
 

@@ -1,4 +1,3 @@
-// TODO: reconectar contra db/schema.sql
 import type { Resultado } from "@/lib/data/tipos";
 
 /**
@@ -21,7 +20,9 @@ export function AvisoOrigen({ resultado }: { resultado: Resultado<unknown> }) {
         <span className="font-semibold">Contenido de demostración.</span>{" "}
         {resultado.error ?? "No se pudo leer la base de datos."}. Cargá las
         credenciales en <code className="font-mono">.env.local</code> y aplicá{" "}
-        <code className="font-mono">db/migrations/</code> para ver datos reales.
+        <code className="font-mono">db/schema.sql</code> y{" "}
+        <code className="font-mono">db/politicas.sql</code> para ver datos
+        reales.
       </p>
     </div>
   );

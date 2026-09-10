@@ -6,9 +6,9 @@ import { Encabezado } from "@/components/layout/Encabezado";
 import { TarjetaUsuario } from "@/components/perfil/TarjetaUsuario";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
-// TODO: reconectar contra db/schema.sql
 import {
   obtenerEventos,
+  obtenerEventosInscriptos,
   obtenerPerfilActual,
   obtenerPostulaciones,
   obtenerVacantes,
@@ -62,16 +62,16 @@ export default async function PaginaInicio({
   const { vista } = await searchParams;
   const activa: Vista = vista === "eventos" ? "eventos" : "empleos";
 
-  const [vacantes, eventos, perfil, postulaciones, yaPostuladas] =
+  const [vacantes, eventos, perfil, postulaciones, yaPostuladas, yaInscriptos] =
     await Promise.all([
       obtenerVacantes({ limite: 6 }),
       obtenerEventos(4),
       obtenerPerfilActual(),
       obtenerPostulaciones(),
       obtenerVacantesPostuladas(),
+      obtenerEventosInscriptos(),
     ]);
 
-  const tagsPerfil = perfil.datos.tags.map((tag) => tag.nombre);
   const resultado = activa === "empleos" ? vacantes : eventos;
 
   return (
@@ -98,7 +98,8 @@ export default async function PaginaInicio({
                 <TarjetaVacante
                   key={vacante.id}
                   vacante={vacante}
-                  tagsPerfil={tagsPerfil}
+                  tagsPerfil={perfil.datos.tags}
+                  habilidadesPerfil={perfil.datos.habilidades}
                   yaPostulado={yaPostuladas.has(vacante.id)}
                 />
               ))
@@ -113,7 +114,11 @@ export default async function PaginaInicio({
               />
             ) : (
               eventos.datos.map((evento) => (
-                <TarjetaEvento key={evento.id} evento={evento} />
+                <TarjetaEvento
+                  key={evento.id}
+                  evento={evento}
+                  yaInscripto={yaInscriptos.has(evento.id)}
+                />
               ))
             )}
           </section>

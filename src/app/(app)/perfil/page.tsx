@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 
 import { Encabezado } from "@/components/layout/Encabezado";
-import { IconoVerificado } from "@/components/layout/Iconos";
 import { AvatarEditable } from "@/components/perfil/AvatarEditable";
 import { FormularioPerfil } from "@/components/perfil/FormularioPerfil";
 import { ListaFormacion } from "@/components/perfil/ListaFormacion";
 import { NubeTags } from "@/components/perfil/NubeTags";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
-import { Insignia } from "@/components/ui/Insignia";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-// TODO: reconectar contra db/schema.sql
 import { obtenerPerfilActual } from "@/lib/data/consultas";
 
 export const metadata: Metadata = { title: "Mi perfil" };
@@ -40,8 +37,8 @@ function Seccion({
 /**
  * Vista de perfil.
  *
- * A diferencia del feed, esta pantalla ocupa el ancho completo: no hay
- * columna derecha que repita los datos que se están editando acá.
+ * A diferencia del feed, esta pantalla ocupa el ancho completo: no hay columna
+ * derecha que repita los datos que se están editando acá.
  */
 export default async function PaginaPerfil() {
   const perfil = await obtenerPerfilActual();
@@ -53,14 +50,6 @@ export default async function PaginaPerfil() {
       <Encabezado
         titulo="Mi perfil"
         descripcion="Esto es lo que ve una empresa cuando entra a tu perfil. LinkYouth no usa currículum: lo que cuenta son tus habilidades y tu formación."
-        acciones={
-          datos.verificado ? (
-            <Insignia tono="exito">
-              <IconoVerificado className="h-3.5 w-3.5" />
-              Verificado
-            </Insignia>
-          ) : undefined
-        }
       />
 
       <AvisoOrigen resultado={perfil} />
@@ -70,21 +59,21 @@ export default async function PaginaPerfil() {
         descripcion="Tu nombre, dónde estás y cómo te presentás."
       >
         <div className="space-y-6">
-          <AvatarEditable nombre={nombreCompleto} url={datos.avatar_url} />
+          <AvatarEditable nombre={nombreCompleto} url={datos.foto_url} />
           <FormularioPerfil perfil={datos} />
         </div>
       </Seccion>
 
       <Seccion
-        titulo="Habilidades"
+        titulo="Intereses y habilidades"
         descripcion="Las etiquetas con las que la plataforma te acerca vacantes y eventos."
       >
-        <NubeTags tags={datos.tags} />
+        <NubeTags tags={datos.tags} habilidades={datos.habilidades} />
       </Seccion>
 
       <Seccion
         titulo="Formación"
-        descripcion="Estudios en curso y finalizados. Las instituciones acreditadas aparecen marcadas."
+        descripcion="Estudios en curso y finalizados."
       >
         <ListaFormacion formaciones={datos.formaciones} />
       </Seccion>

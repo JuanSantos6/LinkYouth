@@ -27,8 +27,8 @@ Navegador
    ▼
 Next.js 15 (App Router)
    │
-   ├─ Server Components ──▶ src/lib/data/       (lectura — en reescritura)
-   ├─ Server Actions    ──▶ src/lib/acciones/   (escritura — en reescritura)
+   ├─ Server Components ──▶ src/lib/data/       (lectura)
+   ├─ Server Actions    ──▶ src/lib/acciones/   (escritura)
    └─ src/middleware.ts                         (refresco de sesión)
    │
    │  @supabase/ssr · clave anon · cookies de sesión
@@ -91,27 +91,32 @@ demo a terceros es la diferencia entre una maqueta honesta y una mentira.
 
 ---
 
-## 3. Estado de la capa de datos
+## 3. Cómo viajan los datos
 
-`src/lib/data/` y `src/lib/acciones/` **están vacías**. Sus archivos
-consultaban tablas y columnas de un esquema que se descartó
-(`inscripciones` en vez de `inscripciones_evento`, `vacante_tags` en vez de
-`vacante_tags_publicos`, vistas y enums que no existen), y se eliminaron en el
-commit `6b6bf86`.
+Toda lectura entra por `src/lib/data/consultas.ts` y toda escritura por
+`src/lib/acciones/`. Ninguna pantalla arma su propio cliente de Supabase.
 
-Consecuencias hoy:
+**Lectura.** Cada consulta devuelve un `Resultado<T>`: los datos y de dónde
+salieron. Si faltan las credenciales, si la consulta falla o si la tabla está
+vacía, se responde con el contenido de `ejemplos.ts` y `origen: "ejemplo"`, y
+la pantalla lo anuncia con `AvisoOrigen`. Es la implementación de la regla
+§2.3.
 
-- **El proyecto no compila.** Es un estado conocido, no una regresión.
-- 18 imports quedaron rotos en 14 archivos de `src/app/(app)/` y
-  `src/components/`, cada uno marcado con
-  `// TODO: reconectar contra db/schema.sql`.
-- Los componentes y las pantallas **se conservan enteros**: su maquetación,
-  sus estilos y sus decisiones de accesibilidad son independientes del
-  esquema.
+**Escritura.** Cada acción lleva `"use server"`, valida los campos en el
+servidor, comprueba que haya sesión y devuelve un `EstadoAccion` que el
+formulario consume con `useActionState`. La acción no reemplaza a la política
+de RLS: la acompaña. Quien decide es la base.
 
-Este documento no describe esa capa hasta que la reescritura termine.
-Documentar funciones que están siendo reemplazadas ahora mismo sería peor que
-no documentarlas: quien las leyera trabajaría contra una foto vieja.
+**Los tags ocultos.** Ninguna consulta menciona `vacante_tags_ocultos`, y no
+hace falta que se cuide de hacerlo: la política de RLS ya se los niega a
+cualquier sesión que no sea la empresa dueña de la vacante (RF3.1.6, RNF5).
+
+**Los alias de tipo.** El esquema usa `text` + `check` en vez de enums de
+Postgres, así que `supabase gen types` devuelve esas columnas como `string`.
+Los alias (`TipoOportunidad`, `EstadoPostulacion`, `EstadoFormacion`…) viven
+en `src/lib/data/tipos.ts` junto con una función de estrechamiento por cada
+uno. No pueden vivir en `src/types/database.ts`: el próximo `gen types` los
+pisaría.
 
 ---
 
@@ -126,7 +131,7 @@ docs/                     SRS, decisiones, plan, changelog, este documento
 
 src/app/
   layout.tsx              Layout raíz (lang="es", fuentes)
-  page.tsx                Landing y verificación de conexión
+  page.tsx                Redirige al feed
   (app)/layout.tsx        Estructura con barra lateral
   (app)/inicio|empleos|eventos|
         postulaciones|perfil/page.tsx   Las cinco pantallas
@@ -139,9 +144,9 @@ src/components/
 
 src/lib/
   supabase/               Clientes y credenciales
-  data/                   Lectura — vacía, en reescritura
-  acciones/               Escritura — vacía, en reescritura
-  formato.ts              Fechas, salarios, etiquetas
+  data/                   Lectura: tipos.ts, ejemplos.ts, consultas.ts
+  acciones/               Escritura: perfil, postulaciones, eventos
+  formato.ts              Fechas, etiquetas, afinidad
 
 src/types/database.ts     Tipos generados desde la base real
 src/middleware.ts         Refresco de sesión en cada request
@@ -209,55 +214,125 @@ Funciones puras. No tocan la base ni el DOM. Todas usan `es-UY` y la zona
 `America/Montevideo`, fijas: el servidor puede estar en cualquier huso, y la
 fecha de un evento tiene que leerse igual para todos.
 
-> Este módulo importa alias de tipo (`TipoOportunidad`, `ModalidadTrabajo`,
-> `EstadoPostulacion`) que los tipos generados ya no exportan. Ver §7.2.
+Importa sus alias de tipo de `src/lib/data/tipos.ts` (ver §3).
 
 #### `fechaLarga(iso): string`
 
-`"sábado 15 de octubre"`. Sin hora: la pone `rangoHorario` y no se repite.
+`"sábado 15 de octubre"`. Sin hora: la pone `hora()` y no se repite.
 
 #### `fechaBloque(iso): { dia, mes }`
 
 `{ dia: "15", mes: "OCT" }` para el bloque de fecha de una tarjeta de evento.
 
-#### `rangoHorario(inicio, fin): string`
+#### `hora(iso): string`
 
-`"18:30 a 20:30"`, o solo la hora de inicio si no hay fin. Reloj de 24 h: es
-el formato de una agenda.
+`"18:30"`. Reloj de 24 h: es el formato de una agenda. No hay rango porque
+`eventos.fecha_hora` es un único instante: el esquema no guarda hora de fin.
 
 #### `tiempoRelativo(iso): string`
 
 `"hace 2 horas"`, `"hace 3 días"`. Escala sola de minutos a meses.
 
-#### `rangoSalarial(min, max, moneda): string | null`
-
-`"USD 1.500 a 2.000 por mes"`. Devuelve `null` cuando la vacante no publica
-salario, para que la tarjeta omita la línea entera en lugar de mostrar un
-guión.
-
-#### `etiquetaModalidad(m)` · `etiquetaTipo(t)` · `etiquetaEstadoPostulacion(e)`
+#### `etiquetaTipo(t)` · `etiquetaEstadoPostulacion(e)` · `etiquetaEstadoFormacion(e)`
 
 Traducen los valores del esquema al texto de la interfaz.
 `etiquetaEstadoPostulacion` no es una traducción literal: `rechazada` se
-muestra como **"No seleccionada"** y `pendiente` como **"Enviada"**. Es
-deliberado — el estado se lo lee alguien que buscaba ese trabajo.
+muestra como **"No seleccionada"**, `pendiente` como **"Enviada"** y
+`cancelada` como **"Cancelada por vos"**. Es deliberado — el estado se lo lee
+alguien que buscaba ese trabajo.
 
 #### `iniciales(texto): string`
 
 Hasta dos iniciales en mayúscula, para el avatar sin foto.
 
-#### `afinidad(tagsVacante, tagsPerfil): number`
+#### `afinidad(requisitos, propios): number`
 
-Porcentaje de los tags **públicos** de la vacante que el postulante ya tiene
-(RF3.5.2). Compara en minúsculas. Devuelve `0` si la vacante no declara tags.
+Porcentaje de los requisitos de la vacante — sus tags **públicos** más sus
+habilidades — que el postulante ya declara (RF3.5.2). Compara en minúsculas y
+devuelve `0` si la vacante no pide nada.
 
-Solo mira tags públicos, así que puede correr en el cliente sin riesgo: los
-tags ocultos nunca entran en este cálculo.
+No es el puntaje de matching de RF3.9: ese usa los tags ocultos, se calcula en
+la base y lo ve solo la empresa. Este número solo mira datos públicos, así que
+puede correr en cualquier lado sin riesgo.
 
-### 5.6 Componentes
+### 5.6 `src/lib/data/`
 
-Se conservan enteros. Sus imports de tipos apuntan a módulos que se
-eliminaron, marcados con el TODO (§3).
+#### `tipos.ts`
+
+Alias de los conjuntos cerrados del esquema (`TipoOportunidad`,
+`EstadoVacante`, `EstadoPostulacion`, `EstadoFormacion`, `EstadoEvento`,
+`TipoCuenta`), cada uno con su constante `readonly` y su función de
+estrechamiento (`comoTipoOportunidad`, `comoEstadoPostulacion`, …). Las
+funciones convierten el `string` que devuelve Supabase y, si el valor no está
+en el conjunto, caen en un respaldo en vez de romper la pantalla: eso solo
+pasa si el esquema cambió y el código todavía no.
+
+También define las formas que consume la interfaz — `Vacante`, `Evento`,
+`PerfilCompleto`, `Formacion`, `PostulacionResumen`, `EmpresaResumen` — y el
+envoltorio `Resultado<T>` con su `OrigenDatos`.
+
+`Vacante` separa `tags` de `habilidades` porque el esquema los separa: son dos
+catálogos distintos, y el matching de RF3.9 necesita distinguir «le interesa»
+de «sabe hacer».
+
+#### `ejemplos.ts`
+
+Contenido de demostración con la forma exacta que devuelven las consultas:
+`VACANTES_EJEMPLO`, `EVENTOS_EJEMPLO`, `PERFIL_EJEMPLO`,
+`POSTULACIONES_EJEMPLO`. Solo usa campos que existen en `db/schema.sql`.
+
+#### `consultas.ts`
+
+`import "server-only"`: si alguna vez se importa desde un componente de
+cliente, el build falla en vez de filtrar la consulta al navegador.
+
+| Función | Devuelve | Requisito |
+| --- | --- | --- |
+| `obtenerVacantes(filtros?)` | `Resultado<Vacante[]>` | RF3.5.1. Filtra por tipo y busca por título. |
+| `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
+| `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
+| `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
+| `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
+| `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
+
+Las tres consultas grandes traen sus relaciones en un solo `select` anidado
+(`empresas ( … )`, `vacante_tags_publicos ( tags ( nombre ) )`). Los tipos
+generados traen los metadatos de las claves foráneas, así que TypeScript
+infiere la forma del resultado sin ayuda. `nombresDe()` aplana esas tablas
+puente a una lista de nombres ordenada.
+
+Cuando el join con `empresas` viene vacío —la cuenta de la empresa fue dada de
+baja y `cuenta_activa` la deja fuera— la fila se descarta con `flatMap` en vez
+de mostrarse sin organizador.
+
+### 5.7 `src/lib/acciones/`
+
+Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
+`EstadoAccion` (`{ estado, mensaje }`), que el formulario consume con
+`useActionState`. `tipos.ts` exporta además `ACCION_INICIAL`, `SIN_SESION` y
+`CLAVE_DUPLICADA` (el `23505` de Postgres).
+
+| Función | Qué hace | Requisito |
+| --- | --- | --- |
+| `postularse` | Inserta la postulación. El estado inicial `pendiente` es el default de la columna. | RF3.6 |
+| `cancelarPostulacion` | **Actualiza** el estado a `cancelada`. No borra la fila. | RF3.8 |
+| `inscribirse` | Inserta en `inscripciones_evento`. | RF4.5 |
+| `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. | RF4.6 |
+| `actualizarPerfil` | Actualiza nombre, apellido, país y biografía. | RF1.5, RF2.2 |
+
+El mensaje de error nunca se muestra crudo cuando se lo puede traducir: el
+`23505` de una postulación repetida se lee como «Ya te habías postulado a esta
+búsqueda».
+
+El límite de 600 caracteres de la biografía vive solo en `actualizarPerfil`:
+`db/schema.sql` declara `bio` como `text` sin restricción, así que es una
+decisión de producto, no del esquema.
+
+### 5.8 Componentes
+
+Reconectados contra `db/schema.sql`. Lo que la interfaz mostraba y el esquema
+no guarda —salario, modalidad, ubicación, cupos, nivel de dominio de una
+habilidad, años y acreditación de un estudio— se quitó en vez de inventarse.
 
 #### `ui/` — primitivas, sin dominio
 
@@ -267,10 +342,10 @@ eliminaron, marcados con el TODO (§3).
 | `Boton` | `variante?`, + props de `<button>` | Botón de acción. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
 | `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
-| `Etiqueta` | `children`, `tono?` | El tag de habilidad. Con `tono="coincide"` marca un tag que el perfil ya tiene. |
-| `Insignia` | `children`, `tono?` | Estado: modalidad, tipo de contrato, estado de una postulación. |
+| `Etiqueta` | `children`, `tono?` | Un tag o una habilidad. Con `tono="coincide"` marca lo que el perfil ya declara, con un ✓ además del color. |
+| `Insignia` | `children`, `tono?` | Estado: tipo de oportunidad, estado de una postulación o de un estudio. |
 | `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
-| `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración. Implementa la regla §2.3. Su prop depende de un tipo que la reescritura tiene que redefinir. |
+| `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
 
 #### `layout/` — estructura
 
@@ -279,38 +354,39 @@ eliminaron, marcados con el TODO (§3).
 | `BarraLateral` | — | Navegación de las cinco secciones. `"use client"` solo para leer `usePathname()` y marcar la activa. Columna fija de 240 px en escritorio; fila que se desplaza en pantallas chicas, sin menú desplegable: con cinco secciones, esconderlas cuesta más de lo que ahorra. |
 | `Encabezado` | `titulo`, `descripcion?`, `acciones?` | Encabezado de sección. |
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
-| `Iconos` | `className?` | Nueve íconos SVG inline (`IconoInicio`, `IconoEmpleos`, `IconoEventos`, `IconoPostulaciones`, `IconoPerfil`, `IconoBusqueda`, `IconoUbicacion`, `IconoVerificado`, `IconoCamara`). Inline y no una librería: son nueve, y una dependencia entera para eso no se paga sola. |
+| `Iconos` | `className?` | Ocho íconos SVG inline (`IconoInicio`, `IconoEmpleos`, `IconoEventos`, `IconoPostulaciones`, `IconoPerfil`, `IconoBusqueda`, `IconoUbicacion`, `IconoCamara`). Inline y no una librería: son ocho, y una dependencia entera para eso no se paga sola. |
 
 #### `empleos/` · `eventos/` · `perfil/` — por dominio
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `TarjetaVacante` | `vacante`, `tagsPerfil?`, `yaPostulado?` | Una vacante en el feed. Muestra el porcentaje de compatibilidad solo si la vacante declara tags, y siempre junto al detalle de cuáles coinciden: un número suelto no se puede verificar. |
+| `TarjetaVacante` | `vacante`, `tagsPerfil?`, `habilidadesPerfil?`, `yaPostulado?` | Una vacante en el feed. Separa habilidades de áreas de interés, igual que el esquema. Muestra el porcentaje de compatibilidad solo si la vacante pide algo, y siempre junto al detalle de qué coincide: un número suelto no se puede verificar. |
 | `BotonPostularse` | `vacanteId`, `yaPostulado?` | Postulación en un paso (RF3.6). Anuncia el resultado en una región `aria-live`. |
-| `TarjetaEvento` | `evento` | Deliberadamente distinta de la de vacante: cabecera con franja de color, bloque de fecha destacado, cupo como dato principal. Hay que distinguir de un vistazo una oferta de una actividad. |
-| `BotonInscribirse` | `eventoId` | Inscripción a un evento (RF4.5). |
+| `TarjetaEvento` | `evento`, `yaInscripto?` | Deliberadamente distinta de la de vacante: cabecera con franja de color y bloque de fecha destacado. Hay que distinguir de un vistazo una oferta de una actividad. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo, y la política de `inscripciones_evento` no deja contar las de los demás. |
+| `BotonInscribirse` | `eventoId`, `yaInscripto?` | Inscripción a un evento (RF4.5). |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
-| `NubeTags` | `tags` | Tags agrupados por categoría. El nivel se muestra con una barra **y** en texto: apoyarse solo en el largo de la barra deja afuera a quien no la puede comparar de un vistazo. |
-| `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo para el logo, con iniciales cuando no hay: la lista se lee igual de alineada en los dos casos. |
+| `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
+| `NubeTags` | `tags`, `habilidades` | Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
+| `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 
 #### Páginas
 
 | Ruta | Función | Qué hace |
 | --- | --- | --- |
-| `/` | `Home` | Landing y verificación de conexión con Supabase. |
+| `/` | `Home` | Redirige a `/inicio`. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. |
 | `/eventos` | `PaginaEventos` | Agenda de eventos próximos. |
-| `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados. Incluye `pasoActual` y `Recorrido` (privadas). |
+| `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
 
 Las cinco pantallas de `(app)/` declaran
 `export const dynamic = "force-dynamic"`: leen datos por sesión, y cachearlas
 mostraría el perfil de otro.
 
-### 5.7 Funciones en la base
+### 5.9 Funciones en la base
 
 Definidas en `db/schema.sql`. Las seis fijan `set search_path = public,
 pg_temp`: una función `security definer` sin `search_path` fijo es explotable
@@ -422,49 +498,47 @@ Cuando un cambio toca el código:
 
 Cosas que hoy no cierran. Están acá para que se vean, no para que se olviden.
 
-### 7.1 La capa de datos está vacía
+### 7.1 La interfaz perdió datos que el esquema no guarda
 
-Ver §3. Es la deuda que bloquea todo lo demás: hasta que se reescriba, el
-proyecto no compila. Es el ítem 0.1 del [`plan.md`](./plan.md).
+La reescritura de la capa de datos quitó de las pantallas todo lo que
+`db/schema.sql` no tiene. Se quitó en vez de inventarse, pero la falta se nota:
 
-### 7.2 Los alias de tipo del esquema no existen
+| Dato | Dónde se mostraba | Estado |
+| --- | --- | --- |
+| Salario y moneda | Tarjeta de vacante | `vacantes` no tiene columnas de salario |
+| Modalidad (presencial, híbrido, remoto) | Vacante y evento | No existe |
+| Ubicación | Vacante y evento | No existe |
+| Cupo y cantidad de inscriptos | Tarjeta de evento | No hay cupo; las inscripciones ajenas no se pueden contar por RLS |
+| Hora de fin de un evento | Tarjeta de evento | `eventos.fecha_hora` es un instante |
+| Nivel de dominio de una habilidad | Perfil | `perfil_habilidades` es una tabla puente sin más columnas |
+| Categoría de un tag | Perfil | `tags` tiene solo `id` y `nombre` |
+| Años y acreditación de un estudio | Formación | `formaciones` tiene institución, título y estado |
+| Perfil o empresa verificada | Ficha de usuario, tarjeta de vacante | No existe |
+| Ciudad y titular del perfil | Ficha de usuario | `perfiles` guarda país, no ciudad |
 
-`src/types/database.ts` se genera con `supabase gen types typescript`. Como el
-esquema usa `text` + `check` en vez de enums de Postgres, Supabase genera esas
-columnas como `string`: no hay `TipoOportunidad`, `CategoriaTag`,
-`ModalidadTrabajo`, `EstadoPostulacion` ni `EstadoFormacion`.
+Ninguno es un olvido de la reescritura: son decisiones de alcance del esquema.
+Si el equipo quiere alguno de vuelta, el camino es agregar la columna en
+`db/schema.sql` primero. Para una plataforma de empleo, el salario y la
+modalidad son los dos que más se van a extrañar.
 
-Cinco archivos los importan y hoy no compilan por eso:
+### 7.2 El feed no distingue tags de habilidades al buscar
 
-```
-src/lib/formato.ts
-src/app/(app)/empleos/page.tsx
-src/app/(app)/postulaciones/page.tsx
-src/components/perfil/ListaFormacion.tsx
-src/components/perfil/NubeTags.tsx
-```
+`obtenerVacantes` busca solo por título. El esquema permite filtrar por tag o
+por habilidad —son tablas puente indexadas— pero eso pide una consulta con
+`in` sobre la tabla puente, y el buscador de hoy es un `<input>` de texto
+libre. Queda para cuando exista el filtro por etiqueta.
 
-Hay que decidir dónde viven esos alias. No pueden vivir en `database.ts`: el
-próximo `gen types` los pisa. Va con la reescritura de la capa de datos.
-
-### 7.3 `cancelarPostulacion` borraba la fila
-
-La acción que existía hacía `DELETE`, y `CLAUDE.md` dice que de
-`postulaciones` nunca se borran filas. El archivo ya no está, así que la
-contradicción no está en el código hoy — pero la reescritura tiene que
-resolverla, no repetirla: `db/schema.sql` sí acepta el estado `cancelada`.
-
-### 7.4 No hay autenticación
+### 7.3 No hay autenticación
 
 `(auth)/` está vacía. El middleware refresca la sesión pero no protege nada, y
 `(app)/` es accesible sin iniciar sesión. Es el Hito 1 del plan.
 
-### 7.5 La subida de archivos no existe
+### 7.4 La subida de archivos no existe
 
 `AvatarEditable` muestra la vista previa y avisa que la subida falta. Los
 logos de empresa e institución dependen de lo mismo.
 
-### 7.6 La aplicación no distingue postulante de empresa
+### 7.5 La aplicación no distingue postulante de empresa
 
 El esquema los separa con `cuentas.tipo`, pero la interfaz no lo mira en
 ningún lado: ni en la navegación, ni en las rutas, ni en el layout. Definirlo

@@ -1,70 +1,61 @@
-import { IconoUbicacion, IconoVerificado } from "@/components/layout/Iconos";
 import { Avatar } from "@/components/ui/Avatar";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Insignia } from "@/components/ui/Insignia";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-// TODO: reconectar contra db/schema.sql
 import type { Vacante } from "@/lib/data/tipos";
-import {
-  afinidad,
-  etiquetaModalidad,
-  etiquetaTipo,
-  rangoSalarial,
-  tiempoRelativo,
-} from "@/lib/formato";
+import { afinidad, etiquetaTipo, tiempoRelativo } from "@/lib/formato";
 
 import { BotonPostularse } from "./BotonPostularse";
 
 /**
  * Tarjeta de una oportunidad laboral.
  *
- * El orden de lectura es el de las preguntas que se hace quien busca trabajo:
- * quién ofrece, qué puesto, qué piden, cuánto paga y cómo postularse. La
- * compatibilidad se muestra solo cuando la vacante declara tags, y siempre
- * acompañada del detalle de cuáles coinciden.
+ * El orden de lectura sigue las preguntas de quien busca trabajo: quién
+ * ofrece, qué puesto, qué piden y cómo postularse. Los requisitos se muestran
+ * en dos grupos porque `db/schema.sql` los separa: `vacante_tags_publicos` son
+ * los intereses de la búsqueda y `vacante_habilidades` los conocimientos
+ * técnicos.
+ *
+ * Los tags ocultos de la vacante (RF3.1.6, RNF5) no llegan hasta acá: la
+ * política de RLS ya se los niega a cualquier sesión que no sea la empresa.
  */
 export function TarjetaVacante({
   vacante,
   tagsPerfil = [],
+  habilidadesPerfil = [],
   yaPostulado = false,
 }: {
   vacante: Vacante;
   tagsPerfil?: string[];
+  habilidadesPerfil?: string[];
   yaPostulado?: boolean;
 }) {
-  const compatibilidad = afinidad(vacante.tags, tagsPerfil);
-  const propios = new Set(tagsPerfil.map((tag) => tag.toLowerCase()));
-  const salario = rangoSalarial(
-    vacante.salario_min,
-    vacante.salario_max,
-    vacante.moneda,
-  );
+  const requisitos = [...vacante.tags, ...vacante.habilidades];
+  const declarados = [...tagsPerfil, ...habilidadesPerfil];
+  const compatibilidad = afinidad(requisitos, declarados);
+
+  const propios = new Set(declarados.map((nombre) => nombre.toLowerCase()));
+  const tono = (nombre: string) =>
+    propios.has(nombre.toLowerCase()) ? "coincide" : "neutra";
 
   return (
     <Tarjeta como="article" interactiva className="p-5">
       <div className="flex items-start gap-4">
         <Avatar
-          nombre={vacante.empresa}
-          url={vacante.empresa_logo_url}
+          nombre={vacante.empresa.razon_social}
+          url={vacante.empresa.logo_url}
           forma="cuadrado"
         />
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-tinta-suave">
             <span className="font-semibold text-tinta-media">
-              {vacante.empresa}
+              {vacante.empresa.razon_social}
             </span>
-            {vacante.empresa_verificada && (
-              <IconoVerificado className="h-4 w-4 text-primario" />
-            )}
-            {vacante.ubicacion && (
-              <span className="flex items-center gap-1">
-                <IconoUbicacion className="h-3.5 w-3.5 text-tinta-tenue" />
-                {vacante.ubicacion}
-              </span>
-            )}
             <span aria-hidden="true">·</span>
-            <span>{tiempoRelativo(vacante.publicada_en)}</span>
+            <span>{vacante.empresa.rubro}</span>
+            <span aria-hidden="true">·</span>
+            <span>{tiempoRelativo(vacante.creada_en)}</span>
           </div>
 
           <h3 className="mt-1 text-base font-bold text-tinta">
@@ -76,7 +67,7 @@ export function TarjetaVacante({
           </p>
         </div>
 
-        {compatibilidad > 0 && (
+        {requisitos.length > 0 && (
           <div className="hidden shrink-0 text-right sm:block">
             <Insignia tono={compatibilidad >= 70 ? "exito" : "neutro"}>
               {compatibilidad}% compatible
@@ -85,38 +76,46 @@ export function TarjetaVacante({
         )}
       </div>
 
+      {vacante.habilidades.length > 0 && (
+        <div className="mt-4">
+          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-tinta-suave">
+            Habilidades
+          </h4>
+          <ul className="mt-1.5 flex flex-wrap gap-1.5">
+            {vacante.habilidades.map((habilidad) => (
+              <li key={habilidad}>
+                <Etiqueta tono={tono(habilidad)}>{habilidad}</Etiqueta>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {vacante.tags.length > 0 && (
-        <ul className="mt-4 flex flex-wrap gap-1.5">
-          {vacante.tags.map((tag) => (
-            <li key={tag}>
-              <Etiqueta
-                tono={propios.has(tag.toLowerCase()) ? "coincide" : "neutra"}
-              >
-                {tag}
-              </Etiqueta>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-3">
+          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-tinta-suave">
+            Áreas de interés
+          </h4>
+          <ul className="mt-1.5 flex flex-wrap gap-1.5">
+            {vacante.tags.map((tag) => (
+              <li key={tag}>
+                <Etiqueta tono={tono(tag)}>{tag}</Etiqueta>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-borde pt-4">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-tinta">
-            {salario ?? "Remuneración a convenir"}
-          </p>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Insignia
-              tono={vacante.tipo === "pasantia" ? "primario" : "neutro"}
-            >
-              {etiquetaTipo(vacante.tipo)}
-            </Insignia>
-            <Insignia>{etiquetaModalidad(vacante.modalidad)}</Insignia>
-            <span className="text-xs text-tinta-suave">
-              {vacante.posiciones === 1
-                ? "1 posición"
-                : `${vacante.posiciones} posiciones`}
-            </span>
-          </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Insignia tono={vacante.tipo === "pasantia" ? "primario" : "neutro"}>
+            {etiquetaTipo(vacante.tipo)}
+          </Insignia>
+          <span className="text-xs text-tinta-suave">
+            {vacante.posiciones === 1
+              ? "1 posición"
+              : `${vacante.posiciones} posiciones`}
+          </span>
         </div>
 
         <BotonPostularse vacanteId={vacante.id} yaPostulado={yaPostulado} />

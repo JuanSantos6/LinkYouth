@@ -6,13 +6,12 @@ import { BuscadorVacantes } from "@/components/layout/BuscadorVacantes";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
-// TODO: reconectar contra db/schema.sql
 import {
   obtenerPerfilActual,
   obtenerVacantes,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
-import type { TipoOportunidad } from "@/types/database";
+import { TIPOS_OPORTUNIDAD, type TipoOportunidad } from "@/lib/data/tipos";
 
 export const metadata: Metadata = { title: "Empleos" };
 export const dynamic = "force-dynamic";
@@ -30,16 +29,17 @@ export default async function PaginaEmpleos({
 }) {
   const { q, tipo } = await searchParams;
 
-  const tipoValido: TipoOportunidad | undefined =
-    tipo === "empleo" || tipo === "pasantia" ? tipo : undefined;
+  const tipoValido = (TIPOS_OPORTUNIDAD as readonly string[]).includes(
+    tipo ?? "",
+  )
+    ? (tipo as TipoOportunidad)
+    : undefined;
 
   const [vacantes, perfil, yaPostuladas] = await Promise.all([
     obtenerVacantes({ busqueda: q, tipo: tipoValido, limite: 30 }),
     obtenerPerfilActual(),
     obtenerVacantesPostuladas(),
   ]);
-
-  const tagsPerfil = perfil.datos.tags.map((tag) => tag.nombre);
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -104,7 +104,8 @@ export default async function PaginaEmpleos({
             <TarjetaVacante
               key={vacante.id}
               vacante={vacante}
-              tagsPerfil={tagsPerfil}
+              tagsPerfil={perfil.datos.tags}
+              habilidadesPerfil={perfil.datos.habilidades}
               yaPostulado={yaPostuladas.has(vacante.id)}
             />
           ))
