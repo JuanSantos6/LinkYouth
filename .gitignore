@@ -42,3 +42,7 @@ next-env.d.ts
 
 # env local example (debe versionarse)
 !.env.local.example
+
+# Salida de graphify, una herramienta externa de análisis. Se regenera
+# a demanda y no forma parte del proyecto.
+/graphify-out/
