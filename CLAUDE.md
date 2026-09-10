@@ -69,3 +69,18 @@ generado.
   arquitectura.
 - Después de modificar código, corré `graphify update .` para mantener el
   grafo al día.
+
+## Modelo de datos
+
+El esquema completo está en `db/schema.sql` y las políticas de seguridad en
+`db/politicas.sql`. Leé ambos archivos completos antes de generar cualquier
+código que toque la base de datos.
+
+Reglas fijas:
+- Nunca se borran filas de `postulaciones`, `resenias` ni `eventos`. Los
+  estados se actualizan, no se eliminan registros.
+- Los tags ocultos de una vacante (`vacante_tags_ocultos`) nunca se incluyen
+  en ninguna consulta que pueda ver un usuario individual.
+- Las transiciones de estado en `postulaciones` están restringidas por RLS: el
+  postulante solo puede pasar a `cancelada`, la empresa solo a
+  `en_revision`/`aceptada`/`rechazada`.
