@@ -240,14 +240,13 @@ fallar.
 
 ## Lo que hay que decidir en el camino
 
-Ninguna de estas tres tiene respuesta hoy, y las tres van a frenar el trabajo
+Ninguna de estas dos tiene respuesta hoy, y las dos van a frenar el trabajo
 cuando se llegue.
 
-**La contradicción de la edad.** RF1.1.8 exige 18 años; RNF6 y la sección de
-Restricciones hablan de datos de menores desde los 14. El check
-`perfiles_mayor_de_edad` fija hoy la plataforma en 18. Si gana la otra
-lectura, cambia el número y cambia el encuadre legal entero. **Hace falta
-resolverlo en el SRS antes del Hito 1**, porque define quién puede registrarse.
+> **Resuelto el 2026-09-10:** la contradicción de la edad del SRS. La
+> plataforma admite solo mayores de 18 años. La regla ya está en
+> `db/migrations/0001_esquema.sql`. Ver
+> [decisiones.md](./decisiones.md).
 
 **Datos alojados en Estados Unidos.** La base está en `us-east-2`. Antes de
 que entre el primer usuario real hay que tener la política de privacidad y los

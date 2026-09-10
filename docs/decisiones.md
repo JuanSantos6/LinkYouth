@@ -202,3 +202,36 @@ indexa las claves foráneas por su cuenta, y varias políticas de RLS ejecutan
 `exists (select 1 from vacantes ...)` una vez por fila evaluada: sin índice,
 cada lectura de una tabla hija recorre la tabla padre entera. El costo aparece
 en la primera demo con datos de prueba, no en producción.
+
+---
+
+## 2026-09-10 — La plataforma es solo para mayores de 18 años
+
+**Decisión.** LinkYouth admite únicamente personas de 18 años cumplidos. La
+regla vive en el esquema, como restricción de la tabla `perfiles`:
+
+```sql
+check (fecha_nacimiento <= current_date - interval '18 years')
+```
+
+**Alternativas consideradas.**
+
+- Admitir desde los 14 años, que es la otra lectura posible del SRS.
+- Admitir desde los 14 con consentimiento de un adulto responsable.
+
+**Motivo.** El SRS se contradecía: RF1.1.8 exige edad mayor o igual a 18,
+mientras que RNF6 (línea 527) y la sección de Restricciones (línea 551) hablan
+de tratamiento de datos personales de menores «a partir de los 14 años». Las
+dos cosas no pueden ser ciertas a la vez, y la diferencia no es de detalle:
+define quién puede registrarse y bajo qué encuadre legal.
+
+Se resuelve a favor de RF1.1.8. Admitir menores obligaría a un circuito de
+consentimiento del adulto responsable, a un tratamiento diferenciado de sus
+datos y a revisar la decisión de alojar la base fuera del país con un estándar
+más exigente. Nada de eso está en el alcance del MVP, y construirlo a medias
+sería peor que no admitir menores.
+
+**Consecuencia.** Las menciones a los 14 años en `docs/01_preamble.md` (líneas
+527 y 551) quedan sin efecto. Conviene corregirlas en la próxima revisión del
+SRS para que no vuelvan a leerse como un requisito vigente.
+

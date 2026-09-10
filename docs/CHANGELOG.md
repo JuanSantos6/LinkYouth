@@ -15,6 +15,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-10
 
+- **Se resuelve la contradicción de la edad del SRS**: la plataforma admite
+  solo mayores de 18 años.
+  Motivo: RF1.1.8 y RNF6 se contradecían, y la diferencia define quién puede
+  registrarse. Admitir menores exigiría consentimiento de un adulto
+  responsable y un encuadre legal más estricto, fuera del alcance del MVP.
+  La regla ya estaba en `db/migrations/0001_esquema.sql:40`.
+  → [decisiones.md](./decisiones.md)
+
 - **Documentación del proyecto.** Se agregan `docs/arquitectura.md` (mapa,
   reglas estructurales y catálogo de todas las funciones), este `CHANGELOG.md`
   y `docs/plan.md` (hoja de ruta hasta el MVP).
