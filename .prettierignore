@@ -5,3 +5,6 @@ build
 public
 docs
 package-lock.json
+
+# Skill de terceros: se versiona tal como viene
+.claude/skills/graphify

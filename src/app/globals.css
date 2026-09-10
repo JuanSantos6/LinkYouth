@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+   Sistema de diseño de LinkYouth
+   ---------------------------------------------------------------------------
+   Paleta sobria y de alto contraste, pensada para una plataforma de empleo:
+   el contenido manda y el color se reserva para la acción y el estado.
+   Los tokens se nombran en español, igual que el resto del código, y Tailwind
+   genera las utilidades a partir de ellos (`bg-lienzo`, `text-tinta-suave`,
+   `border-borde`, `rounded-tarjeta`, `shadow-tarjeta`...).
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* Superficies */
+  --color-lienzo: #f6f7f9;
+  --color-superficie: #ffffff;
+  --color-superficie-suave: #f9fafb;
+  --color-borde: #e5e7eb;
+  --color-borde-fuerte: #d1d5db;
+
+  /* Texto */
+  --color-tinta: #101828;
+  --color-tinta-media: #475467;
+  --color-tinta-suave: #667085;
+  --color-tinta-tenue: #98a2b3;
+
+  /* Acción */
+  --color-primario: #1d4ed8;
+  --color-primario-fuerte: #1e40af;
+  --color-primario-suave: #eff4ff;
+  --color-primario-borde: #c7d7fe;
+
+  /* Estado */
+  --color-exito: #067647;
+  --color-exito-suave: #ecfdf3;
+  --color-exito-borde: #abefc6;
+  --color-aviso: #b54708;
+  --color-aviso-suave: #fffaeb;
+  --color-aviso-borde: #fedf89;
+  --color-alerta: #b42318;
+  --color-alerta-suave: #fef3f2;
+  --color-alerta-borde: #fecdca;
+
+  /* Tipografía */
+  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* Radios */
+  --radius-control: 0.5rem;
+  --radius-tarjeta: 0.875rem;
+
+  /* Elevación: sombras cortas y de baja opacidad, nunca difusas */
+  --shadow-tarjeta:
+    0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-elevada:
+    0 2px 4px -2px rgb(16 24 40 / 0.06), 0 4px 12px -2px rgb(16 24 40 / 0.08);
+  --shadow-flotante: 0 8px 24px -4px rgb(16 24 40 / 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-lienzo);
+    color: var(--color-tinta);
+    font-family: var(--font-sans);
+    /* Un poco de tracking negativo asienta la tipografía en textos densos. */
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.021em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Foco visible y consistente en todo lo que se pueda enfocar con teclado. */
+  :focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-primario-suave);
+    color: var(--color-primario-fuerte);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Superficie base de toda tarjeta de la aplicación. */
+  .tarjeta {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radius-tarjeta);
+    box-shadow: var(--shadow-tarjeta);
+  }
+
+  /* Reacción al puntero: mínima y rápida, sin desplazamientos bruscos. */
+  .tarjeta-interactiva {
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .tarjeta-interactiva:hover {
+    border-color: var(--color-borde-fuerte);
+    box-shadow: var(--shadow-elevada);
+    transform: translateY(-1px);
+  }
+}
+
+/* Quien pide menos movimiento, no recibe ninguno. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
