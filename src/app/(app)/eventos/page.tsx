@@ -4,6 +4,7 @@ import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
+// TODO: reconectar contra db/schema.sql
 import { obtenerEventos } from "@/lib/data/consultas";
 
 export const metadata: Metadata = { title: "Eventos" };

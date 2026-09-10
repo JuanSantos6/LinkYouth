@@ -3,8 +3,11 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
+// TODO: reconectar contra db/schema.sql
 import { actualizarPerfil } from "@/lib/acciones/perfil";
+// TODO: reconectar contra db/schema.sql
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
+// TODO: reconectar contra db/schema.sql
 import type { PerfilCompleto } from "@/lib/data/tipos";
 
 const CAMPO =

@@ -1,3 +1,4 @@
+// TODO: reconectar contra db/schema.sql
 import type { Resultado } from "@/lib/data/tipos";
 
 /**

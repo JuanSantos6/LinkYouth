@@ -3,7 +3,9 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
+// TODO: reconectar contra db/schema.sql
 import { inscribirse } from "@/lib/acciones/eventos";
+// TODO: reconectar contra db/schema.sql
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 
 /** Inscripción a un evento institucional (RF4.5). */

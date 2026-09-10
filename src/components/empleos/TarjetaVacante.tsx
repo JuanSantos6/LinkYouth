@@ -3,6 +3,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Insignia } from "@/components/ui/Insignia";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+// TODO: reconectar contra db/schema.sql
 import type { Vacante } from "@/lib/data/tipos";
 import {
   afinidad,

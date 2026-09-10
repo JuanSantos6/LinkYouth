@@ -3,6 +3,7 @@ import { IconoUbicacion, IconoVerificado } from "@/components/layout/Iconos";
 import { Avatar } from "@/components/ui/Avatar";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+// TODO: reconectar contra db/schema.sql
 import type { PerfilCompleto } from "@/lib/data/tipos";
 
 /**

@@ -6,6 +6,7 @@ import { BuscadorVacantes } from "@/components/layout/BuscadorVacantes";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
+// TODO: reconectar contra db/schema.sql
 import {
   obtenerPerfilActual,
   obtenerVacantes,

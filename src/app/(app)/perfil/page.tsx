@@ -9,6 +9,7 @@ import { NubeTags } from "@/components/perfil/NubeTags";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Insignia } from "@/components/ui/Insignia";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+// TODO: reconectar contra db/schema.sql
 import { obtenerPerfilActual } from "@/lib/data/consultas";
 
 export const metadata: Metadata = { title: "Mi perfil" };

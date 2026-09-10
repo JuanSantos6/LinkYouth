@@ -1,3 +1,4 @@
+// TODO: reconectar contra db/schema.sql
 import type { TagDePerfil } from "@/lib/data/tipos";
 import type { CategoriaTag } from "@/types/database";
 
