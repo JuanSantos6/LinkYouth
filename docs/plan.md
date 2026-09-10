@@ -1,0 +1,276 @@
+# Plan hasta el MVP
+
+Cómo seguimos. Alcance: la **Fase 1** del SRS — RF1 a RF4, RF6 a RF8
+funcionando contra Supabase real. Los chats (RF9) y la fase avanzada con IA
+(RF10) quedan fuera.
+
+El orden no es caprichoso: cada hito depende del anterior. Sin autenticación
+no hay perfil propio, y sin perfil propio el matching no tiene contra qué
+comparar.
+
+**Cómo leer cada hito.** *Qué entra* es el alcance. *Qué no entra* está para
+evitar que el hito se estire. *Terminado cuando* es la condición que se puede
+verificar; si no se puede verificar, el hito no está cerrado.
+
+---
+
+## Hito 0 — Poner la casa en orden
+
+Antes de escribir una línea de funcionalidad nueva. Son deudas que hoy
+generan confusión y van a costar más caro después.
+
+### 0.1 Resolver los dos esquemas de base
+
+Hoy conviven `db/schema.sql` + `db/politicas.sql` y `db/migrations/`,
+describiendo esquemas incompatibles (ver `arquitectura.md` §7.1). El código
+sigue a `migrations/`.
+
+- Confirmar cuál está aplicado en el proyecto de Supabase.
+- Quedarse con uno. Si es `migrations/`, borrar `schema.sql` y `politicas.sql`
+  y trasladar a una migración nueva lo que valga la pena de ellos: el trigger
+  de exclusividad perfil/empresa, `cuenta_activa()`, el `search_path` fijo en
+  las funciones, los índices y el check de mayoría de edad.
+- Dejar `db/README.md` describiendo solo lo que quedó.
+
+**Terminado cuando** `db/` tiene un solo esquema, y correrlo de cero sobre una
+base limpia no da error.
+
+### 0.2 Aplicar el esquema y verificarlo
+
+- Correr `migrations/` y `seed/` en el proyecto de Supabase.
+- Entrar a `/` y ver que la pantalla de verificación dice que conectó.
+- Entrar a `/empleos` y ver que **no** aparece `AvisoOrigen`: eso significa
+  que está leyendo la base de verdad.
+
+**Terminado cuando** las cinco pantallas cargan sin el aviso de demostración.
+
+### 0.3 Regenerar los tipos
+
+```bash
+npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts
+```
+
+Hoy están escritos a mano. Después de regenerar, `npm run typecheck` va a
+marcar toda diferencia entre lo que el código supone y lo que la base tiene.
+Esos errores son justamente el valor del paso.
+
+**Terminado cuando** `npm run typecheck` pasa con los tipos generados.
+
+### 0.4 Decidir qué pasa con `cancelarPostulacion`
+
+Hace `DELETE` y contradice la regla de `CLAUDE.md` (ver `arquitectura.md`
+§7.2). Recomendación: agregar `cancelada` al enum `estado_postulacion` y pasar
+a `UPDATE`, que conserva el dato para las métricas de RF7.
+
+**Terminado cuando** el código y la regla escrita dicen lo mismo.
+
+---
+
+## Hito 1 — Autenticación (RF1)
+
+Lo que desbloquea todo lo demás. Hoy no hay sesión, así que cada consulta cae
+en datos de ejemplo.
+
+**Qué entra**
+
+- Registro de postulante y de empresa (RF1.1, RF1.2), con la creación de la
+  fila de `perfiles` o `empresas` en el mismo flujo.
+- Inicio y cierre de sesión (RF1.3, RF1.4).
+- Recuperación de contraseña (RF1.6).
+- Pantallas en `src/app/(auth)/`: `login`, `registro`, `recuperar`.
+- Protección de rutas en `src/middleware.ts`: `(app)/` redirige a `/login` sin
+  sesión.
+- Route handler `/auth/callback` para el intercambio de código de Supabase.
+
+**Qué no entra**
+
+- Inicio de sesión con proveedores externos (Google, LinkedIn). No está en el
+  SRS para Fase 1.
+- Verificación de identidad de empresas (RF1.7). Va con el Hito 6.
+
+**Terminado cuando** se puede crear una cuenta, cerrar el navegador, volver a
+entrar y ver el perfil propio; y entrar a `/perfil` sin sesión redirige a
+`/login`.
+
+**Ojo con esto.** Al registrarse hay que crear la fila de `perfiles` en la
+misma transacción, o al menos verificar que quedó creada. Un usuario en
+`auth.users` sin fila en `perfiles` es un fantasma: inicia sesión y no tiene
+adónde ir.
+
+---
+
+## Hito 2 — Perfil y tags (RF2)
+
+**Qué entra**
+
+- `obtenerPerfilActual()` leyendo la sesión real en vez del perfil de ejemplo.
+- Selección de tags contra el catálogo, con nivel 1–5 (RF2.3).
+- Alta, edición y baja de formación (RF2.4).
+- Subida de foto a Supabase Storage, completando `AvatarEditable` (RF2.1.4).
+- Perfil público de otro usuario (RF2.5).
+
+**Qué no entra**
+
+- Que el usuario cree tags nuevos. El catálogo es cerrado por diseño: si cada
+  uno inventa el suyo, el matching de RF3.9 deja de cruzar nada.
+
+**Terminado cuando** un usuario puede completar su perfil entero —datos, foto,
+tags, formación— y ver cómo lo ve otro.
+
+**Antes de empezar:** hay que crear el bucket de Storage y su política de
+acceso. La foto de perfil es pública para lectura y escribible solo por su
+dueño.
+
+---
+
+## Hito 3 — Vacantes y postulaciones (RF3)
+
+El corazón del producto.
+
+**Qué entra**
+
+- Publicación de vacante por parte de la empresa, con tags públicos y ocultos
+  (RF3.1).
+- Edición y cierre de vacante, manual y automático al cubrir las posiciones
+  (RF3.2, RF3.3).
+- Filtros del feed: tipo, modalidad, ubicación (RF3.5).
+- Postulación y cancelación reales (RF3.6, RF3.8) — ya están escritas, hay que
+  verificarlas contra la base.
+- Seguimiento del estado por parte del postulante (RF3.7).
+- Cambio de estado por parte de la empresa (RF3.4.3).
+- `puntaje_matching()` conectado y mostrado **solo del lado de la empresa**
+  (RF3.9).
+
+**Qué no entra**
+
+- El motor de recomendación de RF10.2. El matching de RF3.9 es un puntaje por
+  vacante, no un sistema de recomendación.
+
+**Terminado cuando** una empresa publica una vacante, un postulante se
+postula, la empresa ve el puntaje y cambia el estado, y el postulante ve el
+cambio reflejado.
+
+**Ojo con esto.** La prueba que no se puede saltear: iniciar sesión como
+postulante e intentar leer `vacante_tags_ocultos` directo contra la API de
+Supabase con la clave `anon`. Tiene que devolver vacío. Es RNF5, y la única
+forma de saber que se cumple es intentar romperlo.
+
+---
+
+## Hito 4 — Eventos (RF4)
+
+**Qué entra**
+
+- Alta, edición y cancelación de evento por la empresa (RF4.1, RF4.2, RF4.3).
+- Inscripción y baja del postulante (RF4.5, RF4.6) — `inscribirse()` ya está,
+  falta la baja.
+- Control de cupo: no se puede pasar del límite.
+- Listado de inscriptos para la empresa dueña.
+
+**Qué no entra**
+
+- El chat grupal automático del evento (RF9.5). Es Fase 2.
+
+**Terminado cuando** una empresa publica un evento con cupo, se llena, y el
+siguiente que intenta inscribirse recibe un mensaje claro en vez de un error.
+
+---
+
+## Hito 5 — Notificaciones (RF6)
+
+**Qué entra**
+
+- Bandeja de notificaciones (RF6.1): listado, marcar como leída, contador de
+  no leídas en la barra lateral.
+- Verificar que el disparador de cambio de estado (RF6.2) escribe lo que la
+  interfaz espera.
+- Notificación de evento próximo.
+
+**Qué no entra**
+
+- Notificaciones por correo. El SRS no las pide para Fase 1.
+- Tiempo real con Supabase Realtime. Primero que funcione recargando; si
+  después molesta, se agrega.
+
+**Terminado cuando** cambiar el estado de una postulación desde la cuenta de
+la empresa hace aparecer la notificación en la cuenta del postulante.
+
+---
+
+## Hito 6 — Panel de empresa (RF7)
+
+**Qué entra**
+
+- Rutas propias de empresa, separadas de las del postulante.
+- Listado de vacantes propias con su cantidad de postulantes.
+- Detalle de postulantes de una vacante, ordenados por puntaje de matching.
+- Perfil de empresa editable (RF7.1).
+- Verificación de identidad de empresa (RF1.7).
+
+**Qué no entra**
+
+- Métricas y reportes. No están en Fase 1.
+
+**Terminado cuando** una empresa entra, ve sus vacantes, abre una y revisa a
+sus postulantes ordenados por compatibilidad.
+
+**Ojo con esto.** Acá aparece la pregunta que hoy el código no responde: ¿cómo
+sabe la interfaz si la sesión es de un postulante o de una empresa, y adónde
+la manda al entrar? Conviene resolverlo en el Hito 1 aunque el panel recién
+llegue acá.
+
+---
+
+## Hito 7 — Reseñas (RF8)
+
+**Qué entra**
+
+- Publicar reseña de una empresa donde se postuló (RF8.1).
+- Listado de reseñas en el perfil público de la empresa, con promedio (RF8.2).
+- Respuesta de la empresa a una reseña (RF7.4).
+
+**Terminado cuando** un postulante reseña una empresa donde se postuló, la
+reseña aparece en el perfil público, y la empresa puede responderla.
+
+**Ojo con esto.** Verificar que la política corregida en `a9f15a9` hace lo que
+promete: intentar reseñar una empresa donde **no** hubo postulación tiene que
+fallar.
+
+---
+
+## Lo que hay que decidir en el camino
+
+Ninguna de estas tres tiene respuesta hoy, y las tres van a frenar el trabajo
+cuando se llegue.
+
+**La contradicción de la edad.** RF1.1.8 exige 18 años; RNF6 y la sección de
+Restricciones hablan de datos de menores desde los 14. El check
+`perfiles_mayor_de_edad` fija hoy la plataforma en 18. Si gana la otra
+lectura, cambia el número y cambia el encuadre legal entero. **Hace falta
+resolverlo en el SRS antes del Hito 1**, porque define quién puede registrarse.
+
+**Datos alojados en Estados Unidos.** La base está en `us-east-2`. Antes de
+que entre el primer usuario real hay que tener la política de privacidad y los
+términos de uso, y revisar el encuadre contra la ley 18.331. Está en
+`decisiones.md` como consecuencia pendiente.
+
+**Postulante y empresa en la misma sesión.** El esquema los separa, pero la
+aplicación todavía no distingue el tipo de cuenta en ningún lado: ni en la
+navegación, ni en las rutas, ni en el layout. Definirlo en el Hito 1 sale
+barato; hacerlo en el Hito 6 obliga a rehacer la navegación.
+
+---
+
+## Cómo se trabaja cada hito
+
+1. Rama desde `main`: `feat/<hito>`.
+2. El cambio de esquema entra como migración numerada nueva en
+   `db/migrations/`. No se edita una migración ya aplicada.
+3. Los tipos se regeneran después de aplicar la migración.
+4. Antes de dar algo por terminado: `npm run lint && npm run typecheck && npm
+   run build`, y mirar la pantalla en el navegador.
+5. Entrada en [`CHANGELOG.md`](./CHANGELOG.md), siempre.
+6. Si el cambio agrega o cambia funciones exportadas, actualizar §5 de
+   [`arquitectura.md`](./arquitectura.md).
+7. Si hubo alternativas que valga la pena registrar, entrada en
+   [`decisiones.md`](./decisiones.md).
