@@ -14,18 +14,18 @@ números al explicar un cambio.
 
 ## Antes de escribir código
 
-Estas dos skills tienen prioridad sobre el criterio general, porque contienen
-las decisiones ya tomadas del proyecto:
+Para la interfaz (pantallas, componentes, estilos, textos), la skill
+`.claude/skills/diseno-linkyouth/SKILL.md` tiene prioridad sobre el criterio
+general: contiene las decisiones de diseño ya tomadas.
 
-- **Interfaz** (pantallas, componentes, estilos, textos):
-  `.claude/skills/diseno-linkyouth/SKILL.md`.
-- **Datos** (esquema, migraciones, RLS, consultas, acciones):
-  `.claude/skills/datos-linkyouth/SKILL.md`.
+Para los datos, la referencia es el esquema mismo: `db/schema.sql` y
+`db/politicas.sql`. Leelos completos antes de escribir una consulta.
 
 ## Mapa
 
 ```
-db/                    Migraciones y seeds SQL. Ver db/README.md.
+db/schema.sql          Esquema de la base: tablas, funciones, disparadores.
+db/politicas.sql       Row Level Security.
 docs/arquitectura.md   Arquitectura y catálogo de funciones.
 docs/CHANGELOG.md      Qué cambió y por qué.
 docs/plan.md           Hoja de ruta hasta el MVP.
@@ -35,8 +35,8 @@ src/app/(app)/         Pantallas de la aplicación (inicio, empleos, eventos,
                        postulaciones, perfil).
 src/components/        ui/ primitivas · layout/ estructura · empleos/ eventos/
                        perfil/ por dominio.
-src/lib/data/          Lectura: consultas.ts, ejemplos.ts, tipos.ts.
-src/lib/acciones/      Escritura: acciones de servidor.
+src/lib/data/          Lectura. Vacía: pendiente de reescribir.
+src/lib/acciones/      Escritura. Vacía: pendiente de reescribir.
 src/lib/supabase/      Clientes de navegador y de servidor.
 src/types/database.ts  Tipos del esquema.
 ```
@@ -66,6 +66,16 @@ Ningún cambio se da por terminado sin esto:
 4. **Si hubo alternativas reales que se descartaron** — entrada en
    `docs/decisiones.md`, con fecha, decisión, alternativas y motivo.
 5. **Si resolvió o creó una deuda** — `docs/arquitectura.md` §7.
+
+## Estado de la capa de datos
+
+`src/lib/data/` y `src/lib/acciones/` están vacías. Sus archivos consultaban
+un esquema que se descartó y se eliminaron. Las páginas de `src/app/(app)/` y
+varios componentes quedaron con imports rotos, marcados con
+`// TODO: reconectar contra db/schema.sql`.
+
+Hasta que esa capa se reescriba contra `db/schema.sql`, el proyecto **no
+compila**. Es un estado conocido, no una regresión.
 
 ## Comandos
 

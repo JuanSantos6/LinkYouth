@@ -6,6 +6,7 @@ import { Encabezado } from "@/components/layout/Encabezado";
 import { TarjetaUsuario } from "@/components/perfil/TarjetaUsuario";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
+// TODO: reconectar contra db/schema.sql
 import {
   obtenerEventos,
   obtenerPerfilActual,

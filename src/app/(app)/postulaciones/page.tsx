@@ -7,6 +7,7 @@ import { Encabezado } from "@/components/layout/Encabezado";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Insignia } from "@/components/ui/Insignia";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+// TODO: reconectar contra db/schema.sql
 import { obtenerPostulaciones } from "@/lib/data/consultas";
 import { etiquetaEstadoPostulacion, tiempoRelativo } from "@/lib/formato";
 import type { EstadoPostulacion } from "@/types/database";

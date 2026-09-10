@@ -1,337 +1,730 @@
-/**
- * Tipos del esquema de LinkYouth.
- *
- * Escritos a mano para que la aplicación compile sin conexión a Supabase.
- * Reflejan `db/migrations/`. Cuando el esquema esté aplicado en el proyecto,
- * este archivo se regenera desde la base real:
- *
- *   npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts
- */
-
-export type TipoOportunidad = "empleo" | "pasantia";
-export type ModalidadTrabajo = "presencial" | "hibrido" | "remoto";
-export type EstadoVacante = "activa" | "cerrada";
-export type EstadoPostulacion =
-  "pendiente" | "en_revision" | "rechazada" | "aceptada";
-export type EstadoFormacion = "en_curso" | "finalizado" | "abandonado";
-export type EstadoEvento = "publicado" | "cancelado";
-export type CategoriaTag =
-  | "tecnologia"
-  | "diseno"
-  | "datos"
-  | "negocios"
-  | "idiomas"
-  | "habilidades_blandas";
-
-type ConIdGenerado<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-export type PerfilRow = {
-  id: string;
-  nombre_usuario: string;
-  nombre: string;
-  apellido: string;
-  fecha_nacimiento: string;
-  pais: string;
-  ciudad: string | null;
-  titular: string | null;
-  biografia: string | null;
-  avatar_url: string | null;
-  verificado: boolean;
-  creado_en: string;
-  actualizado_en: string;
-};
-
-export type EmpresaRow = {
-  id: string;
-  cuenta_id: string | null;
-  razon_social: string;
-  rubro: string;
-  descripcion: string | null;
-  logo_url: string | null;
-  sitio_web: string | null;
-  ubicacion: string | null;
-  verificada: boolean;
-  creado_en: string;
-  actualizado_en: string;
-};
-
-export type TagRow = {
-  id: string;
-  slug: string;
-  nombre: string;
-  categoria: CategoriaTag;
-  creado_en: string;
-};
-
-export type PerfilTagRow = {
-  perfil_id: string;
-  tag_id: string;
-  nivel: number;
-  creado_en: string;
-};
-
-export type FormacionRow = {
-  id: string;
-  perfil_id: string;
-  institucion: string;
-  institucion_logo_url: string | null;
-  titulo: string;
-  estado: EstadoFormacion;
-  anio_inicio: number | null;
-  anio_fin: number | null;
-  acreditada: boolean;
-  creado_en: string;
-};
-
-export type VacanteRow = {
-  id: string;
-  empresa_id: string;
-  titulo: string;
-  descripcion: string;
-  tipo: TipoOportunidad;
-  modalidad: ModalidadTrabajo;
-  ubicacion: string | null;
-  salario_min: number | null;
-  salario_max: number | null;
-  moneda: string;
-  posiciones: number;
-  estado: EstadoVacante;
-  publicada_en: string;
-  cerrada_en: string | null;
-};
-
-export type PostulacionRow = {
-  id: string;
-  vacante_id: string;
-  perfil_id: string;
-  estado: EstadoPostulacion;
-  puntaje: number | null;
-  mensaje: string | null;
-  creado_en: string;
-  actualizado_en: string;
-};
-
-export type EventoRow = {
-  id: string;
-  empresa_id: string;
-  titulo: string;
-  descripcion: string;
-  inicia_en: string;
-  termina_en: string | null;
-  modalidad: ModalidadTrabajo;
-  ubicacion: string | null;
-  imagen_url: string | null;
-  cupo: number | null;
-  estado: EstadoEvento;
-  creado_en: string;
-};
-
-export type InscripcionRow = {
-  evento_id: string;
-  perfil_id: string;
-  creado_en: string;
-};
-
-export type NotificacionRow = {
-  id: string;
-  perfil_id: string;
-  tipo: string;
-  titulo: string;
-  cuerpo: string | null;
-  enlace: string | null;
-  leida: boolean;
-  creado_en: string;
-};
-
-/** Fila de la vista `vacantes_feed` (RF3.5.1). */
-export type VacanteFeedRow = Omit<VacanteRow, "empresa_id" | "cerrada_en"> & {
-  empresa_id: string;
-  empresa: string;
-  empresa_logo_url: string | null;
-  empresa_rubro: string;
-  empresa_verificada: boolean;
-  tags: string[];
-  postulaciones: number;
-};
-
-/** Fila de la vista `eventos_agenda` (RF4.4.1). */
-export type EventoAgendaRow = Omit<EventoRow, "empresa_id" | "creado_en"> & {
-  empresa_id: string;
-  empresa: string;
-  empresa_logo_url: string | null;
-  tags: string[];
-  inscriptos: number;
-};
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
-      perfiles: {
-        Row: PerfilRow;
-        Insert: ConIdGenerado<
-          PerfilRow,
-          | "pais"
-          | "ciudad"
-          | "titular"
-          | "biografia"
-          | "avatar_url"
-          | "verificado"
-          | "creado_en"
-          | "actualizado_en"
-        >;
-        Update: Partial<PerfilRow>;
-        Relationships: [];
-      };
+      cuentas: {
+        Row: {
+          creada_en: string
+          eliminada: boolean
+          id: string
+          tipo: string
+        }
+        Insert: {
+          creada_en?: string
+          eliminada?: boolean
+          id: string
+          tipo: string
+        }
+        Update: {
+          creada_en?: string
+          eliminada?: boolean
+          id?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
       empresas: {
-        Row: EmpresaRow;
-        Insert: ConIdGenerado<
-          EmpresaRow,
-          | "id"
-          | "cuenta_id"
-          | "descripcion"
-          | "logo_url"
-          | "sitio_web"
-          | "ubicacion"
-          | "verificada"
-          | "creado_en"
-          | "actualizado_en"
-        >;
-        Update: Partial<EmpresaRow>;
-        Relationships: [];
-      };
-      tags: {
-        Row: TagRow;
-        Insert: ConIdGenerado<TagRow, "id" | "creado_en">;
-        Update: Partial<TagRow>;
-        Relationships: [];
-      };
-      perfil_tags: {
-        Row: PerfilTagRow;
-        Insert: ConIdGenerado<PerfilTagRow, "nivel" | "creado_en">;
-        Update: Partial<PerfilTagRow>;
-        Relationships: [];
-      };
-      formaciones: {
-        Row: FormacionRow;
-        Insert: ConIdGenerado<
-          FormacionRow,
-          | "id"
-          | "institucion_logo_url"
-          | "estado"
-          | "anio_inicio"
-          | "anio_fin"
-          | "acreditada"
-          | "creado_en"
-        >;
-        Update: Partial<FormacionRow>;
-        Relationships: [];
-      };
-      vacantes: {
-        Row: VacanteRow;
-        Insert: ConIdGenerado<
-          VacanteRow,
-          | "id"
-          | "tipo"
-          | "modalidad"
-          | "ubicacion"
-          | "salario_min"
-          | "salario_max"
-          | "moneda"
-          | "posiciones"
-          | "estado"
-          | "publicada_en"
-          | "cerrada_en"
-        >;
-        Update: Partial<VacanteRow>;
-        Relationships: [];
-      };
-      vacante_tags: {
-        Row: { vacante_id: string; tag_id: string };
-        Insert: { vacante_id: string; tag_id: string };
-        Update: Partial<{ vacante_id: string; tag_id: string }>;
-        Relationships: [];
-      };
-      vacante_tags_ocultos: {
-        Row: { vacante_id: string; tag_id: string; peso: number };
-        Insert: { vacante_id: string; tag_id: string; peso?: number };
-        Update: Partial<{ vacante_id: string; tag_id: string; peso: number }>;
-        Relationships: [];
-      };
-      postulaciones: {
-        Row: PostulacionRow;
-        Insert: ConIdGenerado<
-          PostulacionRow,
-          | "id"
-          | "estado"
-          | "puntaje"
-          | "mensaje"
-          | "creado_en"
-          | "actualizado_en"
-        >;
-        Update: Partial<PostulacionRow>;
-        Relationships: [];
-      };
-      eventos: {
-        Row: EventoRow;
-        Insert: ConIdGenerado<
-          EventoRow,
-          | "id"
-          | "termina_en"
-          | "modalidad"
-          | "ubicacion"
-          | "imagen_url"
-          | "cupo"
-          | "estado"
-          | "creado_en"
-        >;
-        Update: Partial<EventoRow>;
-        Relationships: [];
-      };
+        Row: {
+          creada_en: string
+          descripcion: string | null
+          id: string
+          logo_url: string | null
+          razon_social: string
+          rubro: string
+        }
+        Insert: {
+          creada_en?: string
+          descripcion?: string | null
+          id: string
+          logo_url?: string | null
+          razon_social: string
+          rubro: string
+        }
+        Update: {
+          creada_en?: string
+          descripcion?: string | null
+          id?: string
+          logo_url?: string | null
+          razon_social?: string
+          rubro?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresas_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "cuentas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evento_tags: {
-        Row: { evento_id: string; tag_id: string };
-        Insert: { evento_id: string; tag_id: string };
-        Update: Partial<{ evento_id: string; tag_id: string }>;
-        Relationships: [];
-      };
-      inscripciones: {
-        Row: InscripcionRow;
-        Insert: ConIdGenerado<InscripcionRow, "creado_en">;
-        Update: Partial<InscripcionRow>;
-        Relationships: [];
-      };
+        Row: {
+          evento_id: string
+          tag_id: string
+        }
+        Insert: {
+          evento_id: string
+          tag_id: string
+        }
+        Update: {
+          evento_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evento_tags_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evento_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eventos: {
+        Row: {
+          descripcion: string
+          empresa_id: string
+          estado: string
+          fecha_hora: string
+          id: string
+          imagen_url: string | null
+          titulo: string
+        }
+        Insert: {
+          descripcion: string
+          empresa_id: string
+          estado?: string
+          fecha_hora: string
+          id?: string
+          imagen_url?: string | null
+          titulo: string
+        }
+        Update: {
+          descripcion?: string
+          empresa_id?: string
+          estado?: string
+          fecha_hora?: string
+          id?: string
+          imagen_url?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formaciones: {
+        Row: {
+          estado: string
+          id: string
+          institucion: string
+          perfil_id: string
+          titulo: string
+        }
+        Insert: {
+          estado: string
+          id?: string
+          institucion: string
+          perfil_id: string
+          titulo: string
+        }
+        Update: {
+          estado?: string
+          id?: string
+          institucion?: string
+          perfil_id?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formaciones_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habilidades: {
+        Row: {
+          id: string
+          nombre: string
+        }
+        Insert: {
+          id?: string
+          nombre: string
+        }
+        Update: {
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      inscripciones_evento: {
+        Row: {
+          creada_en: string
+          evento_id: string
+          perfil_id: string
+        }
+        Insert: {
+          creada_en?: string
+          evento_id: string
+          perfil_id: string
+        }
+        Update: {
+          creada_en?: string
+          evento_id?: string
+          perfil_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscripciones_evento_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscripciones_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificaciones: {
-        Row: NotificacionRow;
-        Insert: ConIdGenerado<
-          NotificacionRow,
-          "id" | "cuerpo" | "enlace" | "leida" | "creado_en"
-        >;
-        Update: Partial<NotificacionRow>;
-        Relationships: [];
-      };
-    };
+        Row: {
+          creada_en: string
+          cuenta_id: string
+          enlace: string | null
+          id: string
+          leida: boolean
+          mensaje: string
+          tipo: string
+        }
+        Insert: {
+          creada_en?: string
+          cuenta_id: string
+          enlace?: string | null
+          id?: string
+          leida?: boolean
+          mensaje: string
+          tipo: string
+        }
+        Update: {
+          creada_en?: string
+          cuenta_id?: string
+          enlace?: string | null
+          id?: string
+          leida?: boolean
+          mensaje?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificaciones_cuenta_id_fkey"
+            columns: ["cuenta_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfil_habilidades: {
+        Row: {
+          habilidad_id: string
+          perfil_id: string
+        }
+        Insert: {
+          habilidad_id: string
+          perfil_id: string
+        }
+        Update: {
+          habilidad_id?: string
+          perfil_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfil_habilidades_habilidad_id_fkey"
+            columns: ["habilidad_id"]
+            isOneToOne: false
+            referencedRelation: "habilidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfil_habilidades_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfil_tags: {
+        Row: {
+          perfil_id: string
+          tag_id: string
+        }
+        Insert: {
+          perfil_id: string
+          tag_id: string
+        }
+        Update: {
+          perfil_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfil_tags_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfil_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfiles: {
+        Row: {
+          apellido: string
+          bio: string | null
+          creado_en: string
+          fecha_nacimiento: string
+          foto_url: string | null
+          id: string
+          nombre: string
+          nombre_usuario: string
+          pais: string
+        }
+        Insert: {
+          apellido: string
+          bio?: string | null
+          creado_en?: string
+          fecha_nacimiento: string
+          foto_url?: string | null
+          id: string
+          nombre: string
+          nombre_usuario: string
+          pais: string
+        }
+        Update: {
+          apellido?: string
+          bio?: string | null
+          creado_en?: string
+          fecha_nacimiento?: string
+          foto_url?: string | null
+          id?: string
+          nombre?: string
+          nombre_usuario?: string
+          pais?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "cuentas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      postulaciones: {
+        Row: {
+          actualizada_en: string
+          creada_en: string
+          estado: string
+          id: string
+          perfil_id: string
+          vacante_id: string
+        }
+        Insert: {
+          actualizada_en?: string
+          creada_en?: string
+          estado?: string
+          id?: string
+          perfil_id: string
+          vacante_id: string
+        }
+        Update: {
+          actualizada_en?: string
+          creada_en?: string
+          estado?: string
+          id?: string
+          perfil_id?: string
+          vacante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postulaciones_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "postulaciones_vacante_id_fkey"
+            columns: ["vacante_id"]
+            isOneToOne: false
+            referencedRelation: "vacantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resenias: {
+        Row: {
+          calificacion: number
+          comentario: string
+          creada_en: string
+          empresa_id: string
+          id: string
+          perfil_id: string
+        }
+        Insert: {
+          calificacion: number
+          comentario: string
+          creada_en?: string
+          empresa_id: string
+          id?: string
+          perfil_id: string
+        }
+        Update: {
+          calificacion?: number
+          comentario?: string
+          creada_en?: string
+          empresa_id?: string
+          id?: string
+          perfil_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resenias_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resenias_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          id: string
+          nombre: string
+        }
+        Insert: {
+          id?: string
+          nombre: string
+        }
+        Update: {
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      vacante_habilidades: {
+        Row: {
+          habilidad_id: string
+          vacante_id: string
+        }
+        Insert: {
+          habilidad_id: string
+          vacante_id: string
+        }
+        Update: {
+          habilidad_id?: string
+          vacante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacante_habilidades_habilidad_id_fkey"
+            columns: ["habilidad_id"]
+            isOneToOne: false
+            referencedRelation: "habilidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vacante_habilidades_vacante_id_fkey"
+            columns: ["vacante_id"]
+            isOneToOne: false
+            referencedRelation: "vacantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vacante_tags_ocultos: {
+        Row: {
+          tag_id: string
+          vacante_id: string
+        }
+        Insert: {
+          tag_id: string
+          vacante_id: string
+        }
+        Update: {
+          tag_id?: string
+          vacante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacante_tags_ocultos_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vacante_tags_ocultos_vacante_id_fkey"
+            columns: ["vacante_id"]
+            isOneToOne: false
+            referencedRelation: "vacantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vacante_tags_publicos: {
+        Row: {
+          tag_id: string
+          vacante_id: string
+        }
+        Insert: {
+          tag_id: string
+          vacante_id: string
+        }
+        Update: {
+          tag_id?: string
+          vacante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacante_tags_publicos_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vacante_tags_publicos_vacante_id_fkey"
+            columns: ["vacante_id"]
+            isOneToOne: false
+            referencedRelation: "vacantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vacantes: {
+        Row: {
+          creada_en: string
+          descripcion: string
+          empresa_id: string
+          estado: string
+          id: string
+          posiciones: number
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          creada_en?: string
+          descripcion: string
+          empresa_id: string
+          estado?: string
+          id?: string
+          posiciones: number
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          creada_en?: string
+          descripcion?: string
+          empresa_id?: string
+          estado?: string
+          id?: string
+          posiciones?: number
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacantes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
     Views: {
-      vacantes_feed: { Row: VacanteFeedRow; Relationships: [] };
-      eventos_agenda: { Row: EventoAgendaRow; Relationships: [] };
-    };
+      [_ in never]: never
+    }
     Functions: {
-      afinidad_publica: {
-        Args: { vacante: string; perfil: string };
-        Returns: number;
-      };
-      puntaje_matching: {
-        Args: { vacante: string; perfil: string };
-        Returns: number;
-      };
-    };
+      cuenta_activa: { Args: { cuenta: string }; Returns: boolean }
+    }
     Enums: {
-      tipo_oportunidad: TipoOportunidad;
-      modalidad_trabajo: ModalidadTrabajo;
-      estado_vacante: EstadoVacante;
-      estado_postulacion: EstadoPostulacion;
-      estado_formacion: EstadoFormacion;
-      estado_evento: EstadoEvento;
-      categoria_tag: CategoriaTag;
-    };
-    CompositeTypes: Record<string, never>;
-  };
-};
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

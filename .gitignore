@@ -46,3 +46,6 @@ next-env.d.ts
 # Salida de graphify, una herramienta externa de análisis. Se regenera
 # a demanda y no forma parte del proyecto.
 /graphify-out/
+
+# Archivos temporales del CLI de Supabase
+/supabase/.temp/

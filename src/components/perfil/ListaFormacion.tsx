@@ -1,5 +1,6 @@
 import { Avatar } from "@/components/ui/Avatar";
 import { Insignia } from "@/components/ui/Insignia";
+// TODO: reconectar contra db/schema.sql
 import type { Formacion } from "@/lib/data/tipos";
 import type { EstadoFormacion } from "@/types/database";
 
