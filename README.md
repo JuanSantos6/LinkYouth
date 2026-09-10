@@ -5,41 +5,56 @@ Conecta a postulantes que buscan su primera experiencia laboral, prácticas
 profesionales o instancias de formación con empresas y organizaciones que
 publican oportunidades.
 
-> Estado actual: **andamiaje inicial**. El proyecto todavía no implementa
-> funcionalidad de negocio. Solo están la estructura base, la configuración
-> y una pantalla que verifica la conexión con Supabase.
+> Estado actual: **MVP en construcción**. Están el esquema de base de datos
+> completo (RF1 a RF6), la vista del postulante —feed de vacantes y eventos,
+> seguimiento de postulaciones y perfil— y el sistema de diseño de la
+> interfaz. Falta el módulo de autenticación (RF1) y el panel de empresa (RF7).
 
 La especificación funcional completa está en [`docs/`](./docs).
 
 ## Stack
 
-| Capa | Tecnología |
-| --- | --- |
-| Framework | Next.js 15 (App Router) |
-| Lenguaje | TypeScript en modo `strict` |
-| Estilos | Tailwind CSS 4 |
-| Backend | Supabase (base de datos PostgreSQL, auth y storage) |
+| Capa                 | Tecnología                                |
+| -------------------- | ----------------------------------------- |
+| Framework            | Next.js 15 (App Router)                   |
+| Lenguaje             | TypeScript en modo `strict`               |
+| Estilos              | Tailwind CSS 4 con tokens propios         |
+| Backend              | Supabase (PostgreSQL, auth y storage)     |
 | Integración Supabase | `@supabase/supabase-js` + `@supabase/ssr` |
-| Calidad de código | ESLint + Prettier |
+| Calidad de código    | ESLint + Prettier                         |
 
 ## Estructura del proyecto
 
 ```
-db/                        Migraciones y scripts SQL (vacío por ahora)
-docs/                      Documentación del proyecto y decisiones técnicas
+db/
+  migrations/            Esquema, Row Level Security, vistas y matching
+  seed/                  Catálogo de tags y datos de demostración
+  README.md              Cómo aplicar el esquema y por qué está así
+docs/                    SRS y decisiones técnicas
 src/
   app/
-    layout.tsx             Layout raíz (idioma "es", metadata "LinkYouth")
-    page.tsx               Landing provisoria y verificación de conexión
-    (auth)/                Rutas de autenticación (vacía por ahora)
-    (app)/                 Rutas de la aplicación autenticada (vacía por ahora)
-  components/ui/           Componentes de interfaz reutilizables (vacía por ahora)
-  lib/supabase/
-    client.ts              Cliente de Supabase para el navegador
-    server.ts              Cliente de Supabase para Server Components y Route Handlers
-  types/
-    database.ts            Tipos de la base de datos (se generan desde el esquema)
-  middleware.ts            Refresca la sesión de Supabase en cada request
+    layout.tsx           Layout raíz: idioma, tipografías, metadata
+    globals.css          Sistema de diseño (tokens de color, radio, sombra)
+    page.tsx             Entrada: redirige al feed
+    (app)/
+      layout.tsx         Estructura: navegación fija + contenido
+      inicio/            Feed de vacantes y eventos (RF3.5, RF4.4)
+      empleos/           Búsqueda y filtros de oportunidades (RF3.5)
+      eventos/           Agenda de eventos institucionales (RF4.4)
+      postulaciones/     Estado de las postulaciones propias (RF3.7)
+      perfil/            Perfil, habilidades y formación (RF2)
+  components/
+    ui/                  Primitivas: tarjeta, etiqueta, insignia, avatar…
+    layout/              Navegación, encabezado, íconos, buscador
+    empleos/ eventos/ perfil/   Componentes por dominio
+  lib/
+    data/                Lectura: consultas, tipos y datos de ejemplo
+    acciones/            Escritura: acciones de servidor
+    supabase/            Clientes de navegador y de servidor
+    formato.ts           Fechas, salarios y etiquetas en es-UY
+  types/database.ts      Tipos del esquema
+  middleware.ts          Refresca la sesión de Supabase en cada request
+.claude/skills/          Skills del proyecto (ver más abajo)
 ```
 
 ## Requisitos previos
@@ -52,35 +67,58 @@ src/
 
 ```bash
 npm install
-```
-
-## Variables de entorno
-
-1. Copiá el archivo de ejemplo:
-
-   ```bash
-   cp .env.local.example .env.local
-   ```
-
-2. Completá los valores en `.env.local`:
-
-   | Variable | Dónde se obtiene |
-   | --- | --- |
-   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard > Project Settings > API > Project URL |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard > Project Settings > API > Project API keys > `anon` `public` |
-
-`.env.local` está ignorado por Git y nunca debe versionarse. La clave `anon`
-es pública por diseño: el control de acceso real se hace con Row Level
-Security en la base de datos.
-
-## Servidor de desarrollo
-
-```bash
+cp .env.local.example .env.local   # y completá los valores
 npm run dev
 ```
 
-Abrí [http://localhost:3000](http://localhost:3000). La pantalla muestra el
-título **LinkYouth** y si la conexión con Supabase funcionó o falló.
+Abrí [http://localhost:3000](http://localhost:3000).
+
+**La aplicación levanta sin credenciales.** En ese caso muestra contenido de
+demostración con un cartel que lo aclara en pantalla, así se puede trabajar la
+interfaz antes de tener la base cargada.
+
+## Variables de entorno
+
+| Variable                        | Dónde se obtiene                                              |
+| ------------------------------- | ------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase Dashboard > Project Settings > API > Project URL     |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard > Project Settings > API > `anon` `public` |
+
+`.env.local` está ignorado por Git y nunca debe versionarse. La clave `anon` es
+pública por diseño: el control de acceso real se hace con Row Level Security en
+la base de datos.
+
+## Base de datos
+
+El esquema y las instrucciones para aplicarlo están en
+[`db/README.md`](./db/README.md). En resumen, desde el SQL Editor de Supabase
+se ejecutan en orden:
+
+```
+db/migrations/0001_esquema.sql
+db/migrations/0002_rls.sql
+db/migrations/0003_vistas_y_matching.sql
+db/seed/0001_tags.sql
+db/seed/0002_demo.sql
+```
+
+Después conviene regenerar los tipos:
+
+```bash
+npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts
+```
+
+## Skills del proyecto
+
+En `.claude/skills/` viven las decisiones ya tomadas, para que cualquier
+persona —o cualquier asistente de IA— trabaje con el mismo criterio en vez de
+improvisar uno nuevo por pantalla:
+
+| Skill              | Para qué                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `diseno-linkyouth` | Sistema de diseño: paleta, tipografía, elevación, espaciado, componentes, accesibilidad y tono de los textos. |
+| `datos-linkyouth`  | Modelo de datos: esquema, RLS, tipos, consultas y acciones de servidor.                                       |
+| `graphify`         | Grafo de conocimiento del repositorio.                                                                        |
 
 ## Otros comandos
 
@@ -88,16 +126,7 @@ título **LinkYouth** y si la conexión con Supabase funcionó o falló.
 npm run build         # Build de producción
 npm run start         # Sirve el build de producción
 npm run lint          # ESLint
-npm run typecheck     # Chequeo de tipos de TypeScript
+npm run typecheck     # Chequeo de tipos
 npm run format        # Formatea con Prettier
 npm run format:check  # Verifica el formato sin escribir
-```
-
-## Tipos de la base de datos
-
-`src/types/database.ts` es un placeholder. Cuando exista el esquema, los
-tipos se regeneran desde Supabase:
-
-```bash
-npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts
 ```
