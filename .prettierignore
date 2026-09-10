@@ -8,3 +8,6 @@ package-lock.json
 
 # Skill de terceros: se versiona tal como viene
 .claude/skills/graphify
+
+# Generado con `supabase gen types`: formatearlo pelea con cada regeneracion
+src/types/database.ts

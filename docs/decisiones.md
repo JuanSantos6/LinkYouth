@@ -6,6 +6,83 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-10 — Los alias del esquema viven en la capa de datos
+
+**Decisión.** Declarar los conjuntos cerrados del esquema (`TipoOportunidad`,
+`EstadoPostulacion`, `EstadoFormacion`, `EstadoVacante`, `EstadoEvento`,
+`TipoCuenta`) en `src/lib/data/tipos.ts`, cada uno con una constante
+`readonly` y una función de estrechamiento que convierte el `string` que
+devuelve Supabase.
+
+**Alternativas consideradas.**
+
+- Agregarlos a mano a `src/types/database.ts`.
+- Migrar el esquema de `text` + `check` a enums de Postgres, para que
+  `gen types` los genere solo.
+- Convivir con `string` en toda la aplicación.
+
+**Motivo.** `src/types/database.ts` se regenera con `supabase gen types`: todo
+lo que se le agregue a mano se pierde en la próxima corrida, y el que lo
+pierda va a ser alguien que no estuvo en esta conversación. Migrar a enums de
+Postgres arregla el problema de raíz, pero un enum es caro de cambiar —agregar
+un valor es `alter type`, quitarlo obliga a recrearlo— y el equipo ya eligió
+`check` a propósito. Convivir con `string` deja pasar `estado === "en_revison"`
+sin que nadie se entere: el error tipográfico se descubre en producción.
+
+Las funciones de estrechamiento no lanzan: si aparece un valor que no está en
+el conjunto, devuelven un respaldo. Ese caso solo existe si el esquema cambió
+y el código todavía no, y en ese momento es mejor una pantalla con un estado
+por defecto que una pantalla en blanco.
+
+---
+
+## 2026-09-10 — Un `select` anidado en vez de varias consultas sueltas
+
+**Decisión.** Traer la empresa y las tablas puente de tags y habilidades en el
+mismo `select` de la vacante o del evento, y aplanarlas en TypeScript.
+
+**Alternativas consideradas.**
+
+- Una consulta por tabla y componer el resultado con `Map` en la aplicación.
+- Crear vistas en la base que devuelvan la fila ya aplanada.
+
+**Motivo.** Los tipos generados traen los metadatos de las claves foráneas, así
+que TypeScript infiere la forma del `select` anidado sin ayuda: se pierde el
+tipado si uno arma el join a mano. Además evita el problema N+1 sin escribir
+nada especial. Las vistas eran la otra opción razonable —de hecho el esquema
+descartado las usaba— pero agregan superficie a mantener en SQL y hay que
+acordarse de `security_invoker` para que la RLS siga vigente; con el `select`
+anidado, cada tabla aplica su propia política sin que haya que recordarlo.
+
+El costo es que las consultas quedan más largas de leer. Se paga.
+
+---
+
+## 2026-09-10 — La interfaz se recorta al esquema, no al revés
+
+**Decisión.** Quitar de las pantallas todo dato que `db/schema.sql` no guarda
+—salario, modalidad, ubicación, cupos, nivel de las habilidades, categoría de
+los tags, años y acreditación de los estudios, perfiles verificados— en vez de
+agregar esas columnas para sostener el diseño.
+
+**Alternativas consideradas.**
+
+- Agregar las columnas al esquema y seguir mostrando todo.
+- Dejar los campos en la interfaz con valores fijos o vacíos.
+
+**Motivo.** El esquema está aplicado en Supabase y es el acuerdo del equipo;
+cambiarlo desde una tarea de front-end lo convierte en algo que cada quien
+extiende cuando le hace falta. Dejar los campos con valores fijos es peor:
+una tarjeta que dice «USD 1.500 a 2.000» sin que ese dato exista en ningún
+lado es una mentira con formato de dato.
+
+La lista completa de lo que se perdió quedó en `arquitectura.md` §7.1, con el
+señalamiento de que salario y modalidad son los dos que más se van a extrañar
+en una plataforma de empleo. La decisión de agregarlos es del equipo, y el
+camino es el esquema primero.
+
+---
+
 ## 2026-09-08 — Next.js en lugar de React solo
 
 **Decisión.** Construir la aplicación con Next.js 15 usando App Router, en

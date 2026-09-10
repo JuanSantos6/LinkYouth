@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BotonCancelarPostulacion } from "@/components/empleos/BotonCancelarPostulacion";
+import { Encabezado } from "@/components/layout/Encabezado";
 import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
-import { Encabezado } from "@/components/layout/Encabezado";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Insignia } from "@/components/ui/Insignia";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-// TODO: reconectar contra db/schema.sql
 import { obtenerPostulaciones } from "@/lib/data/consultas";
+import type { EstadoPostulacion } from "@/lib/data/tipos";
 import { etiquetaEstadoPostulacion, tiempoRelativo } from "@/lib/formato";
-import type { EstadoPostulacion } from "@/types/database";
 
 export const metadata: Metadata = { title: "Postulaciones" };
 export const dynamic = "force-dynamic";
@@ -21,9 +21,13 @@ const TONOS: Record<
 > = {
   pendiente: "neutro",
   en_revision: "primario",
-  rechazada: "alerta",
   aceptada: "exito",
+  rechazada: "alerta",
+  cancelada: "neutro",
 };
+
+/** Estados en los que el postulante todavía puede cancelar (RF3.8). */
+const CANCELABLES: EstadoPostulacion[] = ["pendiente", "en_revision"];
 
 const PASOS = ["Enviada", "En revisión", "Resolución"] as const;
 
@@ -42,13 +46,13 @@ function pasoActual(estado: EstadoPostulacion): number {
  */
 function Recorrido({ estado }: { estado: EstadoPostulacion }) {
   const actual = pasoActual(estado);
-  const rechazada = estado === "rechazada";
+  const negativo = estado === "rechazada" || estado === "cancelada";
 
   return (
     <ol className="mt-4 flex items-center gap-2">
       {PASOS.map((paso, indice) => {
         const alcanzado = indice <= actual;
-        const esFinalNegativo = rechazada && indice === 2;
+        const esFinalNegativo = negativo && indice === 2;
 
         return (
           <li key={paso} className="flex flex-1 items-center gap-2">
@@ -130,7 +134,7 @@ export default async function PaginaPostulaciones() {
                   </h2>
                   <p className="mt-0.5 text-xs text-tinta-suave">
                     {postulacion.vacante.empresa} · enviada{" "}
-                    {tiempoRelativo(postulacion.creado_en)}
+                    {tiempoRelativo(postulacion.creada_en)}
                   </p>
                 </div>
 
@@ -140,6 +144,12 @@ export default async function PaginaPostulaciones() {
               </div>
 
               <Recorrido estado={postulacion.estado} />
+
+              {CANCELABLES.includes(postulacion.estado) && (
+                <div className="mt-3 flex justify-end border-t border-borde pt-3">
+                  <BotonCancelarPostulacion postulacionId={postulacion.id} />
+                </div>
+              )}
             </Tarjeta>
           ))
         )}

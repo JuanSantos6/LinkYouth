@@ -1,8 +1,8 @@
 import type {
+  EstadoFormacion,
   EstadoPostulacion,
-  ModalidadTrabajo,
   TipoOportunidad,
-} from "@/types/database";
+} from "@/lib/data/tipos";
 
 const ZONA = "America/Montevideo";
 const LOCALE = "es-UY";
@@ -35,19 +35,19 @@ export function fechaBloque(iso: string): { dia: string; mes: string } {
   return { dia, mes };
 }
 
-/** "18:30 a 20:30". Horario de 24 h: es el formato de una agenda, no de una charla. */
-export function rangoHorario(inicio: string, fin: string | null): string {
-  const formato = new Intl.DateTimeFormat(LOCALE, {
+/**
+ * "18:30". Horario de 24 h: es el formato de una agenda, no de una charla.
+ *
+ * `eventos` guarda un único `fecha_hora`: el esquema no tiene hora de fin, así
+ * que no hay rango que mostrar.
+ */
+export function hora(iso: string): string {
+  return new Intl.DateTimeFormat(LOCALE, {
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
     timeZone: ZONA,
-  });
-
-  const desde = formato.format(new Date(inicio));
-  if (!fin) return desde;
-
-  return `${desde} a ${formato.format(new Date(fin))}`;
+  }).format(new Date(iso));
 }
 
 /** "hace 2 horas", "hace 3 días" */
@@ -67,36 +67,6 @@ export function tiempoRelativo(iso: string): string {
   return formato.format(-Math.round(dias / 30), "month");
 }
 
-/** "USD 1.500 a 2.000 por mes", o null si la vacante no publica salario. */
-export function rangoSalarial(
-  min: number | null,
-  max: number | null,
-  moneda: string,
-): string | null {
-  if (min === null && max === null) return null;
-
-  const numero = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
-
-  if (min !== null && max !== null) {
-    return `${moneda} ${numero.format(min)} a ${numero.format(max)} por mes`;
-  }
-
-  const unico = (min ?? max) as number;
-  const prefijo = min !== null ? "desde" : "hasta";
-
-  return `${moneda} ${prefijo} ${numero.format(unico)} por mes`;
-}
-
-export function etiquetaModalidad(modalidad: ModalidadTrabajo): string {
-  const etiquetas: Record<ModalidadTrabajo, string> = {
-    presencial: "Presencial",
-    hibrido: "Híbrido",
-    remoto: "Remoto",
-  };
-
-  return etiquetas[modalidad];
-}
-
 export function etiquetaTipo(tipo: TipoOportunidad): string {
   return tipo === "pasantia" ? "Pasantía" : "Empleo";
 }
@@ -107,9 +77,14 @@ export function etiquetaEstadoPostulacion(estado: EstadoPostulacion): string {
     en_revision: "En revisión",
     rechazada: "No seleccionada",
     aceptada: "Aceptada",
+    cancelada: "Cancelada por vos",
   };
 
   return etiquetas[estado];
+}
+
+export function etiquetaEstadoFormacion(estado: EstadoFormacion): string {
+  return estado === "en_curso" ? "En curso" : "Finalizado";
 }
 
 /** Iniciales para el avatar cuando no hay foto cargada. */
@@ -122,14 +97,21 @@ export function iniciales(texto: string): string {
     .join("");
 }
 
-/** Compatibilidad entre los tags de una vacante y los del postulante (RF3.5.2). */
-export function afinidad(tagsVacante: string[], tagsPerfil: string[]): number {
-  if (tagsVacante.length === 0) return 0;
+/**
+ * Compatibilidad entre lo que pide una vacante y lo que declara el perfil
+ * (RF3.5.2).
+ *
+ * Se calcula solo con los tags públicos y las habilidades de la vacante. El
+ * puntaje de matching de RF3.9, que usa los tags ocultos, es otra cosa: se
+ * calcula en la base, es visible únicamente para la empresa y no pasa por acá.
+ */
+export function afinidad(requisitos: string[], propios: string[]): number {
+  if (requisitos.length === 0) return 0;
 
-  const propios = new Set(tagsPerfil.map((tag) => tag.toLowerCase()));
-  const coinciden = tagsVacante.filter((tag) =>
-    propios.has(tag.toLowerCase()),
+  const declarados = new Set(propios.map((nombre) => nombre.toLowerCase()));
+  const coinciden = requisitos.filter((requisito) =>
+    declarados.has(requisito.toLowerCase()),
   ).length;
 
-  return Math.round((100 * coinciden) / tagsVacante.length);
+  return Math.round((100 * coinciden) / requisitos.length);
 }

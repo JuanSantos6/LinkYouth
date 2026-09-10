@@ -1,7 +1,7 @@
 type IconoProps = { className?: string };
 
 /**
- * Íconos de la navegación. Van en línea y no como librería: son cinco trazos
+ * Íconos de la navegación. Van en línea y no como librería: son unos pocos trazos
  * y así no viaja un paquete entero al navegador. Todos comparten grilla de
  * 24 px, trazo de 1.75 y puntas redondeadas, que es lo que los hace leer como
  * un conjunto.
@@ -88,15 +88,6 @@ export function IconoUbicacion(props: IconoProps) {
     <Base {...props}>
       <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" />
       <circle cx="12" cy="10" r="2.5" />
-    </Base>
-  );
-}
-
-export function IconoVerificado(props: IconoProps) {
-  return (
-    <Base {...props}>
-      <path d="m12 3 2.2 1.6 2.7-.2.9 2.6 2.2 1.6-1 2.5 1 2.5-2.2 1.6-.9 2.6-2.7-.2L12 21l-2.2-1.6-2.7.2-.9-2.6-2.2-1.6 1-2.5-1-2.5 2.2-1.6.9-2.6 2.7.2Z" />
-      <path d="m9.5 12 1.8 1.8 3.4-3.6" />
     </Base>
   );
 }

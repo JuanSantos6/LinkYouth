@@ -3,9 +3,7 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
-// TODO: reconectar contra db/schema.sql
 import { postularse } from "@/lib/acciones/postulaciones";
-// TODO: reconectar contra db/schema.sql
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 
 /**
