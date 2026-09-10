@@ -15,12 +15,35 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-10
 
+- **Se resuelve el conflicto entre los dos esquemas de base.** El equipo
+  decidió mantener `db/schema.sql` + `db/politicas.sql`; `db/migrations/` y
+  `db/seed/` se eliminaron.
+  Motivo: `schema.sql` es el esquema que está aplicado en Supabase.
+  `supabase gen types` sobre la base real lo confirma — devuelve `cuentas`,
+  `inscripciones_evento`, `vacante_tags_publicos` y `cuenta_activa`. El de
+  `migrations/` nunca corrió contra una base real.
+  Arrastró la eliminación de `src/lib/data/` y `src/lib/acciones/`, que
+  consultaban tablas y columnas inexistentes en el esquema vigente, y de la
+  skill `datos-linkyouth`, que lo documentaba. 18 imports quedaron marcados
+  con `// TODO: reconectar contra db/schema.sql`. El proyecto no compila
+  hasta que esa capa se reescriba: es un estado conocido.
+  → `6b6bf86`
+
+- **Documentación corregida tras esa decisión.** `arquitectura.md` reemplaza
+  el catálogo de la capa de datos por una nota de reescritura, y documenta
+  las seis funciones que sí existen en `db/schema.sql`:
+  `set_actualizada_en`, `notificar_cambio_estado_postulacion`,
+  `validar_tipo_cuenta`, `validar_cambio_tipo_cuenta`, `cuenta_activa` y
+  `postulacion_identidad_inmutable`. El Hito 0.1 del plan pasa de resolver el
+  conflicto de esquemas a reescribir la capa de datos.
+
 - **Se resuelve la contradicción de la edad del SRS**: la plataforma admite
   solo mayores de 18 años.
   Motivo: RF1.1.8 y RNF6 se contradecían, y la diferencia define quién puede
   registrarse. Admitir menores exigiría consentimiento de un adulto
   responsable y un encuadre legal más estricto, fuera del alcance del MVP.
-  La regla ya estaba en `db/migrations/0001_esquema.sql:40`.
+  La regla vive en `db/schema.sql` como la restricción
+  `perfiles_mayor_de_edad`.
   → [decisiones.md](./decisiones.md)
 
 - **Documentación del proyecto.** Se agregan `docs/arquitectura.md` (mapa,

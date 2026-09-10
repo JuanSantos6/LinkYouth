@@ -16,53 +16,33 @@ verificar; si no se puede verificar, el hito no está cerrado.
 
 ## Hito 0 — Poner la casa en orden
 
-Antes de escribir una línea de funcionalidad nueva. Son deudas que hoy
-generan confusión y van a costar más caro después.
+Antes de escribir una línea de funcionalidad nueva.
 
-### 0.1 Resolver los dos esquemas de base
+> **Resuelto el 2026-09-10:** los dos esquemas de base incompatibles. El
+> equipo decidió mantener `db/schema.sql` + `db/politicas.sql`, que es el que
+> está aplicado en Supabase. `db/migrations/` y `db/seed/` se eliminaron en
+> `6b6bf86`, junto con la capa de datos que dependía de ellos.
 
-Hoy conviven `db/schema.sql` + `db/politicas.sql` y `db/migrations/`,
-describiendo esquemas incompatibles (ver `arquitectura.md` §7.1). El código
-sigue a `migrations/`.
+### 0.1 Reescribir la capa de datos contra `schema.sql`
 
-- Confirmar cuál está aplicado en el proyecto de Supabase.
-- Quedarse con uno. Si es `migrations/`, borrar `schema.sql` y `politicas.sql`
-  y trasladar a una migración nueva lo que valga la pena de ellos: el trigger
-  de exclusividad perfil/empresa, `cuenta_activa()`, el `search_path` fijo en
-  las funciones, los índices y el check de mayoría de edad.
-- Dejar `db/README.md` describiendo solo lo que quedó.
+`src/lib/data/` y `src/lib/acciones/` están vacías: sus archivos consultaban
+el esquema descartado y se eliminaron en `6b6bf86`. **El proyecto no compila.**
+Es el trabajo que bloquea todo lo demás.
 
-**Terminado cuando** `db/` tiene un solo esquema, y correrlo de cero sobre una
-base limpia no da error.
+- Reescribir las consultas y las acciones contra `db/schema.sql`, atendiendo
+  los 18 imports marcados con `// TODO: reconectar contra db/schema.sql` en 14
+  archivos de `src/app/(app)/` y `src/components/`.
+- Resolver los alias de tipo (`TipoOportunidad`, `CategoriaTag`,
+  `ModalidadTrabajo`, `EstadoPostulacion`, `EstadoFormacion`), que no existen
+  en los tipos generados porque el esquema usa `text` + `check` en vez de
+  enums de Postgres. No pueden vivir en `src/types/database.ts`: el próximo
+  `gen types` los pisa.
+- No repetir la contradicción de `cancelarPostulacion`, que hacía `DELETE`
+  contra la regla de `CLAUDE.md`. `db/schema.sql` acepta el estado
+  `cancelada`.
 
-### 0.2 Aplicar el esquema y verificarlo
-
-- Correr `migrations/` y `seed/` en el proyecto de Supabase.
-- Entrar a `/` y ver que la pantalla de verificación dice que conectó.
-- Entrar a `/empleos` y ver que **no** aparece `AvisoOrigen`: eso significa
-  que está leyendo la base de verdad.
-
-**Terminado cuando** las cinco pantallas cargan sin el aviso de demostración.
-
-### 0.3 Regenerar los tipos
-
-```bash
-npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts
-```
-
-Hoy están escritos a mano. Después de regenerar, `npm run typecheck` va a
-marcar toda diferencia entre lo que el código supone y lo que la base tiene.
-Esos errores son justamente el valor del paso.
-
-**Terminado cuando** `npm run typecheck` pasa con los tipos generados.
-
-### 0.4 Decidir qué pasa con `cancelarPostulacion`
-
-Hace `DELETE` y contradice la regla de `CLAUDE.md` (ver `arquitectura.md`
-§7.2). Recomendación: agregar `cancelada` al enum `estado_postulacion` y pasar
-a `UPDATE`, que conserva el dato para las métricas de RF7.
-
-**Terminado cuando** el código y la regla escrita dicen lo mismo.
+**Terminado cuando** `npm run lint && npm run typecheck && npm run build`
+pasan, y las cinco pantallas cargan leyendo de la base.
 
 ---
 
@@ -138,8 +118,12 @@ El corazón del producto.
   verificarlas contra la base.
 - Seguimiento del estado por parte del postulante (RF3.7).
 - Cambio de estado por parte de la empresa (RF3.4.3).
-- `puntaje_matching()` conectado y mostrado **solo del lado de la empresa**
-  (RF3.9).
+- **Implementar el cálculo de compatibilidad (RF3.9).** `db/schema.sql` tiene
+  la tabla `vacante_tags_ocultos` y su RLS, pero **no** la función que cruza
+  esos tags con los del perfil: hay que escribirla. Tiene que correr con
+  `security definer` y devolver solo el número — las etiquetas no pueden
+  salir de la función (RNF5). El puntaje se muestra solo del lado de la
+  empresa (RF3.9.2).
 
 **Qué no entra**
 
@@ -245,7 +229,7 @@ cuando se llegue.
 
 > **Resuelto el 2026-09-10:** la contradicción de la edad del SRS. La
 > plataforma admite solo mayores de 18 años. La regla ya está en
-> `db/migrations/0001_esquema.sql`. Ver
+> `db/schema.sql` como restricción `perfiles_mayor_de_edad`. Ver
 > [decisiones.md](./decisiones.md).
 
 **Datos alojados en Estados Unidos.** La base está en `us-east-2`. Antes de
@@ -263,9 +247,12 @@ barato; hacerlo en el Hito 6 obliga a rehacer la navegación.
 ## Cómo se trabaja cada hito
 
 1. Rama desde `main`: `feat/<hito>`.
-2. El cambio de esquema entra como migración numerada nueva en
-   `db/migrations/`. No se edita una migración ya aplicada.
-3. Los tipos se regeneran después de aplicar la migración.
+2. El cambio de esquema se edita en `db/schema.sql` o `db/politicas.sql`, y se
+   aplica a mano en el SQL Editor de Supabase. Ojo: `create policy` falla con
+   `already exists` sobre una base ya migrada; hace falta `drop policy` o
+   `alter policy` antes.
+3. Los tipos se regeneran después de aplicar el cambio:
+   `npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts`
 4. Antes de dar algo por terminado: `npm run lint && npm run typecheck && npm
    run build`, y mirar la pantalla en el navegador.
 5. Entrada en [`CHANGELOG.md`](./CHANGELOG.md), siempre.
