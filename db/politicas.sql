@@ -26,14 +26,15 @@ with check (auth.uid() = id);
 
 -- ============================================================
 -- PERFILES
--- Públicos para lectura (RF2.5). Cada quien crea y edita el suyo.
+-- Públicos para lectura (RF2.5), salvo los de cuentas dadas de baja.
+-- Cada quien crea y edita el suyo.
 -- ============================================================
 
 alter table perfiles enable row level security;
 
 create policy "perfiles_lectura_publica"
 on perfiles for select
-using (true);
+using (cuenta_activa(id));
 
 create policy "perfiles_creo_el_mio"
 on perfiles for insert
@@ -53,7 +54,7 @@ alter table empresas enable row level security;
 
 create policy "empresas_lectura_publica"
 on empresas for select
-using (true);
+using (cuenta_activa(id));
 
 create policy "empresas_creo_la_mia"
 on empresas for insert

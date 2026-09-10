@@ -150,3 +150,55 @@ dónde está realmente su fila. Varias políticas de RLS asumen que `cuentas.tip
 es siempre correcto, así que una inconsistencia ahí no queda como un dato
 prolijo de más: se convierte en un problema de control de acceso. La regla vive
 donde no se puede esquivar, sin importar qué cliente escriba.
+
+---
+
+## 2026-09-10 — Endurecimiento del esquema y las políticas RLS
+
+**Decisión.** Cerrar cinco huecos detectados en la revisión de `db/schema.sql` y
+`db/politicas.sql`:
+
+1. Fijar `set search_path = public, pg_temp` en todas las funciones, y marcar
+   como `security definer` las que validan integridad entre tablas.
+2. Extender los triggers de validación de tipo de cuenta a `update`, y bloquear
+   el cambio de `cuentas.tipo` cuando la cuenta ya tiene su fila de detalle.
+3. Impedir con un trigger que un `update` sobre `postulaciones` cambie
+   `perfil_id` o `vacante_id`.
+4. Hacer que `cuentas.eliminada` tenga efecto real: las políticas de lectura de
+   `perfiles` y `empresas` pasan de `using (true)` a `using (cuenta_activa(id))`.
+5. Agregar índices sobre las claves foráneas y sobre el lado inverso de las
+   tablas puente.
+
+**Alternativas consideradas.**
+
+- Dejar el `search_path` sin fijar, como estaba: es el valor por omisión y el
+  esquema no crea objetos fuera de `public`.
+- Resolver la inmutabilidad de `postulaciones` dentro de la propia política de
+  RLS, comparando contra la fila existente.
+- Filtrar las cuentas dadas de baja en las consultas de la aplicación en vez de
+  en la política.
+- Dejar los índices para más adelante, cuando haya volumen real que medir.
+
+**Motivo.** Una función `security definer` sin `search_path` fijo es
+explotable: quien pueda crear objetos en un esquema que preceda a `public`
+secuestra la resolución de nombres y ejecuta código con los permisos del dueño
+de la función. El linter de Supabase lo reporta como
+`function_search_path_mutable`.
+
+La inmutabilidad de `postulaciones` no se puede expresar en RLS: una política
+no ve la fila vieja, y una que consulte su propia tabla para compararla falla
+con `infinite recursion detected in policy for relation`. El trigger sí ve
+`old` y `new`, así que la regla vive ahí.
+
+Filtrar las bajas en la aplicación deja la regla del lado equivocado: cualquier
+consulta que se olvide del filtro expone datos de cuentas dadas de baja, y hoy
+`eliminada` no tiene ningún efecto en ninguna parte. La función `cuenta_activa`
+es `security definer` porque `cuentas` tiene RLS que limita cada fila a su
+dueño: una subquery común solo vería la cuenta propia y ocultaría todos los
+demás perfiles.
+
+Los índices no son una optimización prematura en este esquema. Postgres no
+indexa las claves foráneas por su cuenta, y varias políticas de RLS ejecutan
+`exists (select 1 from vacantes ...)` una vez por fila evaluada: sin índice,
+cada lectura de una tabla hija recorre la tabla padre entera. El costo aparece
+en la primera demo con datos de prueba, no en producción.

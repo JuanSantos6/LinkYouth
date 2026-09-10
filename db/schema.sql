@@ -133,12 +133,15 @@ create table postulaciones (
 
 -- Mantiene actualizada_en al día sin que la app tenga que acordarse.
 create or replace function set_actualizada_en()
-returns trigger as $$
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
 begin
   new.actualizada_en = now();
   return new;
 end;
-$$ language plpgsql;
+$$;
 
 create trigger postulaciones_actualizada_en
 before update on postulaciones
@@ -209,9 +212,15 @@ create table notificaciones (
 -- elevados (security definer) porque inserta en la cuenta del
 -- postulante, no en la de quien ejecuta la acción.
 create or replace function notificar_cambio_estado_postulacion()
-returns trigger as $$
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
 begin
-  if new.estado is distinct from old.estado then
+  -- 'cancelada' es la unica transicion que hace el propio postulante
+  -- (ver politicas.sql). Notificarsela seria avisarle de su propia accion.
+  if new.estado is distinct from old.estado and new.estado <> 'cancelada' then
     insert into notificaciones (cuenta_id, tipo, mensaje, enlace)
     values (
       new.perfil_id,
@@ -222,7 +231,7 @@ begin
   end if;
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 create trigger postulaciones_notificar_cambio
 after update on postulaciones
@@ -236,7 +245,11 @@ for each row execute function notificar_cambio_estado_postulacion();
 -- ============================================================
 
 create or replace function validar_tipo_cuenta()
-returns trigger as $$
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
 begin
   if TG_TABLE_NAME = 'perfiles' then
     if not exists (select 1 from cuentas where id = new.id and tipo = 'individual') then
@@ -255,12 +268,132 @@ begin
   end if;
   return new;
 end;
-$$ language plpgsql;
+$$;
 
 create trigger perfiles_valida_tipo
-before insert on perfiles
+before insert or update on perfiles
 for each row execute function validar_tipo_cuenta();
 
 create trigger empresas_valida_tipo
-before insert on empresas
+before insert or update on empresas
 for each row execute function validar_tipo_cuenta();
+
+-- Bloquea el cambio de cuentas.tipo cuando la cuenta ya tiene su fila de
+-- detalle: si no, tipo queda desincronizado de donde vive realmente la fila
+-- y las politicas de RLS que confian en tipo dejan de decir la verdad.
+create or replace function validar_cambio_tipo_cuenta()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.tipo is distinct from old.tipo
+     and (exists (select 1 from perfiles where id = new.id)
+          or exists (select 1 from empresas where id = new.id)) then
+    raise exception 'No se puede cambiar el tipo de la cuenta %: ya tiene datos asociados', new.id;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger cuentas_valida_cambio_tipo
+before update on cuentas
+for each row execute function validar_cambio_tipo_cuenta();
+
+-- ============================================================
+-- MÓDULO: Baja lógica de cuentas
+-- Las políticas de lectura consultan esta función en vez de leer
+-- cuentas directamente: la tabla tiene RLS que limita cada fila a su
+-- dueño, así que una subquery común solo vería la cuenta propia y
+-- ocultaría todos los demás perfiles. security definer la saltea;
+-- stable permite que el planificador la evalúe una vez por consulta.
+-- ============================================================
+
+create or replace function cuenta_activa(cuenta uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (select 1 from cuentas where id = cuenta and not eliminada);
+$$;
+
+-- ============================================================
+-- ÍNDICES
+-- Postgres no indexa las claves foráneas por su cuenta. Cada política
+-- de RLS que hace `exists (select 1 from vacantes ...)` corre por fila,
+-- así que sin estos índices el costo se multiplica por el tamaño de la
+-- tabla. Cubre RNF1 (rendimiento).
+-- Las claves primarias compuestas ya indexan su primera columna; acá va
+-- el lado inverso, que es el que usa el matching (RF3.9).
+-- ============================================================
+
+create index if not exists idx_postulaciones_perfil
+  on postulaciones (perfil_id);
+create index if not exists idx_postulaciones_vacante_estado
+  on postulaciones (vacante_id, estado);
+
+create index if not exists idx_vacantes_empresa
+  on vacantes (empresa_id);
+create index if not exists idx_vacantes_activas
+  on vacantes (creada_en desc) where estado = 'activa';
+
+create index if not exists idx_eventos_empresa
+  on eventos (empresa_id);
+create index if not exists idx_eventos_proximos
+  on eventos (fecha_hora) where estado = 'activo';
+
+create index if not exists idx_formaciones_perfil
+  on formaciones (perfil_id);
+create index if not exists idx_resenias_perfil
+  on resenias (perfil_id);
+create index if not exists idx_inscripciones_perfil
+  on inscripciones_evento (perfil_id);
+
+create index if not exists idx_notificaciones_cuenta
+  on notificaciones (cuenta_id, creada_en desc);
+create index if not exists idx_notificaciones_no_leidas
+  on notificaciones (cuenta_id) where not leida;
+
+create index if not exists idx_perfil_tags_tag
+  on perfil_tags (tag_id);
+create index if not exists idx_perfil_habilidades_habilidad
+  on perfil_habilidades (habilidad_id);
+create index if not exists idx_vacante_tags_publicos_tag
+  on vacante_tags_publicos (tag_id);
+create index if not exists idx_vacante_tags_ocultos_tag
+  on vacante_tags_ocultos (tag_id);
+create index if not exists idx_vacante_habilidades_habilidad
+  on vacante_habilidades (habilidad_id);
+create index if not exists idx_evento_tags_tag
+  on evento_tags (tag_id);
+
+-- ============================================================
+-- MÓDULO: Inmutabilidad de la identidad de una postulación
+-- RLS decide qué fila se puede tocar y con qué valores, pero no ve la
+-- fila vieja: no puede exigir que una columna no cambie. Sin esto, la
+-- empresa dueña de la vacante puede reasignar la postulación a otro
+-- perfil (y dispararle una notificación que ese usuario nunca pidió).
+-- Una política que leyera `postulaciones` para comparar caería en
+-- "infinite recursion detected in policy for relation"; el trigger no.
+-- ============================================================
+
+create or replace function postulacion_identidad_inmutable()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  if new.perfil_id is distinct from old.perfil_id
+     or new.vacante_id is distinct from old.vacante_id then
+    raise exception 'No se puede cambiar el perfil ni la vacante de una postulación';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger postulaciones_identidad_inmutable
+before update on postulaciones
+for each row execute function postulacion_identidad_inmutable();
