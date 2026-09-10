@@ -227,3 +227,40 @@ $$ language plpgsql security definer;
 create trigger postulaciones_notificar_cambio
 after update on postulaciones
 for each row execute function notificar_cambio_estado_postulacion();
+
+-- ============================================================
+-- MÓDULO: Integridad entre cuentas, perfiles y empresas
+-- Una cuenta es individual o empresa, nunca las dos. La fila de
+-- detalle tiene que coincidir con cuentas.tipo: varias políticas
+-- de RLS asumen que ese campo es siempre correcto.
+-- ============================================================
+
+create or replace function validar_tipo_cuenta()
+returns trigger as $$
+begin
+  if TG_TABLE_NAME = 'perfiles' then
+    if not exists (select 1 from cuentas where id = new.id and tipo = 'individual') then
+      raise exception 'La cuenta % no es de tipo individual', new.id;
+    end if;
+    if exists (select 1 from empresas where id = new.id) then
+      raise exception 'La cuenta % ya tiene un registro de empresa', new.id;
+    end if;
+  elsif TG_TABLE_NAME = 'empresas' then
+    if not exists (select 1 from cuentas where id = new.id and tipo = 'empresa') then
+      raise exception 'La cuenta % no es de tipo empresa', new.id;
+    end if;
+    if exists (select 1 from perfiles where id = new.id) then
+      raise exception 'La cuenta % ya tiene un registro de perfil', new.id;
+    end if;
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger perfiles_valida_tipo
+before insert on perfiles
+for each row execute function validar_tipo_cuenta();
+
+create trigger empresas_valida_tipo
+before insert on empresas
+for each row execute function validar_tipo_cuenta();

@@ -129,3 +129,24 @@ sección de reseñas vacía durante meses, justo cuando más falta hace para que
 plataforma resulte útil. La experiencia del proceso de selección —tiempos de
 respuesta, trato, claridad de la vacante— es información valiosa aunque la
 postulación no haya prosperado.
+
+---
+
+## 2026-09-10 — Exclusividad perfil/empresa validada en la base
+
+**Decisión.** Agregar la función `validar_tipo_cuenta()` y los triggers
+`perfiles_valida_tipo` y `empresas_valida_tipo` en `db/schema.sql`, para que la
+base rechace toda fila de `perfiles` o `empresas` que no coincida con
+`cuentas.tipo` o que duplique una cuenta ya registrada en la otra tabla.
+
+**Alternativas consideradas.**
+
+- Confiar en que el código de la aplicación nunca cree ambas filas para la misma
+  cuenta.
+
+**Motivo.** Sin esta validación en la base, un bug en el registro podría dejar
+una cuenta con datos en las dos tablas, o con `cuentas.tipo` desincronizado de
+dónde está realmente su fila. Varias políticas de RLS asumen que `cuentas.tipo`
+es siempre correcto, así que una inconsistencia ahí no queda como un dato
+prolijo de más: se convierte en un problema de control de acceso. La regla vive
+donde no se puede esquivar, sin importar qué cliente escriba.
