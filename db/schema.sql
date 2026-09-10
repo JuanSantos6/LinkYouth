@@ -32,6 +32,11 @@ create table perfiles (
   creado_en         timestamptz not null default now()
 );
 
+-- Exige que el usuario sea mayor de 18 años al momento del registro (RF1.1.8).
+alter table perfiles
+  add constraint perfiles_mayor_de_edad
+  check (fecha_nacimiento <= current_date - interval '18 years');
+
 create table empresas (
   id             uuid primary key references cuentas(id) on delete cascade,
   razon_social   text not null unique,
