@@ -61,7 +61,7 @@ Ningún cambio se da por terminado sin esto:
    El qué se ve en el diff; el porqué se pierde si no se escribe.
 2. **Si agregó, borró o cambió una función exportada** — actualizá el catálogo
    en `docs/arquitectura.md` §5. Está escrito a mano y no se regenera solo.
-3. **Si cambió cómo viajan los datos, o una de las cuatro reglas
+3. **Si cambió cómo viajan los datos, o una de las tres reglas
    estructurales** — actualizá `docs/arquitectura.md` §2 o §3.
 4. **Si hubo alternativas reales que se descartaron** — entrada en
    `docs/decisiones.md`, con fecha, decisión, alternativas y motivo.

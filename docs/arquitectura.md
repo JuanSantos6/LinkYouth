@@ -3,10 +3,6 @@
 Cómo está armado el proyecto, por qué está armado así, y qué hace cada función
 que existe hoy.
 
-> **La capa de datos (`src/lib/data/`, `src/lib/acciones/`) está en
-> reescritura. `db/schema.sql` y `db/politicas.sql` son la única fuente de
-> verdad estable hoy.**
-
 Este documento describe **el código que está escrito**, no el que falta. Para
 lo que viene, mirá [`plan.md`](./plan.md). Para el historial de cambios,
 [`CHANGELOG.md`](./CHANGELOG.md). Para las decisiones con sus alternativas
