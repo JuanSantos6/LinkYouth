@@ -13,6 +13,13 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-11
+
+- **Se saca de `arquitectura.md` la nota de «capa de datos en reescritura».**
+  Motivo: la reescritura terminó en `dd2685c`; la nota contradecía a §3 y §5,
+  que ya describen esa capa funcionando. De paso, `CLAUDE.md` decía «cuatro
+  reglas estructurales» y §2 tiene tres.
+
 ## 2026-09-10
 
 - **`src/types/database.ts` queda fuera de Prettier.** Se agregó a
