@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { cerrarSesion } from "@/lib/acciones/auth";
+
 import {
   IconoEmpleos,
   IconoEventos,
@@ -76,6 +78,15 @@ export function BarraLateral() {
           );
         })}
       </ul>
+
+      <form action={cerrarSesion} className="mt-6 hidden lg:block">
+        <button
+          type="submit"
+          className="w-full rounded-control px-3 py-2.5 text-left text-sm font-medium text-tinta-media transition-colors duration-150 hover:bg-superficie-suave hover:text-tinta"
+        >
+          Cerrar sesión
+        </button>
+      </form>
     </nav>
   );
 }
