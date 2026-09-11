@@ -356,7 +356,14 @@ sesión existe un usuario en `auth.users` sin fila en `perfiles`. No puede
 navegar la aplicación —no tiene sesión—, pero el correo ya quedó tomado. Si
 nunca confirma, esa cuenta queda huérfana.
 
-**Consecuencia a tener presente.** El nombre de usuario se verifica recién al
-insertar en `perfiles`. Con la confirmación por correo activada, eso ocurre
-en el primer inicio de sesión: alguien puede registrarse con un
-`nombre_usuario` que otra persona tome mientras tanto, y enterarse al entrar.
+**Consecuencia a tener presente.** El nombre de usuario lo garantiza el
+índice único de `perfiles`, que con la confirmación por correo activada se
+evalúa recién en el primer inicio de sesión. Para que nadie se entere tan
+tarde, `registrarse()` consulta `perfiles` antes del `signUp` y corta ahí el
+caso común. Queda la carrera: dos registros simultáneos con el mismo nombre
+pasan los dos la verificación, y el segundo choca contra el índice al entrar.
+
+La verificación previa lee a través de `perfiles_lectura_publica`, que filtra
+por `cuenta_activa(id)`. Un nombre tomado por una cuenta dada de baja no
+aparece, así que la verificación lo da por libre y el choque vuelve a caer en
+el índice único. Es el mismo caso raro de siempre, con la misma defensa.

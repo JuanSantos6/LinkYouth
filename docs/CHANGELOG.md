@@ -25,6 +25,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   → [`decisiones.md`](./decisiones.md) por cómo se resuelve la confirmación
   por correo.
 
+- **El nombre de usuario repetido se detecta antes de crear la cuenta.** El
+  registro consulta `perfiles` por `nombre_usuario` antes del `signUp`.
+  Motivo: sin eso el choque aparecía al insertar en `perfiles`, que con la
+  confirmación por correo activada ocurre en el primer inicio de sesión — la
+  persona se enteraba después de haberse registrado. No elimina la carrera
+  entre dos registros simultáneos; el índice único sigue siendo la defensa
+  final.
+
 - **Los errores de la base llegan traducidos, no crudos.** El `23514` del
   constraint `perfiles_mayor_de_edad` se lee como «Tenés que ser mayor de 18
   años para registrarte», y el `23505` de `nombre_usuario` como «Ese nombre

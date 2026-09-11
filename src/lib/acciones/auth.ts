@@ -12,6 +12,15 @@ import { CLAVE_DUPLICADA, type EstadoAccion } from "./tipos";
 /** Código de Postgres para violación de una restricción `check`. */
 const CHECK_VIOLADO = "23514";
 
+/**
+ * Un solo texto para las dos veces que se detecta el nombre repetido: la
+ * verificación previa al `signUp` y el índice único de `perfiles`.
+ */
+const USUARIO_OCUPADO: EstadoAccion = {
+  estado: "error",
+  mensaje: "Ese nombre de usuario ya está en uso. Probá con otro.",
+};
+
 const SIN_CONFIGURAR: EstadoAccion = {
   estado: "error",
   mensaje:
@@ -117,12 +126,7 @@ async function completarAlta(
 
   // El conflicto por `id` ya está ignorado arriba, así que una clave duplicada
   // acá solo puede venir del índice único de `nombre_usuario`.
-  if (error.code === CLAVE_DUPLICADA) {
-    return {
-      estado: "error",
-      mensaje: "Ese nombre de usuario ya está en uso. Probá con otro.",
-    };
-  }
+  if (error.code === CLAVE_DUPLICADA) return USUARIO_OCUPADO;
 
   return { estado: "error", mensaje: error.message };
 }
@@ -166,6 +170,20 @@ export async function registrarse(
 
   const supabase = await createClient();
   if (!supabase) return SIN_CONFIGURAR;
+
+  // Corta el caso común del nombre repetido antes de crear nada en
+  // `auth.users`: sin esto el choque aparece recién al insertar en
+  // `perfiles`, que con la confirmación por correo activada ocurre en el
+  // primer inicio de sesión. No elimina la carrera —dos registros
+  // simultáneos la pasan los dos— y por eso el índice único de `perfiles`
+  // sigue siendo la defensa final.
+  const { data: yaExiste } = await supabase
+    .from("perfiles")
+    .select("id")
+    .eq("nombre_usuario", perfil.nombre_usuario)
+    .maybeSingle();
+
+  if (yaExiste) return USUARIO_OCUPADO;
 
   const { data, error } = await supabase.auth.signUp({
     email,
