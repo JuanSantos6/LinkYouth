@@ -3,12 +3,16 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
+import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { postularse } from "@/lib/acciones/postulaciones";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 
 /**
- * Postulación en un paso (RF3.6). El resultado se anuncia en una región
- * `aria-live` para que también llegue a quien navega con lector de pantalla.
+ * Postulación en un paso (RF3.6).
+ *
+ * El botón y su confirmación usan la misma palabra: «Postularme» →
+ * «Postulación enviada». Si el botón dijera una cosa y el aviso otra, habría
+ * que releer para saber si pasó lo que se pidió.
  */
 export function BotonPostularse({
   vacanteId,
@@ -30,14 +34,7 @@ export function BotonPostularse({
         </Boton>
       </form>
 
-      <p
-        aria-live="polite"
-        className={`max-w-xs text-right text-xs ${
-          estado.estado === "error" ? "text-alerta" : "text-tinta-suave"
-        }`}
-      >
-        {estado.mensaje}
-      </p>
+      <MensajeDeAccion estado={estado} className="text-right" />
     </div>
   );
 }

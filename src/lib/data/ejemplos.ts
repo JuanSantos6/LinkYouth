@@ -1,4 +1,5 @@
 import type {
+  Aviso,
   Evento,
   Formacion,
   PerfilCompleto,
@@ -232,5 +233,24 @@ export const POSTULACIONES_EJEMPLO: PostulacionResumen[] = [
       empresa: "dLocal",
       empresa_logo_url: null,
     },
+  },
+];
+
+export const AVISOS_EJEMPLO: Aviso[] = [
+  {
+    id: "ejemplo-aviso-1",
+    tipo: "postulacion",
+    mensaje: "El estado de tu postulación cambió a: en_revision",
+    enlace: "/postulaciones",
+    leida: false,
+    creada_en: haceHoras(5),
+  },
+  {
+    id: "ejemplo-aviso-2",
+    tipo: "postulacion",
+    mensaje: "El estado de tu postulación cambió a: aceptada",
+    enlace: "/postulaciones",
+    leida: true,
+    creada_en: haceHoras(72),
   },
 ];

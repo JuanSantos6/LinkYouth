@@ -20,7 +20,7 @@ export function NubeTags({
 }) {
   if (tags.length === 0 && habilidades.length === 0) {
     return (
-      <p className="text-sm text-tinta-suave">
+      <p className="text-[14px] text-apagado">
         Todavía no elegiste intereses ni habilidades. Son la base con la que la
         plataforma te acerca vacantes y eventos.
       </p>
@@ -29,27 +29,22 @@ export function NubeTags({
 
   const grupos = [
     {
-      titulo: "Habilidades",
-      ayuda: "Lo que sabés hacer.",
+      titulo: "Lo que sabés hacer",
       elementos: habilidades,
     },
     {
-      titulo: "Áreas de interés",
-      ayuda: "Hacia dónde querés ir.",
+      titulo: "Hacia dónde querés ir",
       elementos: tags,
     },
   ].filter((grupo) => grupo.elementos.length > 0);
 
   return (
-    <div className="space-y-5">
-      {grupos.map(({ titulo, ayuda, elementos }) => (
-        <section key={titulo}>
-          <h3 className="text-[11px] font-semibold uppercase tracking-wide text-tinta-suave">
-            {titulo}
-          </h3>
-          <p className="mt-0.5 text-xs text-tinta-suave">{ayuda}</p>
+    <div className="divide-y divide-filete">
+      {grupos.map(({ titulo, elementos }) => (
+        <section key={titulo} className="py-4 first:pt-0 last:pb-0">
+          <h3 className="text-[14px] font-medium text-tinta">{titulo}</h3>
 
-          <ul className="mt-2 flex flex-wrap gap-1.5">
+          <ul className="mt-2.5 flex flex-wrap gap-1.5">
             {elementos.map((elemento) => (
               <li key={elemento}>
                 <Etiqueta>{elemento}</Etiqueta>

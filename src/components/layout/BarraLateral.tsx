@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
+  IconoAjustes,
   IconoEmpleos,
   IconoEventos,
   IconoInicio,
@@ -21,36 +22,30 @@ const SECCIONES = [
     Icono: IconoPostulaciones,
   },
   { href: "/perfil", etiqueta: "Mi perfil", Icono: IconoPerfil },
+  { href: "/ajustes", etiqueta: "Ajustes", Icono: IconoAjustes },
 ] as const;
 
 /**
- * Navegación principal.
+ * Secciones de tu cuenta.
  *
- * En escritorio es una columna fija de 240 px; en pantallas chicas se
- * convierte en una fila que se desplaza en horizontal, sin menú desplegable
- * de por medio: con cinco secciones, esconderlas cuesta más de lo que ahorra.
+ * La activa se marca con un filete vertical, no con una píldora rellena: el
+ * relleno pesa más que el propio texto y termina compitiendo con la acción
+ * principal de la pantalla.
+ *
+ * En pantallas chicas pasa a ser una fila que se desplaza en horizontal. Con
+ * seis secciones, esconderlas detrás de un menú cuesta más de lo que ahorra.
  */
 export function BarraLateral() {
   const ruta = usePathname();
 
   return (
     <nav
-      aria-label="Secciones de LinkYouth"
-      className="lg:sticky lg:top-6 lg:self-start"
+      aria-label="Secciones de tu cuenta"
+      // `min-w-0` deja que la fila se desplace por dentro en vez de
+      // ensanchar la grilla: sin eso, la página entera se corre en horizontal.
+      className="min-w-0 lg:sticky lg:top-20 lg:self-start"
     >
-      <Link href="/inicio" className="mb-6 hidden items-center gap-2.5 lg:flex">
-        <span
-          aria-hidden="true"
-          className="flex h-9 w-9 items-center justify-center rounded-control bg-primario text-sm font-bold text-white"
-        >
-          LY
-        </span>
-        <span className="text-base font-bold tracking-tight text-tinta">
-          LinkYouth
-        </span>
-      </Link>
-
-      <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+      <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:gap-0 lg:overflow-visible lg:pb-0">
         {SECCIONES.map(({ href, etiqueta, Icono }) => {
           const activa = ruta === href || ruta.startsWith(`${href}/`);
 
@@ -59,15 +54,15 @@ export function BarraLateral() {
               <Link
                 href={href}
                 aria-current={activa ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-control px-3 py-2.5 text-sm transition-colors duration-150 ${
+                className={`flex items-center gap-3 border-l-2 py-2.5 pl-3 pr-3 text-[14px] transition-colors duration-150 ${
                   activa
-                    ? "bg-primario-suave font-semibold text-primario-fuerte"
-                    : "font-medium text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                    ? "border-acento font-medium text-tinta"
+                    : "border-transparent text-apagado hover:text-tinta"
                 }`}
               >
                 <Icono
-                  className={`h-[18px] w-[18px] ${
-                    activa ? "text-primario" : "text-tinta-tenue"
+                  className={`h-[17px] w-[17px] ${
+                    activa ? "text-acento" : "text-apagado"
                   }`}
                 />
                 {etiqueta}

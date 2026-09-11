@@ -92,6 +92,33 @@ export function IconoUbicacion(props: IconoProps) {
   );
 }
 
+export function IconoAvisos(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 3.2.8 4.7 1.5 5.5H5c.7-.8 1.5-2.3 1.5-5.5Z" />
+      <path d="M10 18.5a2 2 0 0 0 4 0" />
+    </Base>
+  );
+}
+
+export function IconoAjustes(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx="15" cy="7" r="2.25" />
+      <circle cx="9" cy="17" r="2.25" />
+    </Base>
+  );
+}
+
+export function IconoCodigo(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <path d="m9 8-4 4 4 4M15 8l4 4-4 4" />
+    </Base>
+  );
+}
+
 export function IconoCamara(props: IconoProps) {
   return (
     <Base {...props}>

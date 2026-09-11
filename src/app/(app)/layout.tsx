@@ -1,17 +1,26 @@
 import { BarraLateral } from "@/components/layout/BarraLateral";
+import { CabeceraGlobal } from "@/components/layout/CabeceraGlobal";
+import { PieDeSitio } from "@/components/layout/PieDeSitio";
 
 /**
- * Estructura de la aplicación: navegación fija a la izquierda y contenido a
- * la derecha. Cada pantalla decide si además abre una tercera columna, así
- * el perfil puede ocupar todo el ancho sin que el layout pelee con él.
+ * Estructura de las pantallas de tu cuenta: cabecera de sitio, secciones a la
+ * izquierda y contenido a la derecha. Cada pantalla decide si además abre una
+ * tercera columna, así el perfil puede ocupar todo el ancho sin pelearse con
+ * el layout.
  */
 export default function LayoutApp({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="mx-auto grid w-full max-w-[1400px] gap-6 px-4 py-6 lg:grid-cols-[228px_minmax(0,1fr)] lg:px-6 lg:py-8">
-      <BarraLateral />
-      <div className="min-w-0">{children}</div>
+    <div className="flex min-h-screen flex-col">
+      <CabeceraGlobal />
+
+      <div className="mx-auto grid w-full max-w-[1320px] flex-1 gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[184px_minmax(0,1fr)] lg:py-10">
+        <BarraLateral />
+        <div className="min-w-0">{children}</div>
+      </div>
+
+      <PieDeSitio />
     </div>
   );
 }

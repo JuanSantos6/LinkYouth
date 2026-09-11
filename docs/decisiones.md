@@ -6,6 +6,117 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-11 — Dirección de diseño «ficha técnica»
+
+**Decisión.** Adoptar un vocabulario visual de registro sellado: paleta de
+cinco valores con el ámbar reservado a lo acreditado, radios distintos según
+la jerarquía, las vacantes como listado con filetes y los eventos como
+tarjetas.
+
+**Alternativas consideradas.**
+
+- Seguir con el kit de tarjetas y solo cambiar la paleta.
+- Un rediseño más expresivo, con degradados y fotografía.
+
+**Motivo.** El diseño anterior era correcto y anónimo: el azul por defecto de
+cualquier dashboard, todo el contenido troceado en rectángulos idénticos y la
+misma sombra gris debajo de cada uno. Cambiar solo el color no arreglaba eso,
+porque el problema era la forma. La dirección elegida además dice algo cierto
+del producto: LinkYouth acredita habilidades en vez de leer un currículum, y
+un registro se lee distinto de un feed.
+
+Lo expresivo se descartó por el usuario: alguien buscando su primer trabajo
+está ansioso, y la interfaz tiene que transmitir orden, no entusiasmo.
+
+---
+
+## 2026-09-11 — El ámbar solo para lo acreditado
+
+**Decisión.** Que el ámbar aparezca en dos lugares de toda la aplicación: el
+canto de la vacante destacada y la insignia de una postulación aceptada.
+
+**Alternativas consideradas.**
+
+- Pintar de ámbar cada etiqueta que el perfil ya declara.
+- Usarlo también en el logo, como remate de marca.
+
+**Motivo.** La primera versión hacía lo primero, y la revisión visual lo
+mostró: con un perfil que coincide con casi todo, cada fila era una pared
+ámbar. El color seguía siendo técnicamente correcto —marcaba lo acreditado—
+pero a esa densidad dejaba de leerse como señal y pasaba a leerse como fondo.
+Lo que coincide se distingue ahora por peso y por la marca de verificación,
+que además no depende del color.
+
+El remate en el logo se sacó por la misma regla: un logo no acredita nada, y
+el ámbar puesto en cualquier lado deja de decir algo donde sí importa.
+
+---
+
+## 2026-09-11 — Los tokens en `:root` y `@theme inline`
+
+**Decisión.** Declarar los valores en `:root` con prefijo `--ly-` y exponerlos
+a Tailwind con `@theme inline`, en vez de declararlos directamente dentro de
+`@theme`.
+
+**Alternativas consideradas.**
+
+- Declarar todo dentro de `@theme`, que es lo que muestra la documentación.
+- Repetir los valores: una copia para las utilidades y otra para el CSS a mano.
+
+**Motivo.** Tailwind 4 emite únicamente las variables de `@theme` que alguna
+utilidad usa. Con la primera versión, `var(--color-acento)` escrito a mano en
+la regla del anillo de foco se quedaba sin valor y caía en `currentColor`: el
+foco tomaba el color del texto del enlace. El rodeo cuesta doce líneas y
+garantiza que las variables existan siempre. Repetir los valores era la otra
+salida, y es la que garantiza que en algún momento discrepen.
+
+---
+
+## 2026-09-11 — Clases de dominio en vez de funciones sueltas
+
+**Decisión.** Mover la lógica de negocio de los componentes a tres clases:
+`Compatibilidad`, `FeedDeVacantes` y `ProcesoDePostulacion`.
+
+**Alternativas consideradas.**
+
+- Dejarla como funciones puras en `formato.ts`.
+- Una clase base común de la que hereden las tres.
+
+**Motivo.** `afinidad()` devolvía un número, pero la pantalla necesitaba tres
+cosas del mismo cálculo: el porcentaje, si una etiqueta puntual coincide y si
+el total alcanza para destacar la vacante. Con una función suelta, cada
+componente rehacía la comparación por su cuenta. Una clase deja que el
+resultado se calcule una vez y se consulte de varias maneras.
+
+No hay clase base: entre comparar etiquetas, ordenar un listado e interpretar
+un estado no hay comportamiento real compartido, y una jerarquía ahí sería
+decorativa.
+
+---
+
+## 2026-09-11 — Páginas reales para los enlaces del header y del pie
+
+**Decisión.** Escribir `/empresas`, `/como-funciona`, `/legales` y `/avisos`
+como páginas con contenido verdadero, en vez de dejar los enlaces inertes o
+sacarlos de la navegación.
+
+**Alternativas consideradas.**
+
+- Enlaces marcados como pendientes.
+- Limitar el header a las dos secciones que ya existían.
+
+**Motivo.** La cabecera se ve en todas las pantallas, y dos enlaces muertos
+ahí minan justamente la sensación de registro serio que busca la dirección. El
+contenido dice lo que el proyecto hace hoy y lo que todavía no —el panel de
+empresa no existe, la autenticación tampoco—, así que las páginas informan sin
+prometer de más.
+
+`/legales` era además una deuda del proyecto: RNF6 y RF1.1.12 exigen política
+de privacidad, y la decisión de alojar los datos en us-east-2 tiene una
+consecuencia que había que dejar escrita donde la lea un usuario.
+
+---
+
 ## 2026-09-10 — Los alias del esquema viven en la capa de datos
 
 **Decisión.** Declarar los conjuntos cerrados del esquema (`TipoOportunidad`,

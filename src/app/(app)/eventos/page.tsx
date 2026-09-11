@@ -16,7 +16,7 @@ export default async function PaginaEventos() {
   ]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <div className="mx-auto max-w-3xl space-y-6">
       <Encabezado
         titulo="Eventos de networking"
         descripcion="Charlas, talleres y ferias que organizan empresas e instituciones educativas. La inscripción es gratuita."

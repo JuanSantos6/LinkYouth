@@ -1,16 +1,16 @@
 import { BotonEnlace } from "@/components/ui/Boton";
-import { IconoUbicacion } from "@/components/layout/Iconos";
 import { Avatar } from "@/components/ui/Avatar";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import type { PerfilCompleto } from "@/lib/data/tipos";
 
 /**
- * Ficha del postulante para la columna derecha.
+ * Tu ficha, en la columna derecha del feed.
  *
- * Repite lo justo del perfil: quién sos, qué estudiás y qué sabés hacer. Las
- * métricas están para dar contexto de la actividad propia, no para competir
- * con nadie.
+ * Repite lo justo del perfil: quién sos, qué estudiás y qué sabés hacer. Los
+ * números van en la tipografía de título porque son el dato que se mira de
+ * reojo; están para dar contexto de tu propia actividad, no para competir con
+ * nadie.
  */
 export function TarjetaUsuario({
   perfil,
@@ -24,75 +24,66 @@ export function TarjetaUsuario({
     (formacion) => formacion.estado === "en_curso",
   );
 
+  const metricas = [
+    { valor: perfil.habilidades.length, rotulo: "habilidades" },
+    { valor: postulaciones, rotulo: "postulaciones" },
+    { valor: perfil.formaciones.length, rotulo: "estudios" },
+  ];
+
   return (
-    <Tarjeta className="overflow-hidden">
-      <div
-        className="h-16 bg-gradient-to-r from-[#1d4ed8] to-[#3b82f6]"
-        aria-hidden="true"
-      />
+    <Tarjeta className="p-5">
+      <div className="flex items-center gap-3">
+        <Avatar nombre={nombreCompleto} url={perfil.foto_url} />
 
-      <div className="px-5 pb-5">
-        <div className="-mt-9 mb-3">
-          <div className="inline-block rounded-full border-4 border-superficie">
-            <Avatar nombre={nombreCompleto} url={perfil.foto_url} tamano="md" />
-          </div>
-        </div>
-
-        <h2 className="text-base font-bold text-tinta">{nombreCompleto}</h2>
-
-        <p className="mt-0.5 text-xs text-tinta-suave">
-          @{perfil.nombre_usuario}
-        </p>
-
-        {enCurso && (
-          <p className="mt-2 text-sm leading-relaxed text-tinta-media">
-            {enCurso.titulo} · {enCurso.institucion}
+        <div className="min-w-0">
+          <h2 className="truncate text-[17px] text-tinta">{nombreCompleto}</h2>
+          <p className="truncate text-[13px] text-apagado">
+            @{perfil.nombre_usuario}
           </p>
-        )}
-
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-tinta-suave">
-          <IconoUbicacion className="h-3.5 w-3.5 text-tinta-tenue" />
-          {perfil.pais}
-        </p>
-
-        <dl className="mt-4 grid grid-cols-3 gap-2 border-y border-borde py-3 text-center">
-          <div>
-            <dd className="text-sm font-bold text-tinta">
-              {perfil.habilidades.length}
-            </dd>
-            <dt className="text-[11px] text-tinta-suave">Habilidades</dt>
-          </div>
-          <div>
-            <dd className="text-sm font-bold text-tinta">{postulaciones}</dd>
-            <dt className="text-[11px] text-tinta-suave">Postulaciones</dt>
-          </div>
-          <div>
-            <dd className="text-sm font-bold text-tinta">
-              {perfil.formaciones.length}
-            </dd>
-            <dt className="text-[11px] text-tinta-suave">Estudios</dt>
-          </div>
-        </dl>
-
-        {perfil.habilidades.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-tinta-suave">
-              Principales habilidades
-            </h3>
-            <ul className="mt-2 flex flex-wrap gap-1.5">
-              {perfil.habilidades.slice(0, 5).map((habilidad) => (
-                <li key={habilidad}>
-                  <Etiqueta>{habilidad}</Etiqueta>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <BotonEnlace href="/perfil" className="mt-4 w-full">
-          Ver mi perfil
-        </BotonEnlace>
+        </div>
       </div>
+
+      {enCurso && (
+        <p className="mt-4 text-[14px] leading-relaxed text-tinta">
+          {enCurso.titulo}
+          <span className="mt-0.5 block text-[13px] text-apagado">
+            {enCurso.institucion}
+          </span>
+        </p>
+      )}
+
+      <p className="mt-3 text-[13px] text-apagado">{perfil.pais}</p>
+
+      <dl className="mt-5 divide-y divide-filete border-y border-filete">
+        {metricas.map(({ valor, rotulo }) => (
+          <div
+            key={rotulo}
+            className="flex items-baseline justify-between py-2"
+          >
+            <dt className="text-[13px] text-apagado">{rotulo}</dt>
+            <dd className="cifra text-[20px] text-tinta">{valor}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {perfil.habilidades.length > 0 && (
+        <div className="mt-5">
+          <h3 className="text-[14px] font-medium text-tinta">
+            Lo que sabés hacer
+          </h3>
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {perfil.habilidades.slice(0, 5).map((habilidad) => (
+              <li key={habilidad}>
+                <Etiqueta>{habilidad}</Etiqueta>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <BotonEnlace href="/perfil" className="mt-5 w-full">
+        Ver mi perfil
+      </BotonEnlace>
     </Tarjeta>
   );
 }

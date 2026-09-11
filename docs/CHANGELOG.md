@@ -13,6 +13,69 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-11
+
+- **Rediseño bajo la dirección «ficha técnica».** La interfaz pasa del kit de
+  tarjetas SaaS a un vocabulario de registro sellado: paleta de cinco valores
+  (`tinta`, `papel`, `acento`, `senal`, `apagado`) con todo lo demás derivado
+  por `color-mix`, Bricolage Grotesque en títulos e Instrument Sans en el
+  cuerpo, y radios distintos según la jerarquía.
+  Motivo: el diseño anterior funcionaba pero no tenía identidad — azul por
+  defecto de dashboard, mismo radio y misma sombra para todo, rótulos en
+  versalitas y metadatos unidos con puntos medios.
+  → [`decisiones.md`](./decisiones.md)
+
+- **El ámbar significa una sola cosa.** Aparece en dos lugares de toda la
+  aplicación: el canto de la vacante destacada y la insignia de una
+  postulación aceptada.
+  Motivo: en la primera versión del rediseño lo llevaba cada etiqueta que
+  coincidía con el perfil, y una vacante que pide seis cosas se convertía en
+  una pared ámbar. Lo que coincide ahora se distingue por peso y por la marca
+  de verificación.
+
+- **Las vacantes dejan de ser tarjetas.** Son un listado con filetes; la más
+  compatible se despega con canto vertical ámbar y elevación real. Los eventos
+  siguen siendo tarjetas porque tienen imagen y fecha propias.
+  Motivo: la forma comunica el contenido. Todo troceado en rectángulos
+  idénticos no deja distinguir una oferta de una actividad.
+
+- **La lógica de negocio sale de los componentes.** Tres clases nuevas en
+  `src/lib/dominio/`: `Compatibilidad` (qué pide la vacante contra qué declara
+  el perfil), `FeedDeVacantes` (orden y destacada) y `ProcesoDePostulacion`
+  (etiqueta, etapa y si se puede cancelar).
+  Motivo: el cálculo de afinidad vivía dentro de `TarjetaVacante` y las reglas
+  de estado dentro de la página de postulaciones, repartidas entre el
+  componente y `formato.ts`. Ahí es donde una regla se desincroniza sin que
+  nadie lo note.
+
+- **Cabecera y pie en todas las pantallas**, y cinco pantallas nuevas:
+  `/ajustes`, `/avisos`, `/empresas`, `/como-funciona` y `/legales`.
+  Motivo: la navegación del header pedía Empresas y Cómo funciona, y la
+  campana y la columna Legales del pie pedían un destino. Se escribieron como
+  páginas reales en vez de dejar enlaces muertos.
+
+- **Modo oscuro y color de plataforma, persistidos.** Cinco acentos —pino,
+  marino, ciruela, ladrillo, grafito— definidos en `src/lib/diseno/tokens.ts`,
+  de donde salen tanto el CSS como el selector de Ajustes. Un guion en línea
+  aplica la preferencia antes del primer pintado.
+  Motivo: sin ese guion la pantalla arranca en claro y salta a oscuro a la
+  vista de todos.
+
+- **Tres defectos que encontró la revisión visual y el build no.**
+  1. La barra lateral ensanchaba el documento a 667 px en el teléfono: es un
+     ítem de grilla y sin `min-w-0` su fila desplazable empuja la página.
+  2. El anillo de foco se desvanecía en 150 ms desde el color del texto,
+     porque `transition-colors` de Tailwind incluye `outline-color`.
+  3. El borde de campos y botones estaba en 1.43:1 contra el papel, debajo del
+     3:1 que pide WCAG 1.4.11 para identificar un control. Se agregó
+     `borde-control`, derivado más fuerte que el borde decorativo de las
+     tarjetas.
+
+- **La skill `diseno-linkyouth` refleja la dirección nueva**, con la lista de
+  lo prohibido y la revisión de trece puntos.
+
+---
+
 ## 2026-09-10
 
 - **`src/types/database.ts` queda fuera de Prettier.** Se agregó a

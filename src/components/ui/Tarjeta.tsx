@@ -3,18 +3,25 @@ import type { ComponentPropsWithoutRef, ElementType } from "react";
 type TarjetaProps<T extends ElementType> = {
   /** Elemento a renderizar. `article` para una tarjeta de contenido, `div` si no. */
   como?: T;
-  /** Suma la reacción al puntero. Solo para tarjetas que llevan a algún lado. */
-  interactiva?: boolean;
+  /**
+   * Eleva la tarjeta del plano. Se reserva para lo que de verdad está por
+   * encima del resto —hoy, la vacante destacada—. Si todo estuviera elevado,
+   * nada lo estaría.
+   */
+  elevada?: boolean;
   className?: string;
 };
 
 /**
- * Superficie base de la aplicación. Todo bloque de contenido usa esta tarjeta,
- * de modo que borde, radio y sombra salgan de un único lugar.
+ * Superficie con borde.
+ *
+ * Ya no es el envoltorio de todo: el listado de vacantes son filas separadas
+ * por filetes, no tarjetas. Queda para lo que sí es una pieza autónoma —un
+ * evento con su imagen y su fecha, un bloque de formulario—.
  */
 export function Tarjeta<T extends ElementType = "div">({
   como,
-  interactiva = false,
+  elevada = false,
   className = "",
   ...resto
 }: TarjetaProps<T> & Omit<ComponentPropsWithoutRef<T>, keyof TarjetaProps<T>>) {
@@ -22,7 +29,9 @@ export function Tarjeta<T extends ElementType = "div">({
 
   return (
     <Componente
-      className={`tarjeta ${interactiva ? "tarjeta-interactiva" : ""} ${className}`}
+      className={`rounded-tarjeta border border-borde bg-superficie ${
+        elevada ? "shadow-elevada" : ""
+      } ${className}`}
       {...resto}
     />
   );

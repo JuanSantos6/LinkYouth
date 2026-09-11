@@ -47,7 +47,7 @@ nunca es la barrera; es la comodidad.
 
 ---
 
-## 2. Las tres reglas estructurales
+## 2. Las cuatro reglas estructurales
 
 Estas decisiones explican casi todo lo demás. Cada una tiene su entrada larga
 en [`decisiones.md`](./decisiones.md).
@@ -77,7 +77,18 @@ descuido ni a propósito.
 Las 49 políticas cubren las 18 tablas del esquema. Toda tabla tiene
 `enable row level security`.
 
-### 2.3 La aplicación tiene que poder arrancar sin base
+### 2.3 La lógica de negocio no vive en el componente
+
+Un componente recibe datos y los muestra. El cálculo de compatibilidad, el
+orden del feed y las reglas de estado de una postulación viven en clases
+propias, en `src/lib/dominio/`.
+
+La regla práctica: si estás por escribir un `if` sobre una regla de negocio
+dentro de un `.tsx`, va en una clase. Antes de esta separación, `afinidad()`
+se armaba dentro de `TarjetaVacante` y las etapas del proceso estaban
+repartidas entre la página de postulaciones y `formato.ts`.
+
+### 2.4 La aplicación tiene que poder arrancar sin base
 
 Un clon recién hecho, sin `.env.local`, no debería romper: `leerCredenciales()`
 devuelve `null` en vez de lanzar, y `createClient()` propaga ese `null` para
@@ -132,9 +143,12 @@ docs/                     SRS, decisiones, plan, changelog, este documento
 src/app/
   layout.tsx              Layout raíz (lang="es", fuentes)
   page.tsx                Redirige al feed
-  (app)/layout.tsx        Estructura con barra lateral
-  (app)/inicio|empleos|eventos|
-        postulaciones|perfil/page.tsx   Las cinco pantallas
+  (app)/layout.tsx        Cabecera, barra lateral y pie
+  (app)/inicio|empleos|eventos|postulaciones|
+        perfil|ajustes|avisos/page.tsx  Las siete pantallas de la cuenta
+  (sitio)/layout.tsx      Cabecera y pie, sin barra lateral
+  (sitio)/empresas|como-funciona|
+          legales/page.tsx                Las tres pantallas públicas
   (auth)/                 Vacía: login y registro pendientes
 
 src/components/
@@ -146,7 +160,10 @@ src/lib/
   supabase/               Clientes y credenciales
   data/                   Lectura: tipos.ts, ejemplos.ts, consultas.ts
   acciones/               Escritura: perfil, postulaciones, eventos
-  formato.ts              Fechas, etiquetas, afinidad
+  dominio/                Reglas de negocio: Compatibilidad, FeedDeVacantes,
+                          ProcesoDePostulacion
+  diseno/                 Tokens de color y preferencias de apariencia
+  formato.ts              Fechas y etiquetas
 
 src/types/database.ts     Tipos generados desde la base real
 src/middleware.ts         Refresco de sesión en cada request
@@ -233,27 +250,15 @@ Importa sus alias de tipo de `src/lib/data/tipos.ts` (ver §3).
 
 `"hace 2 horas"`, `"hace 3 días"`. Escala sola de minutos a meses.
 
-#### `etiquetaTipo(t)` · `etiquetaEstadoPostulacion(e)` · `etiquetaEstadoFormacion(e)`
+#### `etiquetaTipo(t)` · `etiquetaEstadoFormacion(e)`
 
-Traducen los valores del esquema al texto de la interfaz.
-`etiquetaEstadoPostulacion` no es una traducción literal: `rechazada` se
-muestra como **"No seleccionada"**, `pendiente` como **"Enviada"** y
-`cancelada` como **"Cancelada por vos"**. Es deliberado — el estado se lo lee
-alguien que buscaba ese trabajo.
+Traducen los valores del esquema al texto de la interfaz. La etiqueta del
+estado de una postulación ya no está acá: es una regla de negocio y vive en
+`ProcesoDePostulacion` (§5.8).
 
 #### `iniciales(texto): string`
 
 Hasta dos iniciales en mayúscula, para el avatar sin foto.
-
-#### `afinidad(requisitos, propios): number`
-
-Porcentaje de los requisitos de la vacante — sus tags **públicos** más sus
-habilidades — que el postulante ya declara (RF3.5.2). Compara en minúsculas y
-devuelve `0` si la vacante no pide nada.
-
-No es el puntaje de matching de RF3.9: ese usa los tags ocultos, se calcula en
-la base y lo ve solo la empresa. Este número solo mira datos públicos, así que
-puede correr en cualquier lado sin riesgo.
 
 ### 5.6 `src/lib/data/`
 
@@ -328,47 +333,103 @@ El límite de 600 caracteres de la biografía vive solo en `actualizarPerfil`:
 `db/schema.sql` declara `bio` como `text` sin restricción, así que es una
 decisión de producto, no del esquema.
 
-### 5.8 Componentes
+### 5.8 `src/lib/dominio/`
 
-Reconectados contra `db/schema.sql`. Lo que la interfaz mostraba y el esquema
-no guarda —salario, modalidad, ubicación, cupos, nivel de dominio de una
-habilidad, años y acreditación de un estudio— se quitó en vez de inventarse.
+Las reglas de negocio, fuera de los componentes (§2.3). Ninguna clase hereda
+de otra: entre comparar etiquetas, ordenar un listado e interpretar un estado
+no hay comportamiento compartido, y una jerarquía ahí sería decorativa.
+
+#### `Compatibilidad`
+
+`Compatibilidad.entre(vacante, perfil)` compara lo que pide la vacante —sus
+tags públicos y sus habilidades— con lo que el perfil declara. Expone
+`medible`, `porcentaje`, `alta` y `cubre(requisito)`.
+
+Es una clase y no una función porque la pantalla necesita tres cosas del mismo
+cálculo. Devolver solo el número obligaba a cada componente a rehacer la
+comparación.
+
+Solo mira datos públicos. El puntaje de RF3.9 usa los tags ocultos, se calcula
+en la base y lo ve únicamente la empresa.
+
+#### `FeedDeVacantes`
+
+`FeedDeVacantes.armar(vacantes, perfil)` ordena por compatibilidad y, a
+igualdad, por fecha. Marca **una sola** entrada como destacada, y solo si su
+compatibilidad es alta: encabezar un listado flojo no es un logro.
+
+#### `ProcesoDePostulacion`
+
+`new ProcesoDePostulacion(estado)` responde qué significa ese estado para
+quien postuló: `etiqueta`, `etapa`, `cancelable`, `cerradoSinPuesto`,
+`aceptada` y `alcanzo(etapa)`. Las tres etapas visibles no son los cinco
+estados de la base: `aceptada`, `rechazada` y `cancelada` caen todas en la
+última.
+
+### 5.9 `src/lib/diseno/`
+
+#### `tokens.ts`
+
+Fuente de verdad del color: los cinco valores base, los cinco acentos con su
+versión clara y oscura, las claves de `localStorage` y `reglasDeAcento()`, que
+genera el CSS de los acentos para inyectar una vez en el `<head>`. Agregar un
+color es tocar solo `ACENTOS`.
+
+#### `PreferenciasDeApariencia`
+
+Lee y escribe `data-tema` y `data-acento` en el elemento raíz y los persiste.
+`delDocumento()` la construye; `alternarTema()` y `cambiarAcento()` la
+modifican. No lanza nunca: con el almacenamiento bloqueado la elección vale
+para la sesión en curso.
+
+### 5.10 Componentes
+
+Rediseñados bajo la dirección «ficha técnica» (ver la skill
+`.claude/skills/diseno-linkyouth`). Lo que la interfaz mostraba y el esquema
+no guarda —salario, modalidad, ubicación, cupos, nivel de una habilidad, años
+y acreditación de un estudio— sigue fuera: no se inventan columnas.
 
 #### `ui/` — primitivas, sin dominio
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `Tarjeta` | `como?`, `interactiva?`, + props del elemento | Superficie base. Borde, radio y sombra salen de un solo lugar. Polimórfica: `como="article"` cambia la etiqueta sin duplicar estilos. |
+| `Tarjeta` | `como?`, `elevada?`, + props del elemento | Superficie con borde. Ya no envuelve todo: las vacantes son filas con filetes. `elevada` solo para lo que está realmente por encima del plano. |
 | `Boton` | `variante?`, + props de `<button>` | Botón de acción. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
 | `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
-| `Etiqueta` | `children`, `tono?` | Un tag o una habilidad. Con `tono="coincide"` marca lo que el perfil ya declara, con un ✓ además del color. |
-| `Insignia` | `children`, `tono?` | Estado: tipo de oportunidad, estado de una postulación o de un estudio. |
-| `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
+| `Etiqueta` | `children`, `coincide?` | Un tag o una habilidad. Lo que el perfil ya declara se marca con ✓ y más peso, nunca con relleno de color: seis etiquetas pintadas son un fondo, no una señal. |
+| `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es el único que usa ámbar, y solo para una postulación aceptada. |
+| `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Borde punteado: dice «acá va a haber algo» sin fingir que lo hay. |
+| `MensajeDeAccion` | `estado` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
 
 #### `layout/` — estructura
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `BarraLateral` | — | Navegación de las cinco secciones. `"use client"` solo para leer `usePathname()` y marcar la activa. Columna fija de 240 px en escritorio; fila que se desplaza en pantallas chicas, sin menú desplegable: con cinco secciones, esconderlas cuesta más de lo que ahorra. |
+| `CabeceraGlobal` | — | Barra superior fija en todas las pantallas: marca, navegación de sitio, avisos y avatar. Se reparte el trabajo con la lateral: acá está a dónde se puede ir en LinkYouth, allá las secciones de tu cuenta. |
+| `PieDeSitio` | — | Cuatro columnas, copyright y el repositorio. Es la única red que figura, porque es la única que existe. |
+| `Marca` | `href?` | El sello con las iniciales. Sin ámbar: un logo no acredita nada. |
+| `BarraLateral` | — | Las seis secciones de la cuenta. `"use client"` solo para leer `usePathname()`. La activa lleva filete vertical, no píldora rellena. Lleva `min-w-0`: sin eso su fila desplazable ensancha el documento entero en el teléfono. |
 | `Encabezado` | `titulo`, `descripcion?`, `acciones?` | Encabezado de sección. |
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
-| `Iconos` | `className?` | Ocho íconos SVG inline (`IconoInicio`, `IconoEmpleos`, `IconoEventos`, `IconoPostulaciones`, `IconoPerfil`, `IconoBusqueda`, `IconoUbicacion`, `IconoCamara`). Inline y no una librería: son ocho, y una dependencia entera para eso no se paga sola. |
+| `Iconos` | `className?` | Diez íconos SVG en línea, todos sobre grilla de 24 y trazo 1.75. Inline y no una librería: una dependencia entera para diez trazos no se paga sola. |
 
 #### `empleos/` · `eventos/` · `perfil/` — por dominio
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `TarjetaVacante` | `vacante`, `tagsPerfil?`, `habilidadesPerfil?`, `yaPostulado?` | Una vacante en el feed. Separa habilidades de áreas de interés, igual que el esquema. Muestra el porcentaje de compatibilidad solo si la vacante pide algo, y siempre junto al detalle de qué coincide: un número suelto no se puede verificar. |
+| `ListadoDeVacantes` | `feed`, `yaPostuladas` | La destacada suelta arriba y elevada; el resto, filas separadas por filetes. |
+| `FilaVacante` | `entrada`, `yaPostulado?` | Una vacante. No es tarjeta. El porcentaje va en `.cifra` y nunca solo: al lado están las etiquetas que lo explican. |
 | `BotonPostularse` | `vacanteId`, `yaPostulado?` | Postulación en un paso (RF3.6). Anuncia el resultado en una región `aria-live`. |
-| `TarjetaEvento` | `evento`, `yaInscripto?` | Deliberadamente distinta de la de vacante: cabecera con franja de color y bloque de fecha destacado. Hay que distinguir de un vistazo una oferta de una actividad. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo, y la política de `inscripciones_evento` no deja contar las de los demás. |
+| `TarjetaEvento` | `evento`, `yaInscripto?` | Sí es tarjeta: tiene imagen y fecha propias. Sin imagen no se inventa una banda de color; el bloque de fecha pasa a ser el ancla. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo y la RLS no deja contar las ajenas. |
 | `BotonInscribirse` | `eventoId`, `yaInscripto?` | Inscripción a un evento (RF4.5). |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `NubeTags` | `tags`, `habilidades` | Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
+| `ControlesDeApariencia` | — | Switch de tema y selector de acento. Lee el estado del elemento raíz al montarse: con su propio valor por defecto diría «claro» mientras la pantalla se ve oscura. |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 
 #### Páginas
@@ -376,17 +437,21 @@ habilidad, años y acreditación de un estudio— se quitó en vez de inventarse
 | Ruta | Función | Qué hace |
 | --- | --- | --- |
 | `/` | `Home` | Redirige a `/inicio`. |
+| `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
+| `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |
+| `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, sin barra lateral. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. |
 | `/eventos` | `PaginaEventos` | Agenda de eventos próximos. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
 
-Las cinco pantallas de `(app)/` declaran
-`export const dynamic = "force-dynamic"`: leen datos por sesión, y cachearlas
-mostraría el perfil de otro.
+Las pantallas de `(app)/` que leen datos declaran
+`export const dynamic = "force-dynamic"`: son por sesión, y cachearlas
+mostraría el perfil de otro. `/ajustes` no lo necesita: su estado vive en el
+navegador.
 
-### 5.9 Funciones en la base
+### 5.11 Funciones en la base
 
 Definidas en `db/schema.sql`. Las seis fijan `set search_path = public,
 pg_temp`: una función `security definer` sin `search_path` fijo es explotable
@@ -521,26 +586,41 @@ Si el equipo quiere alguno de vuelta, el camino es agregar la columna en
 `db/schema.sql` primero. Para una plataforma de empleo, el salario y la
 modalidad son los dos que más se van a extrañar.
 
-### 7.2 El feed no distingue tags de habilidades al buscar
+### 7.2 El logo y la ilustración están pendientes
+
+La marca es hoy un cuadro con las iniciales. Sirve y es consistente con la
+dirección, pero es un marcador de posición: el proyecto no tiene identidad
+gráfica propia. Lo mismo con los eventos sin imagen, que se apoyan en el
+bloque de fecha.
+
+### 7.3 El feed no distingue tags de habilidades al buscar
 
 `obtenerVacantes` busca solo por título. El esquema permite filtrar por tag o
 por habilidad —son tablas puente indexadas— pero eso pide una consulta con
 `in` sobre la tabla puente, y el buscador de hoy es un `<input>` de texto
 libre. Queda para cuando exista el filtro por etiqueta.
 
-### 7.3 No hay autenticación
+### 7.4 No hay autenticación
 
 `(auth)/` está vacía. El middleware refresca la sesión pero no protege nada, y
 `(app)/` es accesible sin iniciar sesión. Es el Hito 1 del plan.
 
-### 7.4 La subida de archivos no existe
+### 7.5 La subida de archivos no existe
 
 `AvatarEditable` muestra la vista previa y avisa que la subida falta. Los
 logos de empresa e institución dependen de lo mismo.
 
-### 7.5 La aplicación no distingue postulante de empresa
+### 7.6 La aplicación no distingue postulante de empresa
 
 El esquema los separa con `cuentas.tipo`, pero la interfaz no lo mira en
 ningún lado: ni en la navegación, ni en las rutas, ni en el layout. Definirlo
 temprano sale barato; hacerlo cuando llegue el panel de empresa obliga a
 rehacer la navegación.
+
+### 7.7 El texto legal no lo revisó nadie con formación jurídica
+
+`/legales` describe lo que la plataforma hace hoy con los datos, incluida la
+transferencia internacional que implica alojarlos en us-east-2. Está escrito
+para ser honesto, no para ser suficiente: antes de que LinkYouth salga a
+producción, esos tres textos tienen que pasar por alguien que sepa de la Ley
+N.º 18.331.

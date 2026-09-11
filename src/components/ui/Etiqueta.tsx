@@ -1,31 +1,32 @@
-type EtiquetaProps = {
+/**
+ * Un tag o una habilidad.
+ *
+ * `coincide` marca lo que el perfil ya declara, con una marca de verificación
+ * y más peso, nunca con color de relleno: en una vacante que pide seis cosas y
+ * la persona tiene cinco, seis etiquetas pintadas dejan de ser una señal y
+ * pasan a ser un fondo. El ámbar se reserva para lo que aparece una vez por
+ * pantalla.
+ */
+export function Etiqueta({
+  children,
+  coincide = false,
+}: {
   children: React.ReactNode;
-  /**
-   * `neutra` para un tag de habilidad, `coincide` cuando el postulante ya
-   * tiene ese tag en su perfil. La diferencia se apoya en color y en texto,
-   * nunca solo en color.
-   */
-  tono?: "neutra" | "coincide";
-};
-
-/** Tag de habilidad. Es el átomo más repetido de la interfaz. */
-export function Etiqueta({ children, tono = "neutra" }: EtiquetaProps) {
-  const estilos =
-    tono === "coincide"
-      ? "border-primario-borde bg-primario-suave text-primario-fuerte"
-      : "border-borde bg-superficie-suave text-tinta-media";
+  coincide?: boolean;
+}) {
+  if (!coincide) {
+    return (
+      <span className="inline-flex items-center rounded-control border border-borde px-2 py-0.5 text-[13px] text-apagado">
+        {children}
+      </span>
+    );
+  }
 
   return (
-    <span
-      className={`inline-flex items-center rounded-control border px-2 py-0.5 text-xs font-medium ${estilos}`}
-    >
-      {tono === "coincide" && (
-        <span className="mr-1" aria-hidden="true">
-          ✓
-        </span>
-      )}
+    <span className="inline-flex items-center gap-1 rounded-control border border-tinta px-2 py-0.5 text-[13px] font-medium text-tinta">
+      <span aria-hidden="true">✓</span>
       {children}
-      {tono === "coincide" && <span className="sr-only"> (ya lo tenés)</span>}
+      <span className="sr-only"> (ya lo tenés)</span>
     </span>
   );
 }

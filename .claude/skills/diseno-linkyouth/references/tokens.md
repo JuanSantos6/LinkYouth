@@ -1,87 +1,86 @@
 # Tokens
 
-Todos viven en `@theme` dentro de `src/app/globals.css`. Tailwind genera las
-utilidades a partir de ahí, así que el token y la clase siempre coinciden.
+La fuente de verdad es `src/lib/diseno/tokens.ts`. De ahí salen las variables
+CSS que emite `src/app/layout.tsx` y las opciones del selector de Ajustes.
+`src/app/globals.css` deriva el resto.
 
-## Superficies
+## Por qué el doble nombre
 
-| Token              | Valor     | Cuándo                                                                                             |
-| ------------------ | --------- | -------------------------------------------------------------------------------------------------- |
-| `lienzo`           | `#f6f7f9` | Fondo de la página. Nunca blanco puro: hace que las tarjetas se despeguen sin necesidad de sombra. |
-| `superficie`       | `#ffffff` | Toda tarjeta, campo de formulario, menú.                                                           |
-| `superficie-suave` | `#f9fafb` | Fondo de un bloque dentro de una tarjeta (una fila de habilidad, un tag neutro).                   |
-| `borde`            | `#e5e7eb` | Borde por defecto y separadores.                                                                   |
-| `borde-fuerte`     | `#d1d5db` | Borde en hover, o barra apagada de un medidor.                                                     |
+Los valores viven en `:root` con prefijo `--ly-`, y `@theme inline` los expone
+como utilidades de Tailwind (`--color-*`). El rodeo tiene motivo: Tailwind 4
+solo emite las variables de `@theme` que alguna utilidad usa, así que un
+`var(--color-acento)` escrito a mano en CSS —el anillo de foco, por ejemplo—
+se quedaba sin valor y caía en `currentColor`.
 
-## Texto
+**Regla:** en una clase de Tailwind usá `text-tinta`, `bg-papel`. En CSS a
+mano usá `var(--ly-tinta)`, `var(--ly-papel)`.
 
-Cuatro pesos de gris, y no más. Si hace falta un quinto, el problema es la
-jerarquía, no la paleta.
+## Los cinco valores
 
-| Token         | Valor     | Cuándo                                 |
-| ------------- | --------- | -------------------------------------- |
-| `tinta`       | `#101828` | Títulos y datos principales.           |
-| `tinta-media` | `#475467` | Texto corrido, descripciones.          |
-| `tinta-suave` | `#667085` | Metadatos: fecha, ubicación, cantidad. |
-| `tinta-tenue` | `#98a2b3` | Íconos apagados, placeholders.         |
+| Token     | Claro          | Oscuro           | Rol                    |
+| --------- | -------------- | ---------------- | ---------------------- |
+| `tinta`   | `#14231D`      | `#E7ECE6`        | Texto y fondos oscuros |
+| `papel`   | `#EDF0EB`      | `#101A16`        | Fondo de página        |
+| `apagado` | `#5C6B63`      | `#93A39A`        | Texto secundario       |
+| `acento`  | según elección | versión luminosa | Acciones primarias     |
+| `senal`   | `#FFB627`      | `#FFB627`        | **Solo lo acreditado** |
 
-## Acción
+El ámbar no cambia nunca: ni con el tema ni con el acento. Es lo que lo
+mantiene siendo una señal.
 
-| Token             | Valor     | Cuándo                                                         |
-| ----------------- | --------- | -------------------------------------------------------------- |
-| `primario`        | `#1d4ed8` | Botón principal, ícono activo, enlace.                         |
-| `primario-fuerte` | `#1e40af` | Hover del botón principal y texto sobre fondo suave.           |
-| `primario-suave`  | `#eff4ff` | Fondo del ítem activo de la navegación y del tag que coincide. |
-| `primario-borde`  | `#c7d7fe` | Borde de esos mismos elementos.                                |
+## Los cinco acentos
 
-## Estado
+`pino` (por defecto), `marino`, `ciruela`, `ladrillo`, `grafito`. Cada uno
+tiene dos valores: el de tema claro, que lleva texto claro encima, y el de
+tema oscuro, que es el mismo tono más luminoso porque sobre fondo oscuro el
+primero no llega al contraste mínimo.
 
-Cada uno viene en trío `color / -suave / -borde`, pensados para una insignia:
-texto en el fuerte, fondo en el suave, borde en el intermedio. Ese trío ya está
-contrastado sobre blanco.
+Para agregar un color, se toca solo `ACENTOS` en `tokens.ts`:
+`reglasDeAcento()` genera el CSS y el selector se actualiza solo.
 
-| Familia  | Cuándo                                                             |
-| -------- | ------------------------------------------------------------------ |
-| `exito`  | Postulación aceptada, institución acreditada, alta compatibilidad. |
-| `aviso`  | Cupos por agotarse, contenido de demostración, algo pendiente.     |
-| `alerta` | Error de formulario, postulación no seleccionada.                  |
+## Derivados
+
+Ninguno es un color nuevo; todos son `color-mix` de los de arriba.
+
+| Token                          | Para qué                                                                                                        |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `superficie`                   | Fondo de una tarjeta                                                                                            |
+| `realce`                       | Bloque dentro de una tarjeta, pie del sitio, campo deshabilitado                                                |
+| `borde`                        | Borde de tarjeta. Decorativo                                                                                    |
+| `borde-control`                | Borde de campo o botón. Llega a 3:1 contra el papel, que es lo que WCAG 1.4.11 pide para identificar un control |
+| `filete`                       | Separador entre filas de un listado                                                                             |
+| `sobre-acento`                 | Texto encima del acento                                                                                         |
+| `acento-tenue` · `senal-tenue` | Fondos suaves de insignia                                                                                       |
 
 ## Tipografía
 
-Plus Jakarta Sans para todo, JetBrains Mono solo para números que se comparan
-en columna (`4/5`, un puntaje). Se cargan con `next/font` en
-`src/app/layout.tsx`: nunca agregues una etiqueta `<link>` a Google Fonts.
+| Fuente              | Uso                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| Bricolage Grotesque | Títulos y cifras. Eje óptico variable, `font-optical-sizing: auto`, tracking `-0.035em` |
+| Instrument Sans     | Cuerpo, 15 px, interlínea 1.55                                                          |
 
-Escala en uso, y alcanza:
+La clase `.cifra` trata un número como elemento gráfico: tipografía de título,
+tracking `-0.05em` y `tabular-nums`.
 
-| Clase                 | Uso                                                           |
-| --------------------- | ------------------------------------------------------------- |
-| `text-xl font-bold`   | Título de página.                                             |
-| `text-base font-bold` | Título de tarjeta o de sección.                               |
-| `text-sm`             | Texto corrido y campos.                                       |
-| `text-xs`             | Metadatos, insignias, rótulos.                                |
-| `text-[11px]`         | Rótulo en versalitas de un grupo (`uppercase tracking-wide`). |
-
-El `letter-spacing` negativo ya está aplicado en `globals.css` para `body` y
-para los títulos. No lo repitas por componente.
+No hay familia monoespaciada cargada: para las tres rutas de archivo que la
+necesitan alcanza la del sistema.
 
 ## Radios y elevación
 
-| Token                     | Uso                                                                 |
-| ------------------------- | ------------------------------------------------------------------- |
-| `rounded-control` (8 px)  | Botones, campos, tags, ítems de navegación.                         |
-| `rounded-tarjeta` (14 px) | Tarjetas y contenedores.                                            |
-| `shadow-tarjeta`          | Reposo de toda tarjeta.                                             |
-| `shadow-elevada`          | Hover de una tarjeta interactiva, o algo que flota sobre otra cosa. |
-| `shadow-flotante`         | Reservada para menús y diálogos. Hoy no se usa.                     |
+| Token                     | Uso                                                    |
+| ------------------------- | ------------------------------------------------------ |
+| `rounded-control` (3 px)  | Botones, campos, etiquetas                             |
+| `rounded-ficha` (4 px)    | Filas destacadas, bloques, avatares cuadrados          |
+| `rounded-tarjeta` (10 px) | Solo la tarjeta de evento, que lleva imagen            |
+| `shadow-elevada`          | La única sombra. Para lo que está realmente por encima |
 
-Nada de `rounded-full` salvo en avatares de persona y en insignias.
+## Tema y persistencia
 
-## Lo que no existe a propósito
+`PreferenciasDeApariencia` (`src/lib/diseno/PreferenciasDeApariencia.ts`) lee
+y escribe `data-tema` y `data-acento` en el elemento raíz, y los guarda en
+`localStorage`. Un guion en línea en `layout.tsx` los aplica **antes del
+primer pintado**: sin eso la pantalla arrancaría en claro y saltaría a oscuro
+a la vista de todos.
 
-- **Modo oscuro.** No está implementado. Si se agrega, se agrega redefiniendo
-  estos tokens en un solo lugar, no salpicando `dark:` por los componentes.
-- **Paleta de grises de Tailwind.** `bg-gray-50`, `text-slate-600` y compañía
-  no se usan: rompen la coherencia con los tokens.
-- **Sombras de color.** Un `box-shadow` azul o verde es la marca más rápida de
-  una interfaz que no se tomó en serio.
+Nada de esto lanza si el almacenamiento está bloqueado: la elección vale para
+la sesión en curso y no persiste.

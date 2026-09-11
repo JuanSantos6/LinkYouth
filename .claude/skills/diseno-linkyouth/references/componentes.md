@@ -3,93 +3,73 @@
 Qué resuelve cada uno y qué decisión ya está tomada adentro, para no volver a
 discutirla en cada pantalla.
 
-## `ui/Tarjeta`
+## Estructura
 
-Superficie base. Acepta `como` (por defecto `div`; usá `article` para una
-tarjeta de contenido y `section` para un bloque con título) e `interactiva`,
-que suma la reacción al puntero.
+### `layout/CabeceraGlobal`
 
-```tsx
-<Tarjeta como="article" interactiva className="p-5">
-  …
-</Tarjeta>
-```
+Barra superior fija, en todas las pantallas: marca, navegación de sitio
+(Empleos, Eventos, Empresas, Cómo funciona), campana de avisos y avatar.
 
-`interactiva` solo si la tarjeta entera lleva a algún lado. Una tarjeta que
-solo contiene un botón no es interactiva: el que reacciona es el botón.
+Se reparte el trabajo con la barra lateral: la cabecera es **a dónde se puede
+ir en LinkYouth**, incluido lo que mira alguien sin cuenta; la lateral son
+**las secciones de tu cuenta**. Por eso «Empleos» y «Eventos» aparecen en los
+dos lugares sin ser una repetición.
 
-## `ui/Etiqueta`
+En pantallas chicas la fila se desplaza en horizontal en vez de esconderse:
+escondida, «Empresas» y «Cómo funciona» quedaban fuera de alcance desde el
+teléfono.
 
-Tag de habilidad. `tono="coincide"` cuando el postulante ya tiene ese tag:
-agrega fondo azul suave y un ✓ con texto para lector de pantalla.
+### `layout/PieDeSitio`
 
-Es el átomo más repetido de la aplicación, porque el producto no usa
-currículum: los tags **son** el perfil. Que se lean rápido en una lista larga
-importa más que cualquier otro detalle visual.
+Cuatro columnas —marca, Plataforma, LinkYouth, Legales—, el copyright y un
+enlace al repositorio. **La única red que figura es el repositorio, porque es
+la única que existe de verdad**: sumar íconos de redes que no llevan a ninguna
+cuenta es decorar el pie con enlaces muertos.
 
-## `ui/Insignia`
+### `layout/BarraLateral`
 
-Estado en una palabra. Tonos: `neutro`, `primario`, `exito`, `aviso`,
-`alerta`. Siempre lleva texto; el color acompaña, no reemplaza.
+Las seis secciones de la cuenta. La activa se marca con un **filete
+vertical**, no con una píldora rellena: el relleno pesa más que el propio
+texto y compite con la acción principal de la pantalla.
 
-## `ui/Avatar`
+Lleva `min-w-0`: es un ítem de grilla, y sin eso su fila desplazable ensancha
+el documento entero en el teléfono.
 
-Foto de persona (`forma="redondo"`) o logo de empresa o institución
-(`forma="cuadrado"`). Sin imagen muestra las iniciales, con el mismo tamaño:
-la grilla nunca cambia de alto según haya foto o no. Tamaños `sm`, `md`, `lg`.
+### `layout/Marca`
 
-Usa `<img>` a propósito, no `next/image`: las imágenes vienen de Supabase
-Storage con dominios variables. El `eslint-disable` puntual está documentado
-en el archivo.
+Cuadro con las iniciales en el color de la plataforma. **Sin ámbar**: el
+ámbar significa «esto está acreditado» y un logo no acredita nada.
 
-## `ui/Boton` y `ui/BotonEnlace`
+## Primitivas
 
-Variantes: `primario` (una sola por pantalla, la acción que importa),
-`secundario` (acción alternativa), `fantasma` (acción terciaria). `BotonEnlace`
-es lo mismo pero navega: si la acción cambia de página, va enlace, no botón
-con `onClick`.
+| Componente              | Props                                 | Qué resuelve                                                                                                                                                                                              |
+| ----------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tarjeta`               | `como?`, `elevada?`                   | Superficie con borde. Ya **no** es el envoltorio de todo: las vacantes son filas con filetes. `elevada` solo para lo que está realmente por encima del plano                                              |
+| `Etiqueta`              | `children`, `coincide?`               | Un tag o una habilidad. `coincide` marca con ✓ y más peso lo que el perfil ya declara, nunca con relleno de color: en una vacante que pide seis cosas, seis etiquetas pintadas son un fondo, no una señal |
+| `Insignia`              | `children`, `tono?`                   | Estado. `tono="acreditado"` es el único que usa ámbar, y solo para una postulación aceptada                                                                                                               |
+| `Avatar`                | `nombre`, `url`, `tamano?`, `forma?`  | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables                                 |
+| `Boton` · `BotonEnlace` | `variante?`                           | `primario`, `secundario`, `fantasma`. El enlace navega: separado del botón porque para un lector de pantalla no son lo mismo                                                                              |
+| `MensajeDeAccion`       | `estado`                              | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo», no por color: la paleta no tiene rojo a propósito                                      |
+| `EstadoVacio`           | `titulo`, `descripcion`, `accion?`    | Borde punteado: dice «acá va a haber algo» sin fingir que hay contenido                                                                                                                                   |
+| `AvisoOrigen`           | `resultado`                           | Avisa que lo que se ve es demostración, y por qué. **Nunca lo saques para que la pantalla quede más limpia**                                                                                              |
+| `Encabezado`            | `titulo`, `descripcion?`, `acciones?` | Sin rótulo en versalitas encima: el título ya dice dónde estás                                                                                                                                            |
 
-## `ui/EstadoVacio`
+## Dominio
 
-Título, explicación y una acción opcional. Toda lista que puede venir vacía lo
-usa. Un espacio en blanco deja a la persona sin saber si falló algo o si
-todavía no hay nada.
-
-## `ui/AvisoOrigen`
-
-Recibe un `Resultado` y se muestra solo si `origen === "ejemplo"`. Deja claro
-que lo que se ve es demostración y por qué (faltan credenciales, la tabla está
-vacía, la consulta falló). **Nunca lo saques para que la pantalla quede más
-limpia**: mostrar datos inventados sin decirlo es engañar a quien mira.
-
-## `layout/BarraLateral`
-
-Navegación principal. Es `"use client"` únicamente por `usePathname`, que
-marca la sección activa. En escritorio es columna fija; abajo de `lg` pasa a
-una fila que se desplaza en horizontal. Con cinco secciones, un menú
-desplegable cuesta más de lo que ahorra.
-
-## `layout/Iconos`
-
-SVG en línea sobre grilla de 24, trazo 1.75, puntas redondeadas. Un ícono
-nuevo copia esa base o va a desentonar. No agregues una librería de íconos por
-cinco trazos.
+| Componente                      | Qué muestra                                                                                                                                                                     |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `empleos/ListadoDeVacantes`     | La destacada suelta arriba y elevada; el resto, filas separadas por filetes. Meterla dentro del listado dividido obligaría a cortar los filetes alrededor de su sombra          |
+| `empleos/FilaVacante`           | Una vacante. El porcentaje va en `.cifra` y nunca solo: al lado están las etiquetas que lo explican                                                                             |
+| `eventos/TarjetaEvento`         | Sí es tarjeta. Sin imagen no se inventa una banda de color: el bloque de fecha pasa a ser el ancla                                                                              |
+| `perfil/TarjetaUsuario`         | Tu ficha en la columna derecha, con las métricas como lista de definiciones                                                                                                     |
+| `perfil/NubeTags`               | Dos grupos separados: «lo que sabés hacer» y «hacia dónde querés ir». El esquema los guarda en catálogos distintos                                                              |
+| `ajustes/ControlesDeApariencia` | Switch de tema y selector de acento. Lee el estado del elemento raíz al montarse: si arrancara con su propio valor por defecto, diría «claro» mientras la pantalla se ve oscura |
 
 ## Formularios
 
-Patrón en `perfil/FormularioPerfil`:
-
-- Rótulo visible siempre (nunca solo `placeholder`).
-- Ayuda debajo del campo, en `text-xs text-tinta-suave`.
-- El botón de envío se deshabilita mientras corre y cambia el texto
-  («Guardando…»).
-- El resultado se anuncia en un `<p aria-live="polite">` al lado del botón.
-- La validación corre también en el servidor, en la acción. El `maxLength` del
-  campo es comodidad, no control.
-
-## Acciones de servidor
-
-Toda acción devuelve `EstadoAccion` (`src/lib/acciones/tipos.ts`) y el
-componente la consume con `useActionState`. El mensaje de error se muestra tal
-cual al lado del control que lo provocó; nunca en un cartel global lejos de la
-causa.
+- Rótulo visible siempre, nunca solo `placeholder`.
+- Ayuda debajo del campo, en `text-[13px] text-apagado`.
+- El botón se deshabilita mientras corre y cambia el texto («Guardando…»).
+- El resultado va en `MensajeDeAccion`.
+- La validación corre **también** en el servidor, en la acción. El `maxLength`
+  del campo es comodidad, no control.

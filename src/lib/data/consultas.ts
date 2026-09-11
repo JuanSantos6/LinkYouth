@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
 import {
+  AVISOS_EJEMPLO,
   EVENTOS_EJEMPLO,
   PERFIL_EJEMPLO,
   POSTULACIONES_EJEMPLO,
@@ -14,6 +15,7 @@ import {
   comoEstadoPostulacion,
   comoEstadoVacante,
   comoTipoOportunidad,
+  type Aviso,
   type Evento,
   type PerfilCompleto,
   type PostulacionResumen,
@@ -318,4 +320,35 @@ export async function obtenerEventosInscriptos(): Promise<Set<string>> {
     .eq("perfil_id", user.id);
 
   return new Set((data ?? []).map((fila) => fila.evento_id));
+}
+
+// --- Avisos -----------------------------------------------------------------
+
+/**
+ * RF6.1 — Bandeja de notificaciones de la sesión activa.
+ *
+ * Las filas las crea el disparador `postulaciones_notificar_cambio` de
+ * `db/schema.sql`, nunca el cliente: `notificaciones` no tiene política de
+ * insert.
+ */
+export async function obtenerAvisos(limite = 30): Promise<Resultado<Aviso[]>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(AVISOS_EJEMPLO, SIN_CREDENCIALES);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return ejemplo(AVISOS_EJEMPLO, SIN_SESION);
+
+  const { data, error } = await supabase
+    .from("notificaciones")
+    .select("id, tipo, mensaje, enlace, leida, creada_en")
+    .eq("cuenta_id", user.id)
+    .order("creada_en", { ascending: false })
+    .limit(limite);
+
+  if (error) return ejemplo(AVISOS_EJEMPLO, error.message);
+
+  return { datos: data ?? [], origen: "supabase" };
 }

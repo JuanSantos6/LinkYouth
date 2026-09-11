@@ -129,6 +129,16 @@ export type PerfilCompleto = Tabla<"perfiles"> & {
   formaciones: Formacion[];
 };
 
+/** Una notificación de la bandeja (RF6.1). */
+export type Aviso = {
+  id: string;
+  tipo: string;
+  mensaje: string;
+  enlace: string | null;
+  leida: boolean;
+  creada_en: string;
+};
+
 export type PostulacionResumen = {
   id: string;
   estado: EstadoPostulacion;

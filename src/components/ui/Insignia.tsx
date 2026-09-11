@@ -1,14 +1,21 @@
-type Tono = "neutro" | "exito" | "aviso" | "alerta" | "primario";
+type Tono = "neutro" | "acento" | "acreditado" | "apagado";
 
 const TONOS: Record<Tono, string> = {
-  neutro: "border-borde bg-superficie-suave text-tinta-media",
-  exito: "border-exito-borde bg-exito-suave text-exito",
-  aviso: "border-aviso-borde bg-aviso-suave text-aviso",
-  alerta: "border-alerta-borde bg-alerta-suave text-alerta",
-  primario: "border-primario-borde bg-primario-suave text-primario-fuerte",
+  neutro: "border-borde text-tinta",
+  acento: "border-acento text-acento",
+  /**
+   * El ámbar. Aparece en dos lugares de toda la aplicación —el canto de la
+   * vacante destacada y la postulación aceptada— y en ninguno más: es lo que
+   * lo mantiene siendo una señal.
+   */
+  acreditado: "border-senal bg-senal-tenue text-tinta",
+  apagado: "border-borde text-apagado",
 };
 
-/** Marca de estado: modalidad, tipo de contrato, estado de una postulación. */
+/**
+ * Marca de estado: tipo de oportunidad, estado de una postulación o de un
+ * estudio. Siempre lleva la palabra; el color acompaña, no reemplaza.
+ */
 export function Insignia({
   children,
   tono = "neutro",
@@ -18,7 +25,7 @@ export function Insignia({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${TONOS[tono]}`}
+      className={`inline-flex items-center rounded-control border px-2 py-0.5 text-[13px] ${TONOS[tono]}`}
     >
       {children}
     </span>

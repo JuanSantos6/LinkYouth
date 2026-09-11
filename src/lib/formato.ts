@@ -1,8 +1,4 @@
-import type {
-  EstadoFormacion,
-  EstadoPostulacion,
-  TipoOportunidad,
-} from "@/lib/data/tipos";
+import type { EstadoFormacion, TipoOportunidad } from "@/lib/data/tipos";
 
 const ZONA = "America/Montevideo";
 const LOCALE = "es-UY";
@@ -71,18 +67,6 @@ export function etiquetaTipo(tipo: TipoOportunidad): string {
   return tipo === "pasantia" ? "Pasantía" : "Empleo";
 }
 
-export function etiquetaEstadoPostulacion(estado: EstadoPostulacion): string {
-  const etiquetas: Record<EstadoPostulacion, string> = {
-    pendiente: "Enviada",
-    en_revision: "En revisión",
-    rechazada: "No seleccionada",
-    aceptada: "Aceptada",
-    cancelada: "Cancelada por vos",
-  };
-
-  return etiquetas[estado];
-}
-
 export function etiquetaEstadoFormacion(estado: EstadoFormacion): string {
   return estado === "en_curso" ? "En curso" : "Finalizado";
 }
@@ -95,23 +79,4 @@ export function iniciales(texto: string): string {
     .slice(0, 2)
     .map((palabra) => palabra[0]?.toUpperCase() ?? "")
     .join("");
-}
-
-/**
- * Compatibilidad entre lo que pide una vacante y lo que declara el perfil
- * (RF3.5.2).
- *
- * Se calcula solo con los tags públicos y las habilidades de la vacante. El
- * puntaje de matching de RF3.9, que usa los tags ocultos, es otra cosa: se
- * calcula en la base, es visible únicamente para la empresa y no pasa por acá.
- */
-export function afinidad(requisitos: string[], propios: string[]): number {
-  if (requisitos.length === 0) return 0;
-
-  const declarados = new Set(propios.map((nombre) => nombre.toLowerCase()));
-  const coinciden = requisitos.filter((requisito) =>
-    declarados.has(requisito.toLowerCase()),
-  ).length;
-
-  return Math.round((100 * coinciden) / requisitos.length);
 }

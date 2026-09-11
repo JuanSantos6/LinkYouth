@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
+import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { cancelarPostulacion } from "@/lib/acciones/postulaciones";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 
@@ -23,11 +24,7 @@ export function BotonCancelarPostulacion({
   );
 
   if (estado.estado === "ok") {
-    return (
-      <p aria-live="polite" className="text-xs text-tinta-suave">
-        {estado.mensaje}
-      </p>
-    );
+    return <MensajeDeAccion estado={estado} />;
   }
 
   return (
@@ -38,20 +35,13 @@ export function BotonCancelarPostulacion({
           type="submit"
           variante="fantasma"
           disabled={enCurso}
-          className="px-2 py-1 text-xs"
+          className="px-2 py-1 text-[13px]"
         >
           {enCurso ? "Cancelando…" : "Cancelar postulación"}
         </Boton>
       </form>
 
-      {estado.estado === "error" && (
-        <p
-          aria-live="polite"
-          className="max-w-xs text-right text-xs text-alerta"
-        >
-          {estado.mensaje}
-        </p>
-      )}
+      <MensajeDeAccion estado={estado} className="text-right" />
     </div>
   );
 }

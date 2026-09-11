@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
+import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { inscribirse } from "@/lib/acciones/eventos";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 
@@ -23,18 +24,15 @@ export function BotonInscribirse({
       <form action={enviar}>
         <input type="hidden" name="eventoId" value={eventoId} />
         <Boton type="submit" variante="secundario" disabled={enCurso || listo}>
-          {listo ? "Inscripto" : enCurso ? "Confirmando…" : "Inscribirme"}
+          {listo
+            ? "Ya te inscribiste"
+            : enCurso
+              ? "Inscribiendo…"
+              : "Inscribirme"}
         </Boton>
       </form>
 
-      <p
-        aria-live="polite"
-        className={`max-w-xs text-right text-xs ${
-          estado.estado === "error" ? "text-alerta" : "text-tinta-suave"
-        }`}
-      >
-        {estado.mensaje}
-      </p>
+      <MensajeDeAccion estado={estado} className="text-right" />
     </div>
   );
 }

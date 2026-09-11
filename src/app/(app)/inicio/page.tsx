@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { TarjetaVacante } from "@/components/empleos/TarjetaVacante";
+import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
 import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { TarjetaUsuario } from "@/components/perfil/TarjetaUsuario";
@@ -14,6 +14,7 @@ import {
   obtenerVacantes,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
+import { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +26,12 @@ type Vista = "empleos" | "eventos";
  */
 function Pestanas({ activa }: { activa: Vista }) {
   const pestanas: { vista: Vista; etiqueta: string }[] = [
-    { vista: "empleos", etiqueta: "Oportunidades laborales" },
-    { vista: "eventos", etiqueta: "Eventos de networking" },
+    { vista: "empleos", etiqueta: "Oportunidades" },
+    { vista: "eventos", etiqueta: "Eventos" },
   ];
 
   return (
-    <div role="tablist" className="flex gap-1 border-b border-borde">
+    <div role="tablist" className="flex gap-6 border-b border-borde">
       {pestanas.map(({ vista, etiqueta }) => {
         const seleccionada = vista === activa;
 
@@ -40,10 +41,10 @@ function Pestanas({ activa }: { activa: Vista }) {
             role="tab"
             aria-selected={seleccionada}
             href={vista === "empleos" ? "/inicio" : "/inicio?vista=eventos"}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm transition-colors ${
+            className={`-mb-px border-b-2 pb-2.5 text-[15px] transition-colors duration-150 ${
               seleccionada
-                ? "border-primario font-semibold text-primario"
-                : "border-transparent font-medium text-tinta-suave hover:text-tinta"
+                ? "border-acento font-medium text-tinta"
+                : "border-transparent text-apagado hover:text-tinta"
             }`}
           >
             {etiqueta}
@@ -72,14 +73,15 @@ export default async function PaginaInicio({
       obtenerEventosInscriptos(),
     ]);
 
+  const feed = FeedDeVacantes.armar(vacantes.datos, perfil.datos);
   const resultado = activa === "empleos" ? vacantes : eventos;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
-      <div className="min-w-0 space-y-5">
+    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_286px]">
+      <div className="min-w-0 space-y-6">
         <Encabezado
           titulo={`Hola, ${perfil.datos.nombre}`}
-          descripcion="Estas son las oportunidades y los eventos que mejor coinciden con las habilidades de tu perfil."
+          descripcion="Las oportunidades y los eventos que mejor coinciden con lo que ya acreditaste."
         />
 
         <AvisoOrigen resultado={resultado} />
@@ -87,22 +89,14 @@ export default async function PaginaInicio({
         <Pestanas activa={activa} />
 
         {activa === "empleos" ? (
-          <section className="space-y-4" aria-label="Oportunidades laborales">
-            {vacantes.datos.length === 0 ? (
+          <section aria-label="Oportunidades laborales">
+            {feed.vacio ? (
               <EstadoVacio
                 titulo="Todavía no hay vacantes publicadas"
-                descripcion="Cuando una empresa publique una búsqueda que coincida con tus habilidades, va a aparecer acá."
+                descripcion="Cuando una empresa publique una búsqueda que coincida con tus habilidades, la vas a ver acá."
               />
             ) : (
-              vacantes.datos.map((vacante) => (
-                <TarjetaVacante
-                  key={vacante.id}
-                  vacante={vacante}
-                  tagsPerfil={perfil.datos.tags}
-                  habilidadesPerfil={perfil.datos.habilidades}
-                  yaPostulado={yaPostuladas.has(vacante.id)}
-                />
-              ))
+              <ListadoDeVacantes feed={feed} yaPostuladas={yaPostuladas} />
             )}
           </section>
         ) : (
@@ -125,7 +119,7 @@ export default async function PaginaInicio({
         )}
       </div>
 
-      <aside className="xl:sticky xl:top-8 xl:self-start">
+      <aside className="xl:sticky xl:top-20 xl:self-start">
         <TarjetaUsuario
           perfil={perfil.datos}
           postulaciones={postulaciones.datos.length}
