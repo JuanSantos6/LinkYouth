@@ -1,49 +1,30 @@
 -- ============================================================
--- LinkYouth — Datos iniciales de catálogo (versión definitiva v3)
+-- LinkYouth — Datos iniciales de catálogo
 -- Ejecutar en: Supabase Dashboard > SQL Editor, después de
 -- schema.sql y politicas.sql.
 --
--- Si ya corriste una versión anterior de este seed, el bloque de
--- limpieza borra los nombres de las dos versiones previas antes
--- de insertar la definitiva. Seguro de correr aunque las tablas
--- estén vacías.
+-- Son inserts puros con `on conflict (nombre) do nothing`: agregan lo que
+-- falta y no tocan lo que ya está. Correrlo de nuevo es seguro y no tiene
+-- efecto sobre las filas existentes.
+--
+-- ESTE ARCHIVO NUNCA BORRA FILAS DE `tags` NI DE `habilidades`.
+-- Las cuatro tablas puente que las referencian —perfil_tags,
+-- vacante_tags_publicos, vacante_tags_ocultos y evento_tags— lo hacen
+-- `on delete cascade`. Un `delete` acá borraría en silencio los intereses
+-- elegidos por cada perfil, las habilidades de cada vacante y los tags
+-- ocultos que sostienen el matching de RF3.9, sin dejar rastro de qué se
+-- perdió.
+--
+-- Si hay que renombrar o quitar un valor del catálogo, se hace con una
+-- sentencia aparte, revisada a mano y con el impacto en las tablas puente
+-- verificado antes de ejecutarla. Nunca desde este archivo.
 -- ============================================================
-
--- ============================================================
--- LIMPIEZA (nombres de las dos versiones anteriores del seed)
--- ============================================================
-
-delete from tags where nombre in (
-  -- versión 1 (sin agrupar)
-  'Tecnología', 'Inteligencia Artificial', 'Desarrollo de Software',
-  'Ciencia de Datos', 'Ciberseguridad', 'Diseño', 'Marketing',
-  'Finanzas', 'Administración de Empresas', 'Contabilidad', 'Derecho',
-  'Ingeniería', 'Arquitectura', 'Salud', 'Educación', 'Comunicación',
-  'Ventas', 'Logística', 'Sustentabilidad',
-  -- versión 2 (agrupada de a pares)
-  'Tecnología y Sistemas', 'Datos e Inteligencia Artificial',
-  'Diseño y UX', 'Marketing y Publicidad', 'Comunicación y Medios',
-  'Ventas y Comercio', 'Atención al Cliente y Soporte',
-  'Administración y Gestión', 'Contabilidad y Finanzas',
-  'Logística y Depósito', 'Ingeniería y Producción',
-  'Construcción y Arquitectura', 'Salud y Cuidados',
-  'Educación y Enseñanza', 'Derecho y Legal',
-  'Gastronomía y Hotelería', 'Turismo y Eventos',
-  'Deporte y Recreación', 'Agro y Sustentabilidad'
-);
-
-delete from habilidades where nombre in (
-  'JavaScript', 'TypeScript', 'Java', 'HTML y CSS', 'React',
-  'Photoshop', 'Illustrator', 'Git', 'SAP', 'WordPress',
-  'Google Ads', 'Gestión de proyectos', 'Redacción', 'Edición de video'
-);
 
 -- ============================================================
 -- TAGS (intereses) — RF2.3, RF1.1.11
--- 36 tags. Los pares que representaban intereses genuinamente
--- distintos (ej. Contabilidad / Finanzas) quedaron separados;
--- los que eran el mismo concepto con dos nombres (ej. Derecho y
--- Legal) se mantienen juntos.
+-- 36 tags. Los intereses genuinamente distintos van separados
+-- (ej. Contabilidad / Finanzas); los que son el mismo concepto con
+-- dos nombres van juntos (ej. Derecho y Legal).
 -- ============================================================
 
 insert into tags (nombre) values
@@ -94,8 +75,7 @@ on conflict (nombre) do nothing;
 
 -- ============================================================
 -- HABILIDADES (conocimientos técnicos) — RF2.4.3, RF2.4.4
--- Sin cambios respecto a la versión anterior: 20 herramientas
--- y competencias, agrupadas por tipo.
+-- 20 herramientas y competencias, agrupadas por tipo.
 -- ============================================================
 
 insert into habilidades (nombre) values
