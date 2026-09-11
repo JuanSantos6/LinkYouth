@@ -15,6 +15,30 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-11
 
+- **`db/seed.sql` deja de borrar filas.** Se quitó el bloque de limpieza que
+  hacía `delete from tags` y `delete from habilidades` con los nombres de dos
+  versiones anteriores del catálogo.
+  Motivo: las cuatro tablas puente referencian esas tablas
+  `on delete cascade`, así que correr el seed sobre una base con datos se
+  llevaría los intereses de cada perfil, las habilidades de cada vacante y los
+  tags ocultos del matching de RF3.9, en silencio. Queda como inserts puros
+  con `on conflict (nombre) do nothing`.
+  → `1d36cf5`
+
+- **`README.md` corregido tras la migración a `schema.sql`.** Mandaba a
+  ejecutar cinco archivos de `db/migrations/` y `db/seed/` borrados en
+  `6b6bf86`, enlazaba a `db/README.md` (también borrado) y listaba la skill
+  `datos-linkyouth`. El flujo real es `schema.sql`, `politicas.sql` y
+  `seed.sql`, en ese orden.
+
+- `e5e3050` — **Catálogo de tags y habilidades** en `db/seed.sql`: 36 tags de
+  interés y 20 habilidades técnicas (RF2.3, RF1.1.11, RF2.4.3, RF2.4.4).
+  Motivo: `perfil_tags` y `perfil_habilidades` apuntan a catálogos cerrados
+  que el usuario no crea, así que sin seed no hay nada que elegir en el
+  perfil.
+  Entrada agregada después del hecho: el commit fue directo a `main`, sin rama
+  ni PR, y sin pasar por acá.
+
 - **Se saca de `arquitectura.md` la nota de «capa de datos en reescritura».**
   Motivo: la reescritura terminó en `dd2685c`; la nota contradecía a §3 y §5,
   que ya describen esa capa funcionando. De paso, `CLAUDE.md` decía «cuatro

@@ -27,10 +27,10 @@ La especificación funcional completa está en [`docs/`](./docs).
 
 ```
 db/
-  migrations/            Esquema, Row Level Security, vistas y matching
-  seed/                  Catálogo de tags y datos de demostración
-  README.md              Cómo aplicar el esquema y por qué está así
-docs/                    SRS y decisiones técnicas
+  schema.sql             Tablas, restricciones, funciones y disparadores
+  politicas.sql          Row Level Security
+  seed.sql               Catálogo de tags y habilidades
+docs/                    SRS, arquitectura, decisiones, plan y changelog
 src/
   app/
     layout.tsx           Layout raíz: idioma, tipografías, metadata
@@ -90,17 +90,23 @@ la base de datos.
 
 ## Base de datos
 
-El esquema y las instrucciones para aplicarlo están en
-[`db/README.md`](./db/README.md). En resumen, desde el SQL Editor de Supabase
-se ejecutan en orden:
+Desde el **SQL Editor** de Supabase se ejecutan estos tres archivos, en este
+orden:
 
 ```
-db/migrations/0001_esquema.sql
-db/migrations/0002_rls.sql
-db/migrations/0003_vistas_y_matching.sql
-db/seed/0001_tags.sql
-db/seed/0002_demo.sql
+db/schema.sql      Tablas, restricciones, funciones y disparadores
+db/politicas.sql   Row Level Security
+db/seed.sql        Catálogo de tags y habilidades
 ```
+
+`seed.sql` son inserts con `on conflict (nombre) do nothing`: correrlo de
+nuevo agrega lo que falte y no toca lo que ya está. **Nunca borra filas de
+`tags` ni de `habilidades`** — las tablas puente las referencian
+`on delete cascade`, así que un borrado se llevaría los intereses de cada
+perfil y los tags ocultos de cada vacante.
+
+Sobre una base donde el esquema ya corrió, `create policy` falla con
+`already exists`: hay que hacer `drop policy` o `alter policy` antes.
 
 Después conviene regenerar los tipos:
 
@@ -117,7 +123,6 @@ improvisar uno nuevo por pantalla:
 | Skill              | Para qué                                                                                                      |
 | ------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `diseno-linkyouth` | Sistema de diseño: paleta, tipografía, elevación, espaciado, componentes, accesibilidad y tono de los textos. |
-| `datos-linkyouth`  | Modelo de datos: esquema, RLS, tipos, consultas y acciones de servidor.                                       |
 | `graphify`         | Grafo de conocimiento del repositorio.                                                                        |
 
 ## Otros comandos
