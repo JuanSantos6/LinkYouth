@@ -312,3 +312,58 @@ sería peor que no admitir menores.
 527 y 551) quedan sin efecto. Conviene corregirlas en la próxima revisión del
 SRS para que no vuelvan a leerse como un requisito vigente.
 
+---
+
+## 2026-09-11 — El alta se completa en la sesión, no en un disparador
+
+**Decisión.** `registrarse()` crea las filas de `cuentas` y `perfiles` desde
+la propia Server Action, con la sesión que devuelve `signUp`. Si el proyecto
+de Supabase tiene activada la confirmación por correo, el `signUp` devuelve
+usuario pero **no** sesión: en ese caso los datos del perfil quedan guardados
+en `user_metadata` y el alta se completa en el primer inicio de sesión.
+`completarAlta()` es la misma función en los dos caminos, e ignora el
+conflicto por clave primaria, así que llamarla de más no hace nada.
+
+**Alternativas consideradas.**
+
+- Un disparador `on insert on auth.users` con `security definer`, que es el
+  patrón que recomienda Supabase.
+- Exigir que el proyecto tenga la confirmación por correo desactivada, y
+  crear las filas siempre en el registro.
+- Guardar el perfil en `user_metadata` y crearlo desde un route handler en
+  `/auth/callback`.
+
+**Motivo.** Sin sesión, `auth.uid()` es nulo y las políticas
+`cuentas_creo_la_mia` y `perfiles_creo_el_mio` —que exigen `auth.uid() = id`—
+rechazan las dos inserciones. Cualquier solución tiene que resolver ese hueco.
+
+El disparador en `auth.users` es la opción más robusta y la que dejaría el
+alta atómica, pero obliga a modificar `db/schema.sql`, que esta historia tenía
+prohibido tocar. Queda como la mejora natural cuando se decida abrir el
+esquema: convierte el alta en una sola operación y elimina la ventana en la
+que existe un usuario en `auth.users` sin fila en `perfiles`.
+
+Depender de que la confirmación esté desactivada hace que el registro se rompa
+en silencio apenas alguien la active en el panel — y viene activada por
+omisión en los proyectos nuevos.
+
+El route handler en `/auth/callback` resuelve el mismo caso, pero agrega una
+ruta más para el único momento en que hace falta; el inicio de sesión ya
+pasa por la acción que puede hacerlo.
+
+**Consecuencia a tener presente.** Entre el `signUp` y el primer inicio de
+sesión existe un usuario en `auth.users` sin fila en `perfiles`. No puede
+navegar la aplicación —no tiene sesión—, pero el correo ya quedó tomado. Si
+nunca confirma, esa cuenta queda huérfana.
+
+**Consecuencia a tener presente.** El nombre de usuario lo garantiza el
+índice único de `perfiles`, que con la confirmación por correo activada se
+evalúa recién en el primer inicio de sesión. Para que nadie se entere tan
+tarde, `registrarse()` consulta `perfiles` antes del `signUp` y corta ahí el
+caso común. Queda la carrera: dos registros simultáneos con el mismo nombre
+pasan los dos la verificación, y el segundo choca contra el índice al entrar.
+
+La verificación previa lee a través de `perfiles_lectura_publica`, que filtra
+por `cuenta_activa(id)`. Un nombre tomado por una cuenta dada de baja no
+aparece, así que la verificación lo da por libre y el choque vuelve a caer en
+el índice único. Es el mismo caso raro de siempre, con la misma defensa.

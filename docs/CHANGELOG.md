@@ -15,6 +15,37 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-11
 
+- **Registro e inicio de sesión para cuentas individuales** (RF1.1, RF1.3).
+  Pantallas `/registro` y `/login` en `src/app/(auth)/`, con `registrarse()`,
+  `iniciarSesion()` y `cerrarSesion()` en `src/lib/acciones/auth.ts`.
+  Motivo: era el Hito 1 del plan y lo que desbloquea todo lo demás — hasta
+  ahora ninguna consulta tenía sesión y todas caían en datos de ejemplo.
+  El registro de empresa, la recuperación de contraseña y la protección de
+  rutas quedan fuera.
+  → [`decisiones.md`](./decisiones.md) por cómo se resuelve la confirmación
+  por correo.
+
+- **El nombre de usuario repetido se detecta antes de crear la cuenta.** El
+  registro consulta `perfiles` por `nombre_usuario` antes del `signUp`.
+  Motivo: sin eso el choque aparecía al insertar en `perfiles`, que con la
+  confirmación por correo activada ocurre en el primer inicio de sesión — la
+  persona se enteraba después de haberse registrado. No elimina la carrera
+  entre dos registros simultáneos; el índice único sigue siendo la defensa
+  final.
+
+- **Los errores de la base llegan traducidos, no crudos.** El `23514` del
+  constraint `perfiles_mayor_de_edad` se lee como «Tenés que ser mayor de 18
+  años para registrarte», y el `23505` de `nombre_usuario` como «Ese nombre
+  de usuario ya está en uso». El login responde lo mismo ante contraseña
+  incorrecta y correo inexistente.
+  Motivo: la edad la valida la base y el código solo traduce su respuesta, así
+  que la regla vive en un solo lugar. Distinguir los dos errores de login
+  revelaría qué direcciones están registradas.
+
+- **`Campo` y `CAMPO` pasan a `src/components/ui/Campo.tsx`.** Estaban
+  privados dentro de `FormularioPerfil`.
+  Motivo: los tres formularios los necesitan; extraerlos evitó dos copias.
+
 - **`db/seed.sql` deja de borrar filas.** Se quitó el bloque de limpieza que
   hacía `delete from tags` y `delete from habilidades` con los nombres de dos
   versiones anteriores del catálogo.
