@@ -592,7 +592,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      perfiles_publicos: {
+        Row: {
+          apellido: string
+          bio: string | null
+          creado_en: string
+          foto_url: string | null
+          id: string
+          nombre: string
+          nombre_usuario: string
+          pais: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cuenta_activa: { Args: { cuenta: string }; Returns: boolean }

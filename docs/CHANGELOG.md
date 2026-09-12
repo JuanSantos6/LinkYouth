@@ -15,6 +15,16 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-12
 
+- **La verificación previa de `nombre_usuario` lee la vista, no la tabla.**
+  `registrarse()` consulta `perfiles_publicos` en lugar de `perfiles`.
+  Motivo: quien se registra todavía no tiene sesión, y desde CN-001 la tabla
+  solo es legible por `authenticated` y acotada a la fila propia. Contra la
+  tabla la consulta devolvía `null` siempre —sin error— y el chequeo quedaba
+  apagado en silencio: el choque volvía a aparecer recién en el primer inicio de
+  sesión, que es justo lo que `a855925` había corregido. El índice único sigue
+  siendo la defensa final.
+
+
 - **`fecha_nacimiento` deja de ser legible por cualquiera (CN-001).** `perfiles`
   sale del alcance de lectura de la API: la política pasa a `to authenticated
   using (auth.uid() = id)` y RF2.5 se sirve por la vista nueva

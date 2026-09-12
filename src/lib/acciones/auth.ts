@@ -175,8 +175,15 @@ export async function registrarse(
   // primer inicio de sesión. No elimina la carrera —dos registros
   // simultáneos la pasan los dos— y por eso el índice único de `perfiles`
   // sigue siendo la defensa final.
+  //
+  // Lee de `perfiles_publicos` y no de `perfiles`: quien se está registrando
+  // todavía no tiene sesión, y desde CN-001 la tabla solo es legible por
+  // `authenticated` y limitada a la fila propia. Contra la tabla, esta
+  // consulta devolvería `null` siempre —sin error— y el chequeo quedaría
+  // apagado en silencio. La vista es legible por `anon` y expone
+  // `nombre_usuario`.
   const { data: yaExiste } = await supabase
-    .from("perfiles")
+    .from("perfiles_publicos")
     .select("id")
     .eq("nombre_usuario", perfil.nombre_usuario)
     .maybeSingle();
