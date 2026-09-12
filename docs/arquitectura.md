@@ -140,7 +140,7 @@ src/components/
   auth/ empleos/ eventos/ perfil/   Por dominio
 
 src/lib/
-  supabase/               Clientes y credenciales
+  supabase/               Cliente de servidor y credenciales
   data/                   Lectura: tipos.ts, ejemplos.ts, consultas.ts
   acciones/               Escritura: auth, perfil, postulaciones, eventos
   formato.ts              Fechas, etiquetas, afinidad
@@ -165,18 +165,7 @@ Devuelve `null` si falta cualquiera de las dos, en vez de lanzar.
 Es el único punto del código que toca esas variables. Que devuelva `null` en
 lugar de fallar es lo que sostiene la regla §2.3.
 
-#### `supabaseConfigurado(): boolean`
-
-Azúcar sobre la anterior para cuando solo interesa el sí o el no.
-
-### 5.2 `src/lib/supabase/client.ts`
-
-#### `createClient()`
-
-Cliente de Supabase para Client Components, con los tipos de `Database`
-aplicados. Devuelve `null` si no hay credenciales.
-
-### 5.3 `src/lib/supabase/server.ts`
+### 5.2 `src/lib/supabase/server.ts`
 
 #### `async createClient()`
 
@@ -188,7 +177,7 @@ está envuelto en `try/catch` a propósito: un Server Component no puede
 escribir cookies, y el middleware ya refrescó la sesión, así que ese error
 específico se puede ignorar sin perder nada.
 
-### 5.4 `src/middleware.ts`
+### 5.3 `src/middleware.ts`
 
 #### `async middleware(request)`
 
@@ -211,7 +200,7 @@ El `matcher` excluye `_next/static`, `_next/image`, `favicon.ico` y los
 archivos de imagen. Sin eso, el middleware correría en cada ícono y cada
 fuente, y cada uno pagaría una revalidación de token.
 
-### 5.5 `src/lib/formato.ts`
+### 5.4 `src/lib/formato.ts`
 
 Funciones puras. No tocan la base ni el DOM. Todas usan `es-UY` y la zona
 `America/Montevideo`, fijas: el servidor puede estar en cualquier huso, y la
@@ -258,7 +247,7 @@ No es el puntaje de matching de RF3.9: ese usa los tags ocultos, se calcula en
 la base y lo ve solo la empresa. Este número solo mira datos públicos, así que
 puede correr en cualquier lado sin riesgo.
 
-### 5.6 `src/lib/data/`
+### 5.5 `src/lib/data/`
 
 #### `tipos.ts`
 
@@ -308,7 +297,7 @@ Cuando el join con `empresas` viene vacío —la cuenta de la empresa fue dada d
 baja y `cuenta_activa` la deja fuera— la fila se descarta con `flatMap` en vez
 de mostrarse sin organizador.
 
-### 5.7 `src/lib/acciones/`
+### 5.6 `src/lib/acciones/`
 
 Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
 `EstadoAccion` (`{ estado, mensaje }`), que el formulario consume con
@@ -343,13 +332,21 @@ El límite de 600 caracteres de la biografía vive solo en `actualizarPerfil`:
 `db/schema.sql` declara `bio` como `text` sin restricción, así que es una
 decisión de producto, no del esquema.
 
-### 5.8 Componentes
+### 5.7 Componentes
 
 Reconectados contra `db/schema.sql`. Lo que la interfaz mostraba y el esquema
 no guarda —salario, modalidad, ubicación, cupos, nivel de dominio de una
 habilidad, años y acreditación de un estudio— se quitó en vez de inventarse.
 
 #### `ui/` — primitivas, sin dominio
+
+Nada de acá importa de `src/lib/data/`, con **una sola excepción**:
+`AvisoOrigen` recibe un `Resultado` y por lo tanto conoce el tipo `OrigenDatos`.
+Se queda igual: el aviso de contenido de demostración no pertenece a ninguna
+pantalla en particular —lo usan las cinco, y es la implementación de la regla
+§2.3— así que moverlo a una carpeta de dominio lo ataría a un dominio que no
+tiene. La excepción está acotada a un tipo de solo lectura y se documenta acá
+para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
@@ -361,6 +358,7 @@ habilidad, años y acreditación de un estudio— se quitó en vez de inventarse
 | `Insignia` | `children`, `tono?` | Estado: tipo de oportunidad, estado de una postulación o de un estudio. |
 | `Campo` | `etiqueta`, `ayuda?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
 | `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
+| `Aviso` | `children` | Caja de aviso: ícono, borde y color del tono «atención». Todo lo que la aplicación aclara sobre sí misma se ve igual. La usan `AvisoOrigen` y `AvatarEditable`. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
 
 #### `layout/` — estructura
@@ -368,7 +366,7 @@ habilidad, años y acreditación de un estudio— se quitó en vez de inventarse
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
 | `BarraLateral` | — | Navegación de las cinco secciones. `"use client"` solo para leer `usePathname()` y marcar la activa. Columna fija de 240 px en escritorio; fila que se desplaza en pantallas chicas, sin menú desplegable: con cinco secciones, esconderlas cuesta más de lo que ahorra. |
-| `Encabezado` | `titulo`, `descripcion?`, `acciones?` | Encabezado de sección. |
+| `Encabezado` | `titulo`, `descripcion?` | Encabezado de sección. |
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
 | `Iconos` | `className?` | Ocho íconos SVG inline (`IconoInicio`, `IconoEmpleos`, `IconoEventos`, `IconoPostulaciones`, `IconoPerfil`, `IconoBusqueda`, `IconoUbicacion`, `IconoCamara`). Inline y no una librería: son ocho, y una dependencia entera para eso no se paga sola. |
 
@@ -406,7 +404,7 @@ Las cinco pantallas de `(app)/` declaran
 `export const dynamic = "force-dynamic"`: leen datos por sesión, y cachearlas
 mostraría el perfil de otro.
 
-### 5.9 Funciones en la base
+### 5.8 Funciones en la base
 
 Definidas en `db/schema.sql`. Las seis fijan `set search_path = public,
 pg_temp`: una función `security definer` sin `search_path` fijo es explotable

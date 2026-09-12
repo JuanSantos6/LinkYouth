@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { IconoCamara } from "@/components/layout/Iconos";
 import { Avatar } from "@/components/ui/Avatar";
+import { Aviso } from "@/components/ui/AvisoOrigen";
 
 /**
  * Avatar con acción de cambiar foto (RF1.5.6).
@@ -62,11 +63,11 @@ export function AvatarEditable({
           JPG, PNG o WebP. Una foto donde se te vea la cara ayuda a que te
           reconozcan en una entrevista.
         </p>
-        {aviso && (
-          <p aria-live="polite" className="mt-1.5 text-xs text-aviso">
-            {aviso}
-          </p>
-        )}
+        {/* La región vive siempre en el DOM: un `aria-live` que aparece
+            junto con su texto no siempre se anuncia. */}
+        <div aria-live="polite" className="mt-2 empty:mt-0">
+          {aviso && <Aviso>{aviso}</Aviso>}
+        </div>
       </div>
     </div>
   );

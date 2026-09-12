@@ -140,8 +140,11 @@ forma de saber que se cumple es intentar romperlo.
 **Qué entra**
 
 - Alta, edición y cancelación de evento por la empresa (RF4.1, RF4.2, RF4.3).
-- Inscripción y baja del postulante (RF4.5, RF4.6) — `inscribirse()` ya está,
-  falta la baja.
+- Inscripción y baja del postulante (RF4.5, RF4.6). Las dos acciones de
+  servidor ya existen —`inscribirse()` y `cancelarInscripcion()` en
+  `src/lib/acciones/eventos.ts`—: **falta el botón de cancelar inscripción a
+  un evento, la acción del servidor ya existe.** Hasta que lo tenga,
+  `cancelarInscripcion` queda exportada sin consumidor.
 - Control de cupo: no se puede pasar del límite.
 - Listado de inscriptos para la empresa dueña.
 
@@ -196,6 +199,12 @@ sus postulantes ordenados por compatibilidad.
 sabe la interfaz si la sesión es de un postulante o de una empresa, y adónde
 la manda al entrar? Conviene resolverlo en el Hito 1 aunque el panel recién
 llegue acá.
+
+`src/lib/data/tipos.ts` ya declara `TIPOS_CUENTA` y `TipoCuenta` (`'individual'`
+/ `'empresa'`), pero **ningún archivo los usa todavía**: son la mitad hecha de
+la deuda 7.5 de `arquitectura.md`. Se dejan a propósito, para que el día que se
+mire `cuentas.tipo` el conjunto cerrado ya esté declarado en un solo lugar y no
+aparezca un `string` suelto en la navegación.
 
 ---
 

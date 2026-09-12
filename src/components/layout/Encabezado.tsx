@@ -1,12 +1,10 @@
-/** Encabezado de sección: título, bajada y acciones a la derecha. */
+/** Encabezado de sección: título y bajada. */
 export function Encabezado({
   titulo,
   descripcion,
-  acciones,
 }: {
   titulo: string;
   descripcion?: string;
-  acciones?: React.ReactNode;
 }) {
   return (
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -18,7 +16,6 @@ export function Encabezado({
           </p>
         )}
       </div>
-      {acciones && <div className="flex items-center gap-2">{acciones}</div>}
     </header>
   );
 }

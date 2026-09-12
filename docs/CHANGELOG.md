@@ -15,6 +15,33 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-12
 
+- **Se borra el código sin consumidor.** `src/lib/supabase/client.ts` entero
+  (ningún archivo lo importaba: todo es Server Component), `supabaseConfigurado()`
+  de `config.ts` y la prop `acciones` de `Encabezado`, que ninguna de las cinco
+  pantallas pasaba.
+  Motivo: cada export sin uso es una promesa que alguien va a creer. El catálogo
+  de `arquitectura.md` §5 los documentaba como si estuvieran en servicio.
+
+- **`cancelarInscripcion` y `TIPOS_CUENTA` se dejan, pero anotados.** El primero
+  implementa RF4.6 y espera su botón; los segundos son la mitad declarada de la
+  deuda 7.5. Quedan registrados en `plan.md` (Hito 4 e Hito 6) para que no se
+  vuelvan a leer como huérfanos.
+
+- **`AvatarEditable` deja de inventar su propio cartel de aviso.** Se extrajo
+  `Aviso` de `AvisoOrigen` —la caja con el ícono y el tono «atención»— y ahora
+  los dos la usan.
+  Motivo: era el único lugar de la aplicación que se armaba un aviso propio.
+  No se lo pasó por `AvisoOrigen` directamente porque ese componente habla de
+  lecturas de la base («cargá las credenciales, aplicá schema.sql») y lo que
+  `AvatarEditable` avisa es que falta Supabase Storage: mismo aspecto, otro
+  texto.
+
+- **`ui/` puede conocer `Resultado`, y solo eso.** `arquitectura.md` §5.7
+  declaraba que `ui/` no toca el dominio mientras `AvisoOrigen` importaba de
+  `lib/data/`. Se documenta como la única excepción, con el motivo.
+  Motivo: una regla que el código ya viola en un punto se deja de leer entera.
+
+
 - **Las rutas de `(app)/` dejan de ser accesibles sin sesión.** El middleware
   redirige a `/login` a quien entre sin usuario, salvo en `/login` y
   `/registro`; `obtenerPerfilActual` hace lo mismo como segunda barrera y ya no
