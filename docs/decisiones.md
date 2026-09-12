@@ -6,6 +6,34 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-12 — La protección de rutas vive en el middleware
+
+**Decisión.** Controlar el acceso a `(app)/` en `src/middleware.ts`: si hay
+credenciales de Supabase y no hay sesión, redirigir a `/login`, salvo en las
+rutas de `PUBLICAS` (`/login`, `/registro`). `obtenerPerfilActual` conserva un
+`redirect("/login")` propio como segunda barrera.
+
+**Alternativas consideradas.**
+
+- Un chequeo de sesión en cada una de las cinco `page.tsx` de `(app)/`.
+- Solo el guard en `obtenerPerfilActual`, sin tocar el middleware.
+- Seguir sin protección y confiar en RLS.
+
+**Motivo.** El middleware es el único punto por el que pasan las cinco
+pantallas: un guard ahí es un diff más chico que cinco, y no se puede olvidar
+al agregar la sexta. Poner el control solo en `obtenerPerfilActual` protegía
+`/inicio`, `/empleos` y `/perfil`, pero dejaba `/eventos` y `/postulaciones`
+abiertas, que es peor que no tener nada porque parece resuelto. RLS sigue
+siendo la defensa de los datos —ninguna de estas rutas podía leer filas
+ajenas— pero no impedía que un desconocido recorriera las pantallas y viera
+`PERFIL_EJEMPLO` presentado como su propio perfil.
+
+El caso «sin credenciales» queda expresamente afuera del control: sin Supabase
+no hay sesión posible, y la regla §2.3 pide que la aplicación se pueda
+recorrer igual con los datos de ejemplo.
+
+---
+
 ## 2026-09-10 — Los alias del esquema viven en la capa de datos
 
 **Decisión.** Declarar los conjuntos cerrados del esquema (`TipoOportunidad`,

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -182,9 +184,14 @@ export async function obtenerEventos(
 /**
  * RF2.1 — Perfil de la sesión activa, con sus tags, habilidades y formación.
  *
- * Sin sesión iniciada devuelve el perfil de demostración: hasta que exista el
- * módulo de autenticación (RF1.3, deuda 7.4), es la única forma de recorrer la
- * pantalla.
+ * Sin credenciales de Supabase devuelve el perfil de demostración: sin base no
+ * hay sesión posible y la aplicación tiene que poder recorrerse igual (§2.3).
+ *
+ * Con Supabase configurado y sin sesión, en cambio, manda a `/login`. Antes
+ * devolvía `PERFIL_EJEMPLO` también en ese caso, que desde que existe el login
+ * (RF1.3) significa mostrarle a un desconocido un perfil inventado como si
+ * fuera el suyo. El middleware ya corta ese request antes de llegar acá; esto
+ * es la segunda barrera, para cualquier llamada que no venga de una pantalla.
  */
 export async function obtenerPerfilActual(): Promise<
   Resultado<PerfilCompleto>
@@ -196,7 +203,7 @@ export async function obtenerPerfilActual(): Promise<
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return ejemplo(PERFIL_EJEMPLO, SIN_SESION);
+  if (!user) redirect("/login");
 
   const { data, error } = await supabase
     .from("perfiles")

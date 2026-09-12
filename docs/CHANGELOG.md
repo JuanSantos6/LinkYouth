@@ -13,6 +13,33 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-12
+
+- **Las rutas de `(app)/` dejan de ser accesibles sin sesión.** El middleware
+  redirige a `/login` a quien entre sin usuario, salvo en `/login` y
+  `/registro`; `obtenerPerfilActual` hace lo mismo como segunda barrera y ya no
+  devuelve `PERFIL_EJEMPLO` en ese caso.
+  Motivo: desde que existe el login, devolver el perfil de demostración a quien
+  no inició sesión es mostrarle un perfil inventado como si fuera suyo. El
+  control va en el middleware porque es el único punto por el que pasan las
+  cinco pantallas.
+  → [`decisiones.md`](./decisiones.md)
+
+- **`SIN_SESION` y `SIN_CONFIGURAR` se unifican en una sola constante.** El
+  texto de `SIN_SESION` decía que RF1.3 «todavía no está implementado», lo que
+  dejó de ser cierto; ahora dice «Necesitás iniciar sesión para hacer esto.» y
+  la usan las cinco acciones (`auth`, `perfil`, `eventos`, `postulaciones`).
+  Motivo: eran dos constantes para el mismo desenlace —no hay sesión utilizable
+  y la salida es iniciar sesión— y ya habían divergido en el texto.
+
+- **`arquitectura.md` se pone al día con la autenticación.** §4 y §5.4 dejan de
+  decir que `(auth)/` está vacía y que el middleware no protege nada; §5.7 suma
+  `registrarse`, `iniciarSesion` y `cerrarSesion`; §5.8 suma `Campo`,
+  `FormularioLogin`, `FormularioRegistro` y las páginas `/login` y `/registro`;
+  la deuda 7.3 pasa de «no hay autenticación» a lo que queda afuera (registro
+  de empresa, recuperación de contraseña).
+  Motivo: el catálogo está escrito a mano y no se regenera solo.
+
 ## 2026-09-11
 
 - **Registro e inicio de sesión para cuentas individuales** (RF1.1, RF1.3).

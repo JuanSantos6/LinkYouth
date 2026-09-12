@@ -131,21 +131,22 @@ src/app/
   (app)/layout.tsx        Estructura con barra lateral
   (app)/inicio|empleos|eventos|
         postulaciones|perfil/page.tsx   Las cinco pantallas
-  (auth)/                 Vacía: login y registro pendientes
+  (auth)/layout.tsx       Columna centrada, sin barra lateral
+  (auth)/login|registro/page.tsx        Inicio de sesión y alta (RF1.1, RF1.3)
 
 src/components/
   ui/                     Primitivas sin dominio
   layout/                 Estructura y navegación
-  empleos/ eventos/ perfil/   Por dominio
+  auth/ empleos/ eventos/ perfil/   Por dominio
 
 src/lib/
   supabase/               Clientes y credenciales
   data/                   Lectura: tipos.ts, ejemplos.ts, consultas.ts
-  acciones/               Escritura: perfil, postulaciones, eventos
+  acciones/               Escritura: auth, perfil, postulaciones, eventos
   formato.ts              Fechas, etiquetas, afinidad
 
 src/types/database.ts     Tipos generados desde la base real
-src/middleware.ts         Refresco de sesión en cada request
+src/middleware.ts         Refresco de sesión y control de acceso a las rutas
 ```
 
 ---
@@ -191,12 +192,18 @@ específico se puede ignorar sin perder nada.
 
 #### `async middleware(request)`
 
-Corre en cada request. Revalida el token de Supabase con `auth.getUser()` y
-reescribe las cookies rotadas en la respuesta.
+Corre en cada request. Revalida el token de Supabase con `auth.getUser()`,
+reescribe las cookies rotadas en la respuesta y **manda a `/login` a quien
+entre sin sesión**, salvo a las rutas de `PUBLICAS` (`/login`, `/registro`).
+
+El control vive acá y no repetido en cada `page.tsx` porque es el único punto
+por el que pasan las cinco pantallas de `(app)/`. Las cookies que el refresco
+acaba de reescribir se copian a la redirección: si se perdieran, el próximo
+request intentaría refrescar un token ya descartado.
 
 Si no hay credenciales, deja pasar el request intacto en vez de romper toda la
-navegación. Hoy **no protege ninguna ruta**: solo refresca. La protección de
-`(app)/` entra con el módulo de autenticación (ver `plan.md`, Hito 1).
+navegación: sin Supabase no hay sesión posible y la aplicación tiene que poder
+recorrerse igual con los datos de ejemplo (§2.3).
 
 #### `config`
 
@@ -305,20 +312,32 @@ de mostrarse sin organizador.
 
 Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
 `EstadoAccion` (`{ estado, mensaje }`), que el formulario consume con
-`useActionState`. `tipos.ts` exporta además `ACCION_INICIAL`, `SIN_SESION` y
-`CLAVE_DUPLICADA` (el `23505` de Postgres).
+`useActionState`. La excepción es `cerrarSesion()`, que no recibe ni devuelve
+nada: no hay estado que mostrar, así que va como `action` de un `<form>` sin
+`useActionState`.
+
+`tipos.ts` exporta además `ACCION_INICIAL`, `SIN_SESION` y `CLAVE_DUPLICADA`
+(el `23505` de Postgres). `SIN_SESION` es **una sola** constante para los dos
+modos de no tener sesión utilizable —nadie autenticado, o credenciales de
+Supabase ausentes—: al usuario le sirve la misma salida, iniciar sesión, así
+que el texto no se duplica.
 
 | Función | Qué hace | Requisito |
 | --- | --- | --- |
+| `registrarse` | Crea el usuario en `auth.users` y, con la sesión del `signUp`, las filas de `cuentas` y `perfiles`. Chequea el `nombre_usuario` repetido antes de crear nada. Si el proyecto pide confirmación por correo el `signUp` no devuelve sesión: los datos quedan en `user_metadata` y el alta se completa en el primer login, que es cuando RLS tiene el `auth.uid()` que exige. | RF1.1 |
+| `iniciarSesion` | Autentica y, si el alta había quedado pendiente, la completa. Responde lo mismo ante contraseña incorrecta y correo inexistente: distinguirlos revelaría qué direcciones están registradas. | RF1.3 |
+| `cerrarSesion` | `signOut()` y redirección a `/login`. | RF1.3.5 |
 | `postularse` | Inserta la postulación. El estado inicial `pendiente` es el default de la columna. | RF3.6 |
 | `cancelarPostulacion` | **Actualiza** el estado a `cancelada`. No borra la fila. | RF3.8 |
 | `inscribirse` | Inserta en `inscripciones_evento`. | RF4.5 |
-| `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. | RF4.6 |
+| `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. Hoy **sin consumidor**: no hay UI de cancelación de eventos. | RF4.6 |
 | `actualizarPerfil` | Actualiza nombre, apellido, país y biografía. | RF1.5, RF2.2 |
 
 El mensaje de error nunca se muestra crudo cuando se lo puede traducir: el
 `23505` de una postulación repetida se lee como «Ya te habías postulado a esta
-búsqueda».
+búsqueda», y el `23514` del constraint `perfiles_mayor_de_edad` como «Tenés que
+ser mayor de 18 años para registrarte». La regla de edad vive solo en la base
+(RF1.1.8); el código traduce su respuesta y no la reimplementa.
 
 El límite de 600 caracteres de la biografía vive solo en `actualizarPerfil`:
 `db/schema.sql` declara `bio` como `text` sin restricción, así que es una
@@ -340,6 +359,7 @@ habilidad, años y acreditación de un estudio— se quitó en vez de inventarse
 | `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
 | `Etiqueta` | `children`, `tono?` | Un tag o una habilidad. Con `tono="coincide"` marca lo que el perfil ya declara, con un ✓ además del color. |
 | `Insignia` | `children`, `tono?` | Estado: tipo de oportunidad, estado de una postulación o de un estudio. |
+| `Campo` | `etiqueta`, `ayuda?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
 | `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
 
@@ -352,10 +372,12 @@ habilidad, años y acreditación de un estudio— se quitó en vez de inventarse
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
 | `Iconos` | `className?` | Ocho íconos SVG inline (`IconoInicio`, `IconoEmpleos`, `IconoEventos`, `IconoPostulaciones`, `IconoPerfil`, `IconoBusqueda`, `IconoUbicacion`, `IconoCamara`). Inline y no una librería: son ocho, y una dependencia entera para eso no se paga sola. |
 
-#### `empleos/` · `eventos/` · `perfil/` — por dominio
+#### `auth/` · `empleos/` · `eventos/` · `perfil/` — por dominio
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
+| `FormularioLogin` | — | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
+| `FormularioRegistro` | — | Alta de cuenta individual (RF1.1). Los campos son exactamente las columnas obligatorias de `perfiles`, más el correo y la contraseña que van a `auth.users`. La mayoría de edad la exige la base: acá el campo es un `type="date"` común y el mensaje llega desde la acción. |
 | `TarjetaVacante` | `vacante`, `tagsPerfil?`, `habilidadesPerfil?`, `yaPostulado?` | Una vacante en el feed. Separa habilidades de áreas de interés, igual que el esquema. Muestra el porcentaje de compatibilidad solo si la vacante pide algo, y siempre junto al detalle de qué coincide: un número suelto no se puede verificar. |
 | `BotonPostularse` | `vacanteId`, `yaPostulado?` | Postulación en un paso (RF3.6). Anuncia el resultado en una región `aria-live`. |
 | `TarjetaEvento` | `evento`, `yaInscripto?` | Deliberadamente distinta de la de vacante: cabecera con franja de color y bloque de fecha destacado. Hay que distinguir de un vistazo una oferta de una actividad. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo, y la política de `inscripciones_evento` no deja contar las de los demás. |
@@ -372,6 +394,8 @@ habilidad, años y acreditación de un estudio— se quitó en vez de inventarse
 | Ruta | Función | Qué hace |
 | --- | --- | --- |
 | `/` | `Home` | Redirige a `/inicio`. |
+| `/login` | `PaginaLogin` | Inicio de sesión. Layout propio de `(auth)/`: una columna centrada, sin barra lateral. |
+| `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. |
 | `/eventos` | `PaginaEventos` | Agenda de eventos próximos. |
@@ -524,10 +548,16 @@ por habilidad —son tablas puente indexadas— pero eso pide una consulta con
 `in` sobre la tabla puente, y el buscador de hoy es un `<input>` de texto
 libre. Queda para cuando exista el filtro por etiqueta.
 
-### 7.3 No hay autenticación
+### 7.3 La autenticación cubre solo la cuenta individual
 
-`(auth)/` está vacía. El middleware refresca la sesión pero no protege nada, y
-`(app)/` es accesible sin iniciar sesión. Es el Hito 1 del plan.
+Resuelto el Hito 1: `(auth)/login` y `(auth)/registro` existen, `auth.ts` tiene
+`registrarse`, `iniciarSesion` y `cerrarSesion`, y el middleware manda a
+`/login` a quien entre a `(app)/` sin sesión.
+
+Queda afuera: el registro de empresa (`cuentas.tipo = 'empresa'`), la
+recuperación de contraseña y la confirmación de correo como paso propio —hoy,
+si el proyecto de Supabase la tiene activada, el alta de `cuentas` y `perfiles`
+se completa recién en el primer inicio de sesión.
 
 ### 7.4 La subida de archivos no existe
 

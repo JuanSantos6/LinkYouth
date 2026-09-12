@@ -7,7 +7,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
-import { CLAVE_DUPLICADA, type EstadoAccion } from "./tipos";
+import { CLAVE_DUPLICADA, SIN_SESION, type EstadoAccion } from "./tipos";
 
 /** Código de Postgres para violación de una restricción `check`. */
 const CHECK_VIOLADO = "23514";
@@ -19,12 +19,6 @@ const CHECK_VIOLADO = "23514";
 const USUARIO_OCUPADO: EstadoAccion = {
   estado: "error",
   mensaje: "Ese nombre de usuario ya está en uso. Probá con otro.",
-};
-
-const SIN_CONFIGURAR: EstadoAccion = {
-  estado: "error",
-  mensaje:
-    "La conexión con Supabase no está configurada. Cargá las credenciales en .env.local.",
 };
 
 /**
@@ -169,7 +163,7 @@ export async function registrarse(
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
+  if (!supabase) return SIN_SESION;
 
   // Corta el caso común del nombre repetido antes de crear nada en
   // `auth.users`: sin esto el choque aparece recién al insertar en
@@ -239,7 +233,7 @@ export async function iniciarSesion(
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
+  if (!supabase) return SIN_SESION;
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
