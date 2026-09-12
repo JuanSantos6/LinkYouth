@@ -305,11 +305,15 @@ Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
 nada: no hay estado que mostrar, así que va como `action` de un `<form>` sin
 `useActionState`.
 
-`tipos.ts` exporta además `ACCION_INICIAL`, `SIN_SESION` y `CLAVE_DUPLICADA`
-(el `23505` de Postgres). `SIN_SESION` es **una sola** constante para los dos
-modos de no tener sesión utilizable —nadie autenticado, o credenciales de
-Supabase ausentes—: al usuario le sirve la misma salida, iniciar sesión, así
-que el texto no se duplica.
+`tipos.ts` exporta además `ACCION_INICIAL`, `CLAVE_DUPLICADA` (el `23505` de
+Postgres) y las dos respuestas de «no se puede seguir», que son **distintas a
+propósito**:
+
+- `SIN_CONFIGURAR` para el `if (!supabase)`: faltan las credenciales de
+  Supabase. Quien no cargó `.env.local` no tiene ningún inicio de sesión que
+  hacer, y mandarlo a iniciarlo lo hace buscar el problema donde no está.
+- `SIN_SESION` para el `if (!user)`: el cliente se creó bien y no hay nadie
+  autenticado.
 
 | Función | Qué hace | Requisito |
 | --- | --- | --- |

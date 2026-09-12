@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { CLAVE_DUPLICADA, SIN_SESION, type EstadoAccion } from "./tipos";
+import {
+  CLAVE_DUPLICADA,
+  SIN_CONFIGURAR,
+  SIN_SESION,
+  type EstadoAccion,
+} from "./tipos";
 
 /** RF4.5 — Inscribirse a un evento institucional. */
 export async function inscribirse(
@@ -17,7 +22,7 @@ export async function inscribirse(
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_SESION;
+  if (!supabase) return SIN_CONFIGURAR;
 
   const {
     data: { user },
@@ -60,7 +65,7 @@ export async function cancelarInscripcion(
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_SESION;
+  if (!supabase) return SIN_CONFIGURAR;
 
   const {
     data: { user },

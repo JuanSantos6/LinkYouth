@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { SIN_SESION, type EstadoAccion } from "./tipos";
+import { SIN_CONFIGURAR, SIN_SESION, type EstadoAccion } from "./tipos";
 
 /**
  * Largo máximo de la biografía.
@@ -47,7 +47,7 @@ export async function actualizarPerfil(
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_SESION;
+  if (!supabase) return SIN_CONFIGURAR;
 
   const {
     data: { user },

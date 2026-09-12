@@ -7,14 +7,24 @@ export type EstadoAccion = {
 export const ACCION_INICIAL: EstadoAccion = { estado: "inicial", mensaje: "" };
 
 /**
- * Única respuesta para las dos formas de no tener sesión utilizable: que no
- * haya nadie autenticado, o que falten las credenciales de Supabase y por lo
- * tanto no exista sesión posible. Al usuario le sirve la misma salida —
- * iniciar sesión— así que el texto es uno solo y vive en un solo lugar.
+ * No hay nadie autenticado. Es el caso del `if (!user)`, después de que el
+ * cliente de Supabase se creó bien.
  */
 export const SIN_SESION: EstadoAccion = {
   estado: "error",
   mensaje: "Necesitás iniciar sesión para hacer esto.",
+};
+
+/**
+ * Faltan las credenciales de Supabase. Es el caso del `if (!supabase)`, y no
+ * se mezcla con el anterior a propósito: quien todavía no cargó `.env.local`
+ * no tiene ningún inicio de sesión que hacer, y decirle que lo intente lo
+ * manda a buscar el problema al lugar equivocado.
+ */
+export const SIN_CONFIGURAR: EstadoAccion = {
+  estado: "error",
+  mensaje:
+    "La conexión con Supabase no está configurada. Cargá las credenciales en .env.local.",
 };
 
 /** Código de Postgres para violación de restricción única. */

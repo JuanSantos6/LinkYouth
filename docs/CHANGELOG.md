@@ -15,6 +15,15 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-12
 
+- **`SIN_CONFIGURAR` vuelve, separada de `SIN_SESION`.** El `if (!supabase)` de
+  las cinco acciones devuelve «La conexión con Supabase no está configurada.
+  Cargá las credenciales en .env.local.»; el `if (!user)` sigue con «Necesitás
+  iniciar sesión para hacer esto.».
+  Motivo: unificarlas más temprano hoy —mismo día— ahorraba una constante y
+  costaba un diagnóstico: a quien no cargó `.env.local` le decía que iniciara
+  sesión, que es el único camino que no lo arregla.
+
+
 - **Se borra el código sin consumidor.** `src/lib/supabase/client.ts` entero
   (ningún archivo lo importaba: todo es Server Component), `supabaseConfigurado()`
   de `config.ts` y la prop `acciones` de `Encabezado`, que ninguna de las cinco
