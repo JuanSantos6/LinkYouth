@@ -15,6 +15,35 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-12
 
+- **`fecha_nacimiento` deja de ser legible por cualquiera (CN-001).** `perfiles`
+  sale del alcance de lectura de la API: la política pasa a `to authenticated
+  using (auth.uid() = id)` y RF2.5 se sirve por la vista nueva
+  `perfiles_publicos`, sin esa columna.
+  Motivo: RLS no distingue columnas y la política vieja no declaraba rol, así que
+  con la `ANON_KEY` del bundle se podía bajar la fecha de nacimiento exacta de
+  todos los usuarios desde PostgREST.
+  → [`decisiones.md`](./decisiones.md)
+
+- **Cabeceras de seguridad en `next.config.ts` (CN-002).** `X-Frame-Options:
+  DENY`, `X-Content-Type-Options: nosniff` y `Referrer-Policy:
+  strict-origin-when-cross-origin`. El archivo estaba vacío y Next no manda
+  ninguna por su cuenta. La CSP queda pendiente: necesita calibrarse en
+  `Report-Only` primero.
+
+- **Una postulación en estado final ya no se puede reabrir (CN-003).** Disparador
+  `postulacion_transicion_valida`: de `aceptada`, `rechazada` o `cancelada` no se
+  sale.
+  Motivo: la empresa podía revivir una postulación que el postulante había
+  cancelado. RLS no ve `OLD`, así que la regla va en un disparador.
+  → [`decisiones.md`](./decisiones.md)
+
+- **`postcss` sin vulnerabilidades conocidas.** `"overrides": { "postcss":
+  "^8.5.23" }` sube la transitiva de 8.4.31 a 8.5.28 en las dos ramas del árbol.
+  `npm audit` baja de 2 (1 high, 1 moderate) a 0.
+  Motivo: el fix que proponía npm era `next@16.3.5`, un salto de major en medio
+  del MVP. El override arregla lo mismo sin mover `next`.
+
+
 - **`SIN_CONFIGURAR` vuelve, separada de `SIN_SESION`.** El `if (!supabase)` de
   las cinco acciones devuelve «La conexión con Supabase no está configurada.
   Cargá las credenciales en .env.local.»; el `if (!user)` sigue con «Necesitás

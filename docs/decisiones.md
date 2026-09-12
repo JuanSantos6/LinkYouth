@@ -6,6 +6,69 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-12 — El perfil público se sirve por una vista, no por la tabla
+
+**Decisión.** Sacar `perfiles` del alcance de lectura de la API y publicar
+RF2.5 a través de la vista `perfiles_publicos`, que enumera las columnas
+publicables. La política de la tabla queda en `to authenticated using
+(auth.uid() = id)`: solo la fila propia, completa.
+
+**Alternativas consideradas.**
+
+- Dejar la política como estaba y confiar en que la aplicación no pida
+  `fecha_nacimiento`.
+- `grant select (columnas...) on perfiles` en vez de una vista.
+- Mover `fecha_nacimiento` a una tabla aparte con su propio RLS.
+
+**Motivo.** RLS es control por fila, no por columna: `perfiles_lectura_publica
+using (cuenta_activa(id))` autorizaba la fila entera, y sin cláusula `to`
+alcanzaba también al rol `anon`. Como la `ANON_KEY` viaja al navegador por
+diseño, cualquiera podía consultar PostgREST directamente y bajar nombre,
+apellido, país y fecha de nacimiento exacta de todos los usuarios. Que la
+interfaz no muestre esa columna no es una defensa: el atacante no usa la
+interfaz.
+
+El `grant` por columnas resuelve lo mismo en una línea, pero no deja rastro
+legible de *qué* es público y *por qué*: el día que alguien agregue una columna
+a `perfiles`, el grant no se actualiza solo y nadie se entera. La vista enumera
+las columnas de forma explícita, así que sumar una es una decisión visible en el
+diff. Mover la columna a otra tabla era la solución más limpia en el papel, pero
+obliga a un join en el registro y a tocar el constraint
+`perfiles_mayor_de_edad`, que hoy vive en la misma fila.
+
+La vista corre sin `security_invoker`, es decir con los permisos de su dueño, y
+por lo tanto saltea el RLS de `perfiles`. Es deliberado: es lo que permite que un
+visitante sin sesión lea un perfil público ahora que la tabla se limita a la fila
+propia. El filtro de cuentas dadas de baja, que antes hacía la política, pasó al
+`where` de la vista.
+
+---
+
+## 2026-09-12 — Los estados finales de una postulación se bloquean en un disparador
+
+**Decisión.** Agregar `postulacion_transicion_valida()`, un disparador `before
+update` que impide salir de `aceptada`, `rechazada` o `cancelada`.
+
+**Alternativas consideradas.**
+
+- Extender el `with check` de `postulaciones_transiciones_permitidas`.
+- Resolverlo en las acciones de servidor, antes del `update`.
+
+**Motivo.** La política acota el estado *destino* pero no puede mirar el
+*origen*: RLS no ve `OLD`. Sin eso, la empresa dueña de la vacante podía tomar
+una postulación que el postulante había cancelado (RF3.8) y moverla a
+`aceptada`, reabriendo un proceso del que la persona se había bajado y
+disparándole la notificación de RF6.2 por un cambio que nunca pidió. Una
+política que leyera `postulaciones` para comparar caería en «infinite recursion
+detected in policy for relation», el mismo motivo por el que
+`postulacion_identidad_inmutable` ya es un disparador y no una política.
+
+Resolverlo en las acciones de servidor lo dejaría afuera de la base, contra la
+regla de `CLAUDE.md` de que el control de acceso vive en la base: una empresa con
+la `ANON_KEY` puede llamar a PostgREST sin pasar por la aplicación.
+
+---
+
 ## 2026-09-12 — La protección de rutas vive en el middleware
 
 **Decisión.** Controlar el acceso a `(app)/` en `src/middleware.ts`: si hay
