@@ -81,7 +81,14 @@ adónde ir.
 - Selección de tags contra el catálogo, con nivel 1–5 (RF2.3).
 - Alta, edición y baja de formación (RF2.4).
 - Subida de foto a Supabase Storage, completando `AvatarEditable` (RF2.1.4).
-- Perfil público de otro usuario (RF2.5).
+- Perfil público de otro usuario (RF2.5), leyendo la vista `perfiles_publicos`.
+- **`FormularioPerfil` no muestra `fecha_nacimiento`, aunque el dato existe y se
+  lee correctamente.** El comentario del componente dice que se muestra sin poder
+  editarse, pero el código solo hace eso con `nombre_usuario`. Verificado el
+  2026-09-12: la política `perfiles_veo_el_mio_completo` deja al dueño leer la
+  columna y `obtenerPerfilActual` la trae; falta el campo en pantalla. Es una
+  mejora de interfaz, no de seguridad: quedó fuera de la rama de la auditoría a
+  propósito.
 
 **Qué no entra**
 
