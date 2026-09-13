@@ -105,6 +105,7 @@ export default async function PaginaInicio({
                   tagsPerfil={perfil.datos.tags}
                   habilidadesPerfil={perfil.datos.habilidades}
                   yaPostulado={yaPostuladas.has(vacante.id)}
+                  esEjemplo={vacantes.origen === "ejemplo"}
                 />
               ))
             )}
@@ -122,6 +123,7 @@ export default async function PaginaInicio({
                   key={evento.id}
                   evento={evento}
                   yaInscripto={yaInscriptos.has(evento.id)}
+                  esEjemplo={eventos.origen === "ejemplo"}
                 />
               ))
             )}

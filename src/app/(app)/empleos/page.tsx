@@ -107,6 +107,7 @@ export default async function PaginaEmpleos({
               tagsPerfil={perfil.datos.tags}
               habilidadesPerfil={perfil.datos.habilidades}
               yaPostulado={yaPostuladas.has(vacante.id)}
+              esEjemplo={vacantes.origen === "ejemplo"}
             />
           ))
         )}

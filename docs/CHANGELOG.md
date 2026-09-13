@@ -13,6 +13,19 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-13
+
+- **Postularse e inscribirse quedan deshabilitados sobre contenido de
+  demostración.** `TarjetaVacante` y `TarjetaEvento` reciben `esEjemplo` y lo
+  pasan al botón, que se muestra apagado y dice «Disponible cuando haya vacantes
+  reales» / «…eventos reales» en vez de «Postularme» / «Inscribirme». El origen
+  sale del `Resultado` que las páginas ya tenían; antes se quedaba en el nivel
+  de la página y no bajaba a la tarjeta.
+  Motivo: `AvisoOrigen` avisa una sola vez, arriba de la lista, y deja de verse
+  al scrollear. Quien llegaba a la quinta tarjeta hacía clic y se llevaba un
+  error de la base sobre una vacante que no existe. El estado se comunica por
+  texto y no solo por el color del botón apagado.
+
 ## 2026-09-12
 
 - **Registro de cuentas de empresa (RF1.2).** `registrarEmpresa()` en

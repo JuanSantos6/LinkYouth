@@ -39,9 +39,12 @@ function franjaDe(id: string): string {
 export function TarjetaEvento({
   evento,
   yaInscripto = false,
+  esEjemplo = false,
 }: {
   evento: Evento;
   yaInscripto?: boolean;
+  /** El evento salió de `ejemplos.ts`, no de la base: no se puede inscribir. */
+  esEjemplo?: boolean;
 }) {
   const { dia, mes } = fechaBloque(evento.fecha_hora);
 
@@ -107,7 +110,11 @@ export function TarjetaEvento({
           )}
 
           <div className="mt-4 flex justify-end border-t border-borde pt-4">
-            <BotonInscribirse eventoId={evento.id} yaInscripto={yaInscripto} />
+            <BotonInscribirse
+              eventoId={evento.id}
+              yaInscripto={yaInscripto}
+              esEjemplo={esEjemplo}
+            />
           </div>
         </div>
       </div>

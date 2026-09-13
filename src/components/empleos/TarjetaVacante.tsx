@@ -24,11 +24,14 @@ export function TarjetaVacante({
   tagsPerfil = [],
   habilidadesPerfil = [],
   yaPostulado = false,
+  esEjemplo = false,
 }: {
   vacante: Vacante;
   tagsPerfil?: string[];
   habilidadesPerfil?: string[];
   yaPostulado?: boolean;
+  /** La vacante salió de `ejemplos.ts`, no de la base: no se puede postular. */
+  esEjemplo?: boolean;
 }) {
   const requisitos = [...vacante.tags, ...vacante.habilidades];
   const declarados = [...tagsPerfil, ...habilidadesPerfil];
@@ -118,7 +121,11 @@ export function TarjetaVacante({
           </span>
         </div>
 
-        <BotonPostularse vacanteId={vacante.id} yaPostulado={yaPostulado} />
+        <BotonPostularse
+          vacanteId={vacante.id}
+          yaPostulado={yaPostulado}
+          esEjemplo={esEjemplo}
+        />
       </div>
     </Tarjeta>
   );

@@ -36,6 +36,7 @@ export default async function PaginaEventos() {
               key={evento.id}
               evento={evento}
               yaInscripto={yaInscriptos.has(evento.id)}
+              esEjemplo={eventos.origen === "ejemplo"}
             />
           ))
         )}
