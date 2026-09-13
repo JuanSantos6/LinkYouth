@@ -134,4 +134,32 @@ npm run lint          # ESLint
 npm run typecheck     # Chequeo de tipos
 npm run format        # Formatea con Prettier
 npm run format:check  # Verifica el formato sin escribir
+npm run test:e2e      # Tests de extremo a extremo con Playwright
+npm run kill-port     # Libera el puerto 3000 (Windows)
 ```
+
+## Problemas conocidos
+
+### `npm run dev` falla con el puerto ocupado
+
+```
+⚠ Port 3000 is in use by process 12928, using available port 3003 instead.
+```
+
+Next arranca en otro puerto y sigue andando, pero todo lo que apunta a
+`localhost:3000` —el navegador, y el `webServer` de `playwright.config.ts`—
+queda hablando con el servidor viejo, que suele estar sirviendo un `.next` ya
+borrado. Los síntomas son un `HTTP 500` en pantallas que funcionan, o
+`Error: Timed out waiting 120000ms from config.webServer` al correr los tests.
+
+Correr antes de reintentar:
+
+```bash
+npm run kill-port
+npm run dev
+```
+
+En Windows, `pkill -f next` desde Git Bash **no** mata esos procesos: no
+coinciden con el patrón. Por eso el script va por `Get-NetTCPConnection`, que
+busca quién tiene tomado el puerto y lo termina por PID. Es idempotente: si no
+hay nada escuchando, no hace nada y no falla.
