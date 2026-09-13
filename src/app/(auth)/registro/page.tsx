@@ -2,22 +2,80 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { FormularioRegistro } from "@/components/auth/FormularioRegistro";
+import { FormularioRegistroEmpresa } from "@/components/auth/FormularioRegistroEmpresa";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 
 export const metadata: Metadata = { title: "Crear cuenta" };
 
-export default function PaginaRegistro() {
+type Tipo = "individual" | "empresa";
+
+const OPCIONES: { tipo: Tipo; etiqueta: string; destino: string }[] = [
+  { tipo: "individual", etiqueta: "Busco trabajo", destino: "/registro" },
+  {
+    tipo: "empresa",
+    etiqueta: "Ofrezco trabajo",
+    destino: "/registro?tipo=empresa",
+  },
+];
+
+const BAJADA: Record<Tipo, string> = {
+  individual: "Tu primer empleo, prácticas y eventos, en un solo lugar.",
+  empresa: "Publicá búsquedas y encontrá gente que recién empieza.",
+};
+
+/**
+ * Elegir entre los dos registros son dos enlaces, no estado del cliente: cada
+ * variante tiene su URL, se puede compartir y volver atrás funciona. Mismo
+ * criterio que las pestañas del feed.
+ */
+function Selector({ activo }: { activo: Tipo }) {
+  return (
+    <div role="group" aria-label="Tipo de cuenta" className="flex gap-1.5">
+      {OPCIONES.map(({ tipo, etiqueta, destino }) => {
+        const seleccionado = tipo === activo;
+
+        return (
+          <Link
+            key={tipo}
+            href={destino}
+            aria-current={seleccionado ? "page" : undefined}
+            className={`flex-1 rounded-control border px-3 py-2 text-center text-sm font-semibold transition-colors duration-150 ${
+              seleccionado
+                ? "border-primario-borde bg-primario-suave text-primario-fuerte"
+                : "border-borde bg-superficie text-tinta-media hover:border-borde-fuerte"
+            }`}
+          >
+            {etiqueta}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+export default async function PaginaRegistro({
+  searchParams,
+}: {
+  searchParams: Promise<{ tipo?: string }>;
+}) {
+  const { tipo } = await searchParams;
+  const activo: Tipo = tipo === "empresa" ? "empresa" : "individual";
+
   return (
     <>
       <div>
         <h1 className="text-2xl font-bold text-tinta">Creá tu cuenta</h1>
-        <p className="mt-1 text-sm text-tinta-suave">
-          Tu primer empleo, prácticas y eventos, en un solo lugar.
-        </p>
+        <p className="mt-1 text-sm text-tinta-suave">{BAJADA[activo]}</p>
       </div>
 
+      <Selector activo={activo} />
+
       <Tarjeta className="p-6">
-        <FormularioRegistro />
+        {activo === "empresa" ? (
+          <FormularioRegistroEmpresa />
+        ) : (
+          <FormularioRegistro />
+        )}
       </Tarjeta>
 
       <p className="text-center text-sm text-tinta-suave">

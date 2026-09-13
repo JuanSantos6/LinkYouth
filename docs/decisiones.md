@@ -6,6 +6,63 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-12 — Un selector en `/registro`, no una ruta aparte para empresa
+
+**Decisión.** Los dos registros comparten la ruta `/registro` y se eligen con
+`?tipo=empresa`. La página decide qué formulario montar; el resto de la pantalla
+—encabezado, tarjeta, enlace a iniciar sesión, layout de `(auth)`— es uno solo.
+
+**Alternativas consideradas.**
+
+- Una ruta `/registro/empresa` con su propia página.
+- Un interruptor con `useState` dentro de la página.
+
+**Motivo.** Los dos formularios no comparten casi ningún campo: individual pide
+nombre, apellido, nombre de usuario, país y fecha de nacimiento; empresa pide
+razón social, rubro, descripción y logo. Lo único común es el correo y la
+contraseña. Pero sí comparten *todo lo que los rodea*, y eso es lo que una ruta
+aparte obliga a duplicar: el `h1`, la `Tarjeta`, el pie con el enlace a `/login`
+y la metadata. Duplicarlo significa que el día que cambie el texto del pie haya
+que acordarse de dos archivos.
+
+El interruptor con estado del cliente queda descartado por la regla de
+`CLAUDE.md`: filtros y pestañas se hacen con enlaces y `searchParams`. Así
+`/registro?tipo=empresa` es una URL que se puede compartir, el botón de atrás
+funciona, y la página sigue siendo un Server Component.
+
+---
+
+## 2026-09-12 — El tipo de cuenta se lee de `cuentas`, nunca de `user_metadata`
+
+**Decisión.** Tanto el middleware como el login resuelven a qué mitad de la
+aplicación pertenece una sesión consultando `cuentas.tipo`, con una consulta por
+request.
+
+**Alternativas consideradas.**
+
+- Guardar `tipo` en `user_metadata` durante el `signUp` y leerlo del JWT, sin
+  tocar la base.
+- Un claim propio en el JWT, vía auth hook de Supabase.
+
+**Motivo.** `user_metadata` lo puede reescribir el propio usuario con
+`auth.updateUser`. Usarlo para decidir a qué panel entra sería dejar que cada
+uno elija su tipo de cuenta: un postulante se pone `tipo: 'empresa'` y entra al
+panel. `cuentas.tipo` en cambio está protegido por RLS y por el disparador
+`validar_cambio_tipo_cuenta`, que bloquea el cambio cuando la cuenta ya tiene
+fila de detalle.
+
+Los datos del formulario **sí** siguen viajando en `user_metadata`, porque son
+el acarreo que permite completar el alta en el primer login cuando la
+confirmación por correo está activada. La distinción importa: metadata como
+transporte de un formulario está bien; metadata como fuente de permisos, no.
+
+El claim propio en el JWT es la solución correcta a escala y evita la consulta
+por request, pero exige configurar un auth hook en el proyecto de Supabase, que
+es infraestructura que hoy no está. Queda anotado en el código con un comentario
+`ponytail:` que nombra el techo y el camino de salida.
+
+---
+
 ## 2026-09-12 — El perfil público se sirve por una vista, no por la tabla
 
 **Decisión.** Sacar `perfiles` del alcance de lectura de la API y publicar

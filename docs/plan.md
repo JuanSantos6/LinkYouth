@@ -42,14 +42,24 @@ Antes de escribir una línea de funcionalidad nueva.
 
 ## Hito 1 — Autenticación (RF1)
 
-Lo que desbloquea todo lo demás. Hoy no hay sesión, así que cada consulta cae
-en datos de ejemplo.
+Lo que desbloquea todo lo demás. **Parcialmente resuelto**: el hito no se cierra
+hasta que entren la recuperación de contraseña y los tests del flujo que escribe
+en la base.
 
-**Qué entra**
+**Ya resuelto**
 
-- Registro de postulante y de empresa (RF1.1, RF1.2), con la creación de la
-  fila de `perfiles` o `empresas` en el mismo flujo.
-- Inicio y cierre de sesión (RF1.3, RF1.4).
+- ✔ Registro de postulante (RF1.1) y de empresa (RF1.2). Las dos altas crean la
+  fila de `cuentas` más la de `perfiles` o `empresas` en el mismo flujo, y las
+  dos toleran la confirmación por correo dejando los datos en `user_metadata`.
+- ✔ Inicio y cierre de sesión (RF1.3, RF1.4).
+- ✔ Protección de rutas en `src/middleware.ts`, con la sesión y además con el
+  tipo de cuenta: cada mitad de la aplicación es inaccesible para el otro tipo.
+- ✔ `cuentas.tipo` consumido de verdad, no solo declarado. Cierra la mitad de
+  la deuda 7.5 de `arquitectura.md`.
+- ✔ Tests e2e del control de acceso, en `e2e/auth.spec.ts`.
+
+**Qué falta**
+
 - **Tests e2e del registro y el login.** Los de control de acceso ya están en
   `e2e/auth.spec.ts`; falta el flujo que escribe en la base. No se escribieron
   todavía porque el único proyecto de Supabase es el que usa la aplicación: una
@@ -57,10 +67,12 @@ en datos de ejemplo.
   bloquearía sola contra el límite de 2 correos por hora del plan gratuito.
   Antes hace falta un proyecto de Supabase de test, o `supabase start` local.
 - Recuperación de contraseña (RF1.6).
-- Pantallas en `src/app/(auth)/`: `login`, `registro`, `recuperar`.
-- Protección de rutas en `src/middleware.ts`: `(app)/` redirige a `/login` sin
-  sesión.
+- La pantalla `recuperar` en `src/app/(auth)/`. `login` y `registro` ya están.
+- El panel de empresa propiamente dicho. Hoy `/empresa` es un placeholder que
+  solo dice que está en construcción: el contenido es el Hito 6 entero.
 - Route handler `/auth/callback` para el intercambio de código de Supabase.
+  Sin él, quien confirma desde el correo aterriza sin sesión y tiene que
+  iniciarla a mano.
 
 **Qué no entra**
 

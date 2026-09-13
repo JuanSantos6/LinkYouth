@@ -19,13 +19,20 @@ import { expect, test } from "@playwright/test";
  * entorno no es el que se está probando.
  */
 
-/** Las cinco pantallas de `(app)/`, que exigen sesión. */
+/**
+ * Las cinco pantallas de `(app)/` más el panel de empresa. Todas exigen sesión.
+ *
+ * Que una cuenta individual no pueda entrar a `/empresa` y viceversa (RF1.2) no
+ * se prueba acá: hace falta una sesión de cada tipo, y eso significa escribir
+ * en la base. Queda con el resto del flujo de registro, en `plan.md`.
+ */
 const RUTAS_PRIVADAS = [
   "/inicio",
   "/empleos",
   "/eventos",
   "/postulaciones",
   "/perfil",
+  "/empresa",
 ];
 
 /** Lo que `PUBLICAS` de `src/middleware.ts` deja pasar sin sesión. */

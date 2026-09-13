@@ -15,6 +15,33 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-12
 
+- **Registro de cuentas de empresa (RF1.2).** `registrarEmpresa()` en
+  `src/lib/acciones/auth.ts`, con el mismo recorrido que `registrarse()`:
+  chequeo de razón social duplicada antes del `signUp`, después las filas de
+  `cuentas` (`tipo = 'empresa'`) y `empresas`. El formulario vive en
+  `/registro?tipo=empresa`, no en una ruta aparte.
+  → [`decisiones.md`](./decisiones.md)
+
+- **La sesión distingue el tipo de cuenta.** `cuentas.tipo` pasa a tener
+  consumidores: el login redirige a `/inicio` o a `/empresa` según el tipo, y el
+  middleware impide que una cuenta entre a la mitad de la aplicación que no le
+  corresponde. Se lee de la base y no de `user_metadata`, que el propio usuario
+  puede reescribir.
+  Motivo: cierra la mitad de la deuda 7.5, que declaraba `TIPOS_CUENTA` sin que
+  nadie lo usara.
+  → [`decisiones.md`](./decisiones.md)
+
+- **`/empresa` existe como placeholder.** Layout propio —sin la barra lateral
+  del postulante, que no le sirve— y una página que dice que el panel llega en
+  el Hito 6. Lo único que sostiene hoy es que una empresa aterrice en algún lado
+  propio al iniciar sesión.
+
+- **`comoTipoCuenta()` en `src/lib/data/tipos.ts`.** Completa la familia de
+  estrechamientos del archivo. El respaldo es `individual`, el tipo con menos
+  alcance: ante un valor desconocido la sesión cae en la aplicación del
+  postulante, nunca en el panel de empresa.
+
+
 - **Primeros tests del proyecto: `e2e/auth.spec.ts`, con Playwright.** Nueve
   casos sobre el guard de rutas del middleware y las cabeceras de CN-002.
   `playwright.config.ts` levanta y baja `npm run dev` solo; `npm run test:e2e`

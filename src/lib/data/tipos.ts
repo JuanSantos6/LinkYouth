@@ -74,6 +74,14 @@ export const comoEstadoFormacion = (valor: string): EstadoFormacion =>
 export const comoEstadoEvento = (valor: string): EstadoEvento =>
   estrechar(ESTADOS_EVENTO, valor, "activo");
 
+/**
+ * El respaldo es `individual` a propósito: es el tipo con menos alcance. Ante
+ * un valor que no se reconoce, la sesión cae en la aplicación del postulante,
+ * nunca en el panel de empresa.
+ */
+export const comoTipoCuenta = (valor: string): TipoCuenta =>
+  estrechar(TIPOS_CUENTA, valor, "individual");
+
 // --- Formas que consume la interfaz ----------------------------------------
 
 /** Datos públicos de la empresa que publica una vacante o un evento. */
