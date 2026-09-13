@@ -6,6 +6,36 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-13 — Latencia de ~800 ms en producción: investigada, no resuelta
+
+**Decisión.** No seguir optimizando la latencia de navegación por ahora.
+
+**Diagnóstico.** Cada navegación hace dos viajes de red **en serie** a Supabase
+—uno del middleware y otro de la página—, cada uno con unos 240 ms de latencia
+base por la distancia geográfica a la región us-east-2. Bajar de cinco a dos las
+llamadas a `auth.getUser()` en `/inicio` no movió la latencia percibida —una
+mejora del 2 %, dentro del ruido de la medición— porque esas llamadas ya corrían
+en paralelo, no en serie. Sí redujo el consumo de la API de Auth, que importa
+por los límites del plan gratuito.
+
+**Alternativas consideradas.**
+
+- Un Auth Hook que escriba el tipo de cuenta como claim del JWT, para que el
+  middleware no consulte `cuentas` en cada pedido.
+- Que la página no revalide la sesión que el middleware ya validó.
+- Mover el proyecto de Supabase a una región más cercana.
+
+**Motivo.** El Auth Hook toca la pieza de seguridad más sensible del proyecto.
+Saltear la revalidación de la página baja la garantía que da `auth.getUser()`,
+que es justamente verificar el token contra el servidor. Cambiar de región es
+una migración grande para un beneficio chico en esta etapa —y la decisión de
+us-east-2 ya está tomada por otros motivos.
+
+Unos 800 ms no son un problema real para un proyecto de facultad con usuarios
+de prueba. Se revisita si aparecen usuarios reales quejándose de lentitud.
+
+---
+
 ## 2026-09-12 — Un selector en `/registro`, no una ruta aparte para empresa
 
 **Decisión.** Los dos registros comparten la ruta `/registro` y se eligen con

@@ -15,6 +15,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-13
 
+- **Latencia de navegación investigada y no resuelta.** Los ~800 ms por
+  navegación son dos viajes de red en serie a Supabase, a ~240 ms cada uno por
+  la distancia a us-east-2. Se descartan por ahora el Auth Hook, saltear la
+  revalidación de sesión y cambiar de región.
+  Motivo: no es un problema real con usuarios de prueba, y las tres opciones
+  cuestan seguridad o una migración grande.
+  → [decisiones.md](./decisiones.md)
+
 - **Una sola validación de sesión por navegación.** `obtenerPerfilActual`,
   `obtenerPostulaciones`, `obtenerVacantesPostuladas` y
   `obtenerEventosInscriptos` reciben el id del usuario como parámetro opcional;
