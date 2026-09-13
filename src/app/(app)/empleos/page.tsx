@@ -64,8 +64,8 @@ export default async function PaginaEmpleos({
               <Link
                 key={etiqueta}
                 href={destino}
-                aria-current={activo ? "true" : undefined}
-                className={`rounded-control border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                aria-current={activo ? "page" : undefined}
+                className={`rounded-control border px-3 py-1.5 text-xs font-semibold transition-[color,background-color,border-color] ${
                   activo
                     ? "border-primario-borde bg-primario-suave text-primario-fuerte"
                     : "border-borde bg-superficie text-tinta-media hover:border-borde-fuerte"

@@ -67,6 +67,62 @@ Resolverlo en las acciones de servidor lo dejaría afuera de la base, contra la
 regla de `CLAUDE.md` de que el control de acceso vive en la base: una empresa con
 la `ANON_KEY` puede llamar a PostgREST sin pasar por la aplicación.
 
+## 2026-09-12 — La navegación angosta se desplaza, no se pliega
+
+**Decisión.** En viewports angostos la barra lateral sigue siendo una fila de
+cinco secciones que se desplaza en horizontal, ahora con `min-w-0` en el `nav`
+y `snap-x snap-mandatory` en la lista. La marca y «Cerrar sesión» comparten
+una fila arriba; en `lg` el `lg:contents` del contenedor la disuelve y `order`
+devuelve cada pieza a su lugar.
+
+**Alternativas consideradas.**
+
+- Un menú desplegable para las cinco secciones en angosto.
+- Una barra inferior fija estilo aplicación nativa.
+- Dejar la fila como estaba y sumarle solo una señal visual de que hay más.
+
+**Motivo.** El desplegable esconde cinco destinos detrás de un toque y obliga
+a un componente con estado, `aria-expanded` y cierre por foco: es la opción
+que más código agrega y la que más se aleja del layout de escritorio, que era
+justamente lo que había que tocar lo menos posible. La barra inferior es mejor
+ergonomía en un teléfono, pero es otra estructura, no una variante de esta.
+La tercera no arreglaba nada: el problema no era solo la falta de señal, era
+que la fila estiraba la grilla entera a 574 px y el desplazamiento horizontal
+ni siquiera existía.
+
+Queda anotado que el `scroll-snap` ordena el recorrido pero no agrega por sí
+mismo una señal de que hay más secciones: en escritorio la da la barra de
+desplazamiento, en un teléfono la da el recorte del último ítem visible. Si
+hace falta algo más explícito, es un degradado en el borde derecho, no un
+cambio de estructura.
+
+---
+
+## 2026-09-12 — El borde sube a contraste de control, y arrastra al hover
+
+**Decisión.** `--color-borde` pasa de `#e5e7eb` a `#7d8795` (3.64:1 contra
+blanco, 3.39:1 contra el lienzo) y `--color-borde-fuerte` de `#d1d5db` a
+`#667085`.
+
+**Alternativas consideradas.**
+
+- Un token nuevo solo para los bordes que delimitan controles, dejando
+  `--color-borde` como está para los separadores decorativos.
+- Subir solo el borde del campo en la clase `CAMPO` y el de `.tarjeta`.
+
+**Motivo.** Las dos alternativas evitan que los separadores internos de las
+tarjetas se vuelvan más pesados, que es el efecto secundario real de este
+cambio. Se descartaron porque los dos lugares que hay que arreglar —el campo
+y la tarjeta— leen del mismo token, y partirlo en dos obliga a decidir, en
+cada uso de `border-borde` que ya existe, a cuál de los dos pertenece. Esa
+clasificación es parte de la revisión de tono que está pendiente; hasta que se
+haga, un solo token que cumple 1.4.11 es preferible a dos que hay que repartir
+a mano.
+
+`--color-borde-fuerte` no se tocó por gusto: es el hover de esos mismos
+bordes. Si `borde` sube y `borde-fuerte` se queda en `#d1d5db`, pasar el
+puntero **aclara** el borde en vez de oscurecerlo.
+
 ---
 
 ## 2026-09-12 — La protección de rutas vive en el middleware

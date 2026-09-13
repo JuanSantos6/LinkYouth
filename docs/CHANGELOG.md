@@ -54,6 +54,50 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   del MVP. El override arregla lo mismo sin mover `next`.
 
 
+- **La marca y «Cerrar sesión» dejan de estar ocultas en móvil.** En
+  `BarraLateral` eran `hidden lg:flex` / `hidden lg:block`: desde un teléfono
+  no había ninguna forma de cerrar sesión. Ahora comparten una fila en angosto
+  y `lg:contents` + `order` las devuelve a su lugar de siempre en escritorio.
+  Motivo: era una función sin camino, no un detalle de presentación.
+
+- **La fila de secciones se desplaza en vez de desbordar la página.** El `nav`
+  lleva `min-w-0` y la lista `snap-x snap-mandatory`. Sin el `min-w-0`, los
+  556 px de las cinco secciones estiraban la grilla entera a 574 px dentro de
+  un viewport de 390 y «Mi perfil» quedaba fuera de la pantalla, sin scroll
+  horizontal que la alcanzara. Ver [`decisiones.md`](./decisiones.md).
+
+- **El foco de teclado vuelve a verse.** Se saca `focus:outline-none` de
+  `CAMPO` y de `BuscadorVacantes`: la utilidad vive en la capa `utilities` y
+  pisaba el `:focus-visible` de `globals.css`, así que todos los campos de la
+  aplicación quedaban sin anillo de foco. Además `Boton` enumera las
+  propiedades de su transición en lugar de usar `transition-colors`, que en
+  Tailwind 4 incluye `outline-color` y hacía que el anillo tardara 150 ms y
+  arrancara blanco sobre el azul del botón primario.
+
+- **`--color-borde` pasa de `#e5e7eb` a `#7d8795`.** Daba 1.24:1 contra la
+  superficie blanca y 1.16:1 contra el lienzo, cuando WCAG 1.4.11 pide 3:1
+  para el contorno de un control: los campos no se leían como campos ni las
+  tarjetas como tarjetas. `--color-borde-fuerte` acompaña a `#667085` para que
+  el hover siga oscureciendo el borde y no aclarándolo.
+
+- **El botón deshabilitado deja de apoyarse en la opacidad.** `disabled:`
+  pasa a fondo `superficie-suave` con texto `tinta-media` (7.36:1) en lugar de
+  blanco sobre `tinta-tenue` al 70 % (2.58:1).
+  Motivo: ahí viven «Entrando…», «Creando la cuenta…» y «Ya te postulaste»,
+  que son justo los textos que hay que poder leer.
+
+- **Semántica: se cae el `role="tab"` y aparece el `<main>` que faltaba.** Las
+  pestañas de `/inicio` son enlaces de navegación y se marcan con
+  `aria-current="page"`, no con un patrón ARIA de pestañas que prometía un
+  `tabpanel` inexistente; los filtros de `/empleos` corrigen
+  `aria-current="true"` por `"page"`; los layouts de `(app)/` y `(auth)/`
+  envuelven el contenido en `<main>`. axe-core pasa de 2 violaciones a 0 en
+  `/login` y `/registro`.
+
+- **Las imágenes de `Avatar` y `TarjetaEvento` declaran `width`/`height`.** Las
+  clases reservaban el espacio recién con la hoja de estilos aplicada; el
+  atributo lo reserva desde el HTML.
+
 - **`SIN_CONFIGURAR` vuelve, separada de `SIN_SESION`.** El `if (!supabase)` de
   las cinco acciones devuelve «La conexión con Supabase no está configurada.
   Cargá las credenciales en .env.local.»; el `if (!user)` sigue con «Necesitás

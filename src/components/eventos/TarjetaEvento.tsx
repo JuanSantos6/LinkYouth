@@ -57,6 +57,9 @@ export function TarjetaEvento({
           <img
             src={evento.imagen_url}
             alt=""
+            width={896}
+            height={112}
+            loading="lazy"
             className="h-full w-full object-cover"
           />
         )}

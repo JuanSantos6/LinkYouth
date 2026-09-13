@@ -572,3 +572,28 @@ El esquema los separa con `cuentas.tipo`, pero la interfaz no lo mira en
 ningún lado: ni en la navegación, ni en las rutas, ni en el layout. Definirlo
 temprano sale barato; hacerlo cuando llegue el panel de empresa obliga a
 rehacer la navegación.
+
+### 7.6 Quedan hallazgos de la auditoría de interfaz sin cerrar
+
+La revisión del 2026-09-12 cerró el foco de teclado, el contraste de bordes y
+de estados deshabilitados, la navegación en móvil y los landmarks. Quedaron
+abiertos, porque dependen de la revisión de tono pendiente o de una decisión
+de producto:
+
+- `TarjetaVacante` y `TarjetaEvento` usan `interactiva`, que las levanta al
+  pasar el puntero, pero ninguna de las dos es un enlace: prometen una
+  navegación que no existe.
+- `BotonCancelarPostulacion` ejecuta al primer clic, sin confirmación ni
+  ventana para deshacer, y la transición a `cancelada` no tiene vuelta atrás
+  para el postulante.
+- Los errores de formulario se anuncian en una sola región al pie, no al lado
+  del campo, y al enviar no se enfoca el primero que falló.
+- La insignia de compatibilidad es `hidden sm:block`: el dato que diferencia
+  al producto no se ve en un teléfono.
+- Los blancos táctiles rondan los 36-40 px, por debajo de los 44 px
+  recomendados.
+- El ancho de la columna de contenido cambia entre pantallas (`max-w-4xl`,
+  `max-w-3xl`, la grilla de `/inicio`).
+- Las cinco pantallas de `(app)/` no se pudieron revisar en pantalla: exigen
+  sesión y la auditoría se hizo sin crear cuentas. Lo listado acá sale de
+  leer el código.

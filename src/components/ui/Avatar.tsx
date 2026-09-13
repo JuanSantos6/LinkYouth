@@ -15,6 +15,13 @@ const TAMANOS = {
 } as const;
 
 /**
+ * El mismo lado en píxeles que fija cada clase de `TAMANOS`. Va como atributo
+ * `width`/`height` de la imagen: las clases reservan el espacio recién cuando
+ * llegó la hoja de estilos, el atributo lo reserva desde el HTML.
+ */
+const LADOS = { sm: 36, md: 48, lg: 80 } as const;
+
+/**
  * Avatar con reserva de espacio para la foto. Cuando no hay imagen cargada
  * muestra las iniciales, así la grilla nunca cambia de alto.
  */
@@ -32,7 +39,14 @@ export function Avatar({
     // no pasan por el optimizador de imágenes de Next.
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={url} alt={nombre} className={clases} />
+      <img
+        src={url}
+        alt={nombre}
+        width={LADOS[tamano]}
+        height={LADOS[tamano]}
+        loading="lazy"
+        className={clases}
+      />
     );
   }
 

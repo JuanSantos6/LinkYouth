@@ -22,7 +22,7 @@ export function BuscadorVacantes({
         defaultValue={valor}
         placeholder={placeholder}
         aria-label="Buscar oportunidades"
-        className="w-full rounded-control border border-borde bg-superficie py-2 pl-9 pr-3 text-sm text-tinta placeholder:text-tinta-tenue focus:border-primario focus:outline-none"
+        className="w-full rounded-control border border-borde bg-superficie py-2 pl-9 pr-3 text-sm text-tinta placeholder:text-tinta-tenue focus:border-primario"
       />
     </form>
   );
