@@ -50,6 +50,12 @@ en datos de ejemplo.
 - Registro de postulante y de empresa (RF1.1, RF1.2), con la creación de la
   fila de `perfiles` o `empresas` en el mismo flujo.
 - Inicio y cierre de sesión (RF1.3, RF1.4).
+- **Tests e2e del registro y el login.** Los de control de acceso ya están en
+  `e2e/auth.spec.ts`; falta el flujo que escribe en la base. No se escribieron
+  todavía porque el único proyecto de Supabase es el que usa la aplicación: una
+  suite que registre usuarios dejaría cuentas huérfanas en cada corrida y se
+  bloquearía sola contra el límite de 2 correos por hora del plan gratuito.
+  Antes hace falta un proyecto de Supabase de test, o `supabase start` local.
 - Recuperación de contraseña (RF1.6).
 - Pantallas en `src/app/(auth)/`: `login`, `registro`, `recuperar`.
 - Protección de rutas en `src/middleware.ts`: `(app)/` redirige a `/login` sin

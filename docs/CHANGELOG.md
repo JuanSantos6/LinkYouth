@@ -15,6 +15,22 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-12
 
+- **Primeros tests del proyecto: `e2e/auth.spec.ts`, con Playwright.** Nueve
+  casos sobre el guard de rutas del middleware y las cabeceras de CN-002.
+  `playwright.config.ts` levanta y baja `npm run dev` solo; `npm run test:e2e`
+  los corre.
+  Motivo: los dos arreglos de seguridad de hoy se verificaron a mano, con
+  capturas, y esa verificación no se puede repetir sola. Los tests se probaron
+  desactivando el guard a propósito para confirmar que se ponen rojos —
+  escribir un test que nunca se vio fallar no prueba nada.
+  Hallazgo del experimento: solo `/eventos` y `/postulaciones` dependen
+  únicamente del middleware. `/inicio`, `/empleos` y `/perfil` siguen
+  redirigiendo sin él, porque `obtenerPerfilActual()` tiene su propio
+  `redirect("/login")`. Son dos barreras, como se había buscado.
+  El flujo de registro y login queda fuera hasta que exista un Supabase de
+  test: ver `plan.md`, Hito 1.
+
+
 - **La verificación previa de `nombre_usuario` lee la vista, no la tabla.**
   `registrarse()` consulta `perfiles_publicos` en lugar de `perfiles`.
   Motivo: quien se registra todavía no tiene sesión, y desde CN-001 la tabla
