@@ -66,13 +66,15 @@ en la base.
   suite que registre usuarios dejaría cuentas huérfanas en cada corrida y se
   bloquearía sola contra el límite de 2 correos por hora del plan gratuito.
   Antes hace falta un proyecto de Supabase de test, o `supabase start` local.
-- Recuperación de contraseña (RF1.6).
-- La pantalla `recuperar` en `src/app/(auth)/`. `login` y `registro` ya están.
+- **Recuperación de contraseña (RF1.6).** La pantalla `/recuperar` no está
+  implementada. `login` y `registro` ya existen en `src/app/(auth)/`.
 - El panel de empresa propiamente dicho. Hoy `/empresa` es un placeholder que
   solo dice que está en construcción: el contenido es el Hito 6 entero.
-- Route handler `/auth/callback` para el intercambio de código de Supabase.
-  Sin él, quien confirma desde el correo aterriza sin sesión y tiene que
-  iniciarla a mano.
+- **Route handler `/auth/callback` para el intercambio de código de Supabase.**
+  No existe todavía. No bloquea el flujo actual: `iniciarSesion()` usa
+  `signInWithPassword` directo y no depende de que un enlace deje la sesión
+  abierta. Hace falta si más adelante se suma inicio de sesión por magic link o
+  por OAuth, donde Supabase vuelve con un código que hay que intercambiar.
 
 **Qué no entra**
 
