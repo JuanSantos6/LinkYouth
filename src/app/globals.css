@@ -15,8 +15,13 @@
   --color-lienzo: #f6f7f9;
   --color-superficie: #ffffff;
   --color-superficie-suave: #f9fafb;
-  --color-borde: #e5e7eb;
-  --color-borde-fuerte: #d1d5db;
+  /* El borde delimita controles y tarjetas, así que no puede ser decorativo:
+     WCAG 1.4.11 pide 3:1 para el contorno de un elemento de interfaz. Este
+     tono da 3.64:1 contra la superficie blanca y 3.39:1 contra el lienzo.
+     `borde-fuerte` queda por debajo en luminancia para que el hover siga
+     oscureciendo el borde y no al revés. */
+  --color-borde: #7d8795;
+  --color-borde-fuerte: #667085;
 
   /* Texto */
   --color-tinta: #101828;

@@ -22,6 +22,11 @@ type Vista = "empleos" | "eventos";
 /**
  * Las dos pestañas son enlaces, no estado del cliente: cada vista tiene su
  * URL, se puede compartir y el navegador la recuerda al volver atrás.
+ *
+ * Por eso tampoco llevan `role="tab"`: el patrón ARIA de pestañas promete un
+ * `tabpanel` asociado y navegación con las flechas, y acá no hay ni una cosa
+ * ni la otra. Son enlaces de navegación y se anuncian como tales; el activo
+ * se marca con `aria-current="page"`, igual que en la barra lateral.
  */
 function Pestanas({ activa }: { activa: Vista }) {
   const pestanas: { vista: Vista; etiqueta: string }[] = [
@@ -30,17 +35,16 @@ function Pestanas({ activa }: { activa: Vista }) {
   ];
 
   return (
-    <div role="tablist" className="flex gap-1 border-b border-borde">
+    <div className="flex gap-1 border-b border-borde">
       {pestanas.map(({ vista, etiqueta }) => {
         const seleccionada = vista === activa;
 
         return (
           <Link
             key={vista}
-            role="tab"
-            aria-selected={seleccionada}
+            aria-current={seleccionada ? "page" : undefined}
             href={vista === "empleos" ? "/inicio" : "/inicio?vista=eventos"}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm transition-colors ${
+            className={`-mb-px border-b-2 px-4 py-2.5 text-sm transition-[color,border-color] ${
               seleccionada
                 ? "border-primario font-semibold text-primario"
                 : "border-transparent font-medium text-tinta-suave hover:text-tinta"

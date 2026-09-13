@@ -1,6 +1,13 @@
 /** Clase compartida por todos los campos de texto de la aplicación. */
+/**
+ * Clase compartida por todos los campos de texto de la aplicación.
+ *
+ * Sin `focus:outline-none`: esa utilidad vive en la capa `utilities` y pisaba
+ * el `:focus-visible` de `globals.css`, así que el foco de teclado quedaba
+ * reducido a un cambio de color de borde de 1 px.
+ */
 export const CAMPO =
-  "w-full rounded-control border border-borde bg-superficie px-3 py-2 text-sm text-tinta placeholder:text-tinta-tenue focus:border-primario focus:outline-none";
+  "w-full rounded-control border border-borde bg-superficie px-3 py-2 text-sm text-tinta placeholder:text-tinta-tenue focus:border-primario";
 
 /**
  * Etiqueta, campo y texto de ayuda. El `<label>` envuelve al control, así que
