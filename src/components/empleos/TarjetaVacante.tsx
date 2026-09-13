@@ -1,11 +1,11 @@
 import { Avatar } from "@/components/ui/Avatar";
+import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Insignia } from "@/components/ui/Insignia";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import type { Vacante } from "@/lib/data/tipos";
+import { postularse } from "@/lib/acciones/postulaciones";
 import { afinidad, etiquetaTipo, tiempoRelativo } from "@/lib/formato";
-
-import { BotonPostularse } from "./BotonPostularse";
 
 /**
  * Tarjeta de una oportunidad laboral.
@@ -121,10 +121,18 @@ export function TarjetaVacante({
           </span>
         </div>
 
-        <BotonPostularse
-          vacanteId={vacante.id}
-          yaPostulado={yaPostulado}
+        <BotonAccion
+          accion={postularse}
+          campo="vacanteId"
+          valor={vacante.id}
+          hecho={yaPostulado}
           esEjemplo={esEjemplo}
+          textos={{
+            inicial: "Postularme",
+            enCurso: "Enviando…",
+            hecho: "Ya te postulaste",
+            ejemplo: "Disponible cuando haya vacantes reales",
+          }}
         />
       </div>
     </Tarjeta>

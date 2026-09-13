@@ -1,9 +1,9 @@
+import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import type { Evento } from "@/lib/data/tipos";
+import { inscribirse } from "@/lib/acciones/eventos";
 import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
-
-import { BotonInscribirse } from "./BotonInscribirse";
 
 /**
  * Franjas de color de la cabecera cuando el evento no trae imagen.
@@ -110,10 +110,19 @@ export function TarjetaEvento({
           )}
 
           <div className="mt-4 flex justify-end border-t border-borde pt-4">
-            <BotonInscribirse
-              eventoId={evento.id}
-              yaInscripto={yaInscripto}
+            <BotonAccion
+              accion={inscribirse}
+              campo="eventoId"
+              valor={evento.id}
+              variante="secundario"
+              hecho={yaInscripto}
               esEjemplo={esEjemplo}
+              textos={{
+                inicial: "Inscribirme",
+                enCurso: "Confirmando…",
+                hecho: "Inscripto",
+                ejemplo: "Disponible cuando haya eventos reales",
+              }}
             />
           </div>
         </div>

@@ -15,6 +15,15 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-13
 
+- **`BotonPostularse` e `BotonInscribirse` se fusionan en `ui/BotonAccion`.**
+  Eran el mismo componente con tres textos cambiados: idéntico `useActionState`,
+  idéntico `<form>` con un campo oculto, idéntica región `aria-live`. Solo
+  diferían en el nombre del campo y en la variante visual, ahora props.
+  Motivo: era el hallazgo crítico de la auditoría de organización, y el cambio
+  anterior —el `esEjemplo`— lo cobró: hubo que hacer el mismo arreglo dos veces
+  y acordarse de las dos. Refactor puro, sin cambio de comportamiento.
+
+
 - **Postularse e inscribirse quedan deshabilitados sobre contenido de
   demostración.** `TarjetaVacante` y `TarjetaEvento` reciben `esEjemplo` y lo
   pasan al botón, que se muestra apagado y dice «Disponible cuando haya vacantes
