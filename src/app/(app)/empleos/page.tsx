@@ -8,6 +8,7 @@ import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import {
   obtenerPerfilActual,
+  obtenerUsuarioId,
   obtenerVacantes,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
@@ -35,10 +36,13 @@ export default async function PaginaEmpleos({
     ? (tipo as TipoOportunidad)
     : undefined;
 
+  // Una sola validación de sesión para las dos lecturas que la necesitan.
+  const usuarioId = (await obtenerUsuarioId()) ?? undefined;
+
   const [vacantes, perfil, yaPostuladas] = await Promise.all([
     obtenerVacantes({ busqueda: q, tipo: tipoValido, limite: 30 }),
-    obtenerPerfilActual(),
-    obtenerVacantesPostuladas(),
+    obtenerPerfilActual(usuarioId),
+    obtenerVacantesPostuladas(usuarioId),
   ]);
 
   return (

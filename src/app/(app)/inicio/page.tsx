@@ -11,6 +11,7 @@ import {
   obtenerEventosInscriptos,
   obtenerPerfilActual,
   obtenerPostulaciones,
+  obtenerUsuarioId,
   obtenerVacantes,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
@@ -66,14 +67,20 @@ export default async function PaginaInicio({
   const { vista } = await searchParams;
   const activa: Vista = vista === "eventos" ? "eventos" : "empleos";
 
+  // La sesión se valida una sola vez para toda la pantalla. Antes, cuatro de
+  // estas seis lecturas llamaban a `auth.getUser()` por su cuenta: cinco
+  // validaciones de la misma sesión —contando la del middleware— para una sola
+  // navegación, a un viaje de red cada una.
+  const usuarioId = (await obtenerUsuarioId()) ?? undefined;
+
   const [vacantes, eventos, perfil, postulaciones, yaPostuladas, yaInscriptos] =
     await Promise.all([
       obtenerVacantes({ limite: 6 }),
       obtenerEventos(4),
-      obtenerPerfilActual(),
-      obtenerPostulaciones(),
-      obtenerVacantesPostuladas(),
-      obtenerEventosInscriptos(),
+      obtenerPerfilActual(usuarioId),
+      obtenerPostulaciones(usuarioId),
+      obtenerVacantesPostuladas(usuarioId),
+      obtenerEventosInscriptos(usuarioId),
     ]);
 
   const resultado = activa === "empleos" ? vacantes : eventos;

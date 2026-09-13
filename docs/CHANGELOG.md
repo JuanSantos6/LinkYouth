@@ -15,6 +15,20 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-13
 
+- **Una sola validación de sesión por navegación.** `obtenerPerfilActual`,
+  `obtenerPostulaciones`, `obtenerVacantesPostuladas` y
+  `obtenerEventosInscriptos` reciben el id del usuario como parámetro opcional;
+  si no viene, lo resuelven como antes. `/inicio` y `/empleos` lo resuelven una
+  vez con `obtenerUsuarioId()` y lo pasan.
+  Motivo: `/inicio` hacía cinco `auth.getUser()` —cuatro de las lecturas más la
+  del middleware— para una sola navegación, a ~240 ms de ida y vuelta cada una.
+  Ahora hace dos.
+  **La latencia casi no cambia** (870 ms a 854 ms de mediana): las cuatro
+  llamadas ya corrían dentro de un `Promise.all`, así que costaban un viaje, no
+  cuatro. Lo que baja es la carga contra el servidor de auth y el consumo de
+  límites, no el tiempo que espera una persona.
+
+
 - **El registro sin confirmar muestra una pantalla propia, no un formulario
   vacío.** Cuando `registrarse()` o `registrarEmpresa()` devuelven `ok` —el
   `signUp` anduvo pero no dejó sesión— el formulario se reemplaza por
