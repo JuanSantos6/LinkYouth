@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
+import { RegistroPendiente } from "@/components/auth/RegistroPendiente";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
 import { registrarse } from "@/lib/acciones/auth";
@@ -17,6 +18,18 @@ import { ACCION_INICIAL } from "@/lib/acciones/tipos";
  */
 export function FormularioRegistro() {
   const [estado, enviar, enCurso] = useActionState(registrarse, ACCION_INICIAL);
+
+  // El correo se guarda al tipearlo porque la acción no lo devuelve y, cuando
+  // vuelve `ok`, el formulario ya se limpió. El campo sigue sin ser controlado:
+  // se observa el valor, no se lo impone.
+  const [email, setEmail] = useState("");
+
+  // `ok` en este formulario solo puede significar una cosa: el `signUp` anduvo
+  // pero no dejó sesión, porque falta confirmar el correo. Con sesión, la
+  // acción redirige y nunca llega a devolver.
+  if (estado.estado === "ok") {
+    return <RegistroPendiente email={email} mensaje={estado.mensaje} />;
+  }
 
   return (
     <form action={enviar} className="space-y-4">
@@ -86,6 +99,7 @@ export function FormularioRegistro() {
           name="email"
           autoComplete="email"
           required
+          onChange={(evento) => setEmail(evento.target.value)}
           className={`mt-1.5 ${CAMPO}`}
         />
       </Campo>
@@ -101,12 +115,7 @@ export function FormularioRegistro() {
         />
       </Campo>
 
-      <p
-        aria-live="polite"
-        className={`text-sm ${
-          estado.estado === "error" ? "text-alerta" : "text-exito"
-        }`}
-      >
+      <p aria-live="polite" className="text-sm text-alerta">
         {estado.mensaje}
       </p>
 

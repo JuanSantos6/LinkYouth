@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
+import { RegistroPendiente } from "@/components/auth/RegistroPendiente";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
 import { registrarEmpresa } from "@/lib/acciones/auth";
@@ -23,6 +24,14 @@ export function FormularioRegistroEmpresa() {
     registrarEmpresa,
     ACCION_INICIAL,
   );
+
+  // Mismo motivo que en `FormularioRegistro`: la acción no devuelve el correo
+  // y el formulario ya se limpió cuando vuelve `ok`.
+  const [email, setEmail] = useState("");
+
+  if (estado.estado === "ok") {
+    return <RegistroPendiente email={email} mensaje={estado.mensaje} />;
+  }
 
   return (
     <form action={enviar} className="space-y-4">
@@ -82,6 +91,7 @@ export function FormularioRegistroEmpresa() {
           autoComplete="email"
           spellCheck={false}
           required
+          onChange={(evento) => setEmail(evento.target.value)}
           className={`mt-1.5 ${CAMPO}`}
         />
       </Campo>
@@ -97,12 +107,7 @@ export function FormularioRegistroEmpresa() {
         />
       </Campo>
 
-      <p
-        aria-live="polite"
-        className={`text-sm ${
-          estado.estado === "error" ? "text-alerta" : "text-exito"
-        }`}
-      >
+      <p aria-live="polite" className="text-sm text-alerta">
         {estado.mensaje}
       </p>
 

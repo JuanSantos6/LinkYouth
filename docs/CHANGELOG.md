@@ -15,6 +15,17 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-13
 
+- **El registro sin confirmar muestra una pantalla propia, no un formulario
+  vacío.** Cuando `registrarse()` o `registrarEmpresa()` devuelven `ok` —el
+  `signUp` anduvo pero no dejó sesión— el formulario se reemplaza por
+  `RegistroPendiente`, con el correo al que se envió.
+  Motivo: React limpia los campos al volver la acción, así que quedaba una
+  pantalla en blanco con una línea verde arriba del botón. Se lee como «no pasó
+  nada, probá de nuevo», y reintentar choca contra el correo ya registrado.
+  El camino con sesión activa no cambia: sigue redirigiendo a /inicio o /empresa
+  según `cuentas.tipo`, sin pasar por acá.
+
+
 - **`BotonPostularse` e `BotonInscribirse` se fusionan en `ui/BotonAccion`.**
   Eran el mismo componente con tres textos cambiados: idéntico `useActionState`,
   idéntico `<form>` con un campo oculto, idéntica región `aria-live`. Solo

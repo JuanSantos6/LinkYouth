@@ -92,6 +92,15 @@ export function IconoUbicacion(props: IconoProps) {
   );
 }
 
+export function IconoCorreo(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <rect x="3" y="5.5" width="18" height="13" rx="2" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </Base>
+  );
+}
+
 export function IconoCamara(props: IconoProps) {
   return (
     <Base {...props}>

@@ -381,6 +381,7 @@ para que no se lea como permiso general.
 | --- | --- | --- |
 | `FormularioLogin` | — | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
 | `FormularioRegistro` | — | Alta de cuenta individual (RF1.1). Los campos son exactamente las columnas obligatorias de `perfiles`, más el correo y la contraseña que van a `auth.users`. La mayoría de edad la exige la base: acá el campo es un `type="date"` común y el mensaje llega desde la acción. |
+| `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
 | `TarjetaVacante` | `vacante`, `tagsPerfil?`, `habilidadesPerfil?`, `yaPostulado?`, `esEjemplo?` | Una vacante en el feed. Separa habilidades de áreas de interés, igual que el esquema. Muestra el porcentaje de compatibilidad solo si la vacante pide algo, y siempre junto al detalle de qué coincide: un número suelto no se puede verificar. |
 | `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?` | Deliberadamente distinta de la de vacante: cabecera con franja de color y bloque de fecha destacado. Hay que distinguir de un vistazo una oferta de una actividad. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo, y la política de `inscripciones_evento` no deja contar las de los demás. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
