@@ -98,7 +98,10 @@ adónde ir.
 **Qué entra**
 
 - `obtenerPerfilActual()` leyendo la sesión real en vez del perfil de ejemplo.
-- Selección de tags contra el catálogo, con nivel 1–5 (RF2.3).
+- ✔ Selección de tags y habilidades contra el catálogo cerrado (RF2.3,
+  RF2.4.3). Resuelto el 2026-09-14 en `5364f4d`. Sin el nivel 1–5 que pedía
+  este ítem: `perfil_habilidades` es una tabla puente sin columna de nivel
+  (`arquitectura.md` §7.1).
 - Alta, edición y baja de formación (RF2.4).
 - Subida de foto a Supabase Storage, completando `AvatarEditable` (RF2.1.4).
 - Perfil público de otro usuario (RF2.5), leyendo la vista `perfiles_publicos`.
