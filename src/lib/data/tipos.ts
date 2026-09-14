@@ -131,6 +131,22 @@ export type Formacion = {
   estado: EstadoFormacion;
 };
 
+/** Una opción de un catálogo cerrado: la fila de `tags` o de `habilidades`. */
+export type OpcionCatalogo = { id: string; nombre: string };
+
+/**
+ * Los dos catálogos cerrados, enteros (RF2.3, RF2.4.3).
+ *
+ * Acá sí viajan los `id`, porque son lo que `perfil_tags` y
+ * `perfil_habilidades` guardan. `PerfilCompleto` sigue llevando solo nombres:
+ * las pantallas que muestran tags ajenos —una vacante, la ficha del feed— no
+ * tienen nada que hacer con el id, y el nombre es único en las dos tablas.
+ */
+export type Catalogos = {
+  tags: OpcionCatalogo[];
+  habilidades: OpcionCatalogo[];
+};
+
 export type PerfilCompleto = Tabla<"perfiles"> & {
   tags: string[];
   habilidades: string[];

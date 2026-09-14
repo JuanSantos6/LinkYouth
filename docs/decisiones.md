@@ -6,6 +6,38 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-14 — El catálogo lleva `id`; `PerfilCompleto` sigue llevando nombres
+
+**Decisión.** `obtenerCatalogos()` devuelve `{ id, nombre }` porque las
+acciones escriben `perfil_tags` y `perfil_habilidades`, que guardan `id`.
+`PerfilCompleto.tags` y `.habilidades` quedan como `string[]`.
+
+**Alternativas consideradas.**
+
+- Pasar `PerfilCompleto.tags` a `{ id, nombre }[]`, que era el plan inicial.
+- Resolver nombre → `id` dentro de cada acción, con una lectura extra por clic.
+
+**Motivo.** `PerfilCompleto.tags` no lo consume solo el perfil: también
+`/empleos` y `/inicio` se lo pasan a `TarjetaVacante` como `tagsPerfil` para
+marcar qué coincide, y `TarjetaUsuario` cuenta habilidades. Ninguno de esos
+usos necesita el `id` —comparan y muestran nombres— así que cambiarles la
+forma era tocar cinco archivos fuera del perfil, más `ejemplos.ts`, para que
+todos hicieran `.map((t) => t.nombre)` y volvieran al punto de partida.
+
+El `id` viaja donde hace falta, que es el catálogo. La correspondencia entre
+los dos lados la garantiza el esquema: `tags.nombre` y `habilidades.nombre`
+son `unique`, así que marcar por nombre la opción ya elegida no es una
+heurística, es una clave.
+
+Resolver nombre → `id` en la acción se descartó por lo obvio: agrega una
+lectura por clic para recuperar un dato que el componente ya tenía.
+
+**Consecuencia.** El día que exista el perfil público de otro usuario (RF2.5),
+que es de solo lectura, le sirve `PerfilCompleto` tal cual está: muestra
+nombres y no necesita ningún `id`.
+
+---
+
 ## 2026-09-13 — Latencia de ~800 ms en producción: investigada, no resuelta
 
 **Decisión.** No seguir optimizando la latencia de navegación por ahora.

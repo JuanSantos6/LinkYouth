@@ -13,6 +13,29 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-14
+
+- **El perfil deja elegir intereses y habilidades del catálogo (RF2.3,
+  RF2.4.3).** Hasta ahora `NubeTags` mostraba las etiquetas ya elegidas y no
+  había forma de elegirlas desde la aplicación: las filas de `perfil_tags` y
+  `perfil_habilidades` había que cargarlas a mano desde el SQL Editor. Lo
+  reemplaza `SelectorTags`, que muestra los dos catálogos completos —36 tags y
+  20 habilidades, una lectura de cada tabla— y prende y apaga cada opción con
+  `agregarTag` / `quitarTag` / `agregarHabilidad` / `quitarHabilidad`. La base
+  no cambió: las políticas de insert y delete propios ya estaban escritas.
+- **La etiqueta responde al toque y vuelve sola si la acción falla.** El
+  estado optimista se deriva de lo que manda el servidor, así que no hay nada
+  que deshacer a mano: si la acción devuelve error no hubo `revalidatePath`, y
+  React vuelve al valor anterior. Verificado forzando una falla en la acción.
+- **El `23505` del doble clic se absorbe en vez de mostrarse.** Dos clics en
+  el mismo tick leen el mismo estado base y mandan dos inserts iguales; el
+  segundo choca con la clave primaria. La fila quedó como la quería quien hizo
+  clic, así que devolver error ahí revertiría una etiqueta que sí está
+  guardada.
+- **`PerfilCompleto` sigue devolviendo nombres y no `{ id, nombre }`.** El
+  `id` viaja solo en el catálogo, que es donde hace falta. Por qué, y qué se
+  descartó, en [`decisiones.md`](./decisiones.md).
+
 ## 2026-09-13
 
 - **Latencia de navegación investigada y no resuelta.** Los ~800 ms por

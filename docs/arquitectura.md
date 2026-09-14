@@ -267,11 +267,19 @@ envoltorio `Resultado<T>` con su `OrigenDatos`.
 catálogos distintos, y el matching de RF3.9 necesita distinguir «le interesa»
 de «sabe hacer».
 
+`Catalogos` y `OpcionCatalogo` son la excepción a que la capa de datos entregue
+solo nombres: llevan el `id`, porque es lo que `perfil_tags` y
+`perfil_habilidades` guardan y lo que necesitan las acciones que escriben ahí.
+`PerfilCompleto.tags` sigue siendo `string[]` a propósito — ver la entrada del
+2026-09-14 en [`decisiones.md`](./decisiones.md).
+
 #### `ejemplos.ts`
 
 Contenido de demostración con la forma exacta que devuelven las consultas:
 `VACANTES_EJEMPLO`, `EVENTOS_EJEMPLO`, `PERFIL_EJEMPLO`,
-`POSTULACIONES_EJEMPLO`. Solo usa campos que existen en `db/schema.sql`.
+`POSTULACIONES_EJEMPLO`, `CATALOGOS_EJEMPLO`. Solo usa campos que existen en
+`db/schema.sql`. Los `id` de `CATALOGOS_EJEMPLO` son inventados, así que
+`SelectorTags` no deja elegir cuando el origen es «ejemplo».
 
 #### `consultas.ts`
 
@@ -286,6 +294,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
 | `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
+| `obtenerCatalogos()` | `Resultado<Catalogos>` | RF2.3, RF2.4.3. Los dos catálogos cerrados enteros, sin filtro ni paginado: 36 tags y 20 habilidades. |
 
 Las tres consultas grandes traen sus relaciones en un solo `select` anidado
 (`empresas ( … )`, `vacante_tags_publicos ( tags ( nombre ) )`). Los tipos
@@ -301,9 +310,16 @@ de mostrarse sin organizador.
 
 Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
 `EstadoAccion` (`{ estado, mensaje }`), que el formulario consume con
-`useActionState`. La excepción es `cerrarSesion()`, que no recibe ni devuelve
-nada: no hay estado que mostrar, así que va como `action` de un `<form>` sin
-`useActionState`.
+`useActionState`. Hay dos excepciones a la firma:
+
+- `cerrarSesion()` no recibe ni devuelve nada: no hay estado que mostrar, así
+  que va como `action` de un `<form>` sin `useActionState`.
+- `agregarTag`, `quitarTag`, `agregarHabilidad` y `quitarHabilidad` reciben un
+  `id` suelto y no un `FormData`. No salen de un formulario: las llama el
+  `onClick` de una etiqueta, dentro de un `useTransition` que sostiene el
+  estado optimista. Un `<form>` por etiqueta serían 56 formularios en la
+  pantalla de perfil, cada uno con su campo oculto, para un dato que el
+  componente ya tiene en la mano.
 
 `tipos.ts` exporta además `ACCION_INICIAL`, `CLAVE_DUPLICADA` (el `23505` de
 Postgres) y las dos respuestas de «no se puede seguir», que son **distintas a
@@ -325,12 +341,20 @@ propósito**:
 | `inscribirse` | Inserta en `inscripciones_evento`. | RF4.5 |
 | `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. Hoy **sin consumidor**: no hay UI de cancelación de eventos. | RF4.6 |
 | `actualizarPerfil` | Actualiza nombre, apellido, país y biografía. | RF1.5, RF2.2 |
+| `agregarTag` / `quitarTag` | Insertan o borran una fila de `perfil_tags`. | RF2.3 |
+| `agregarHabilidad` / `quitarHabilidad` | Insertan o borran una fila de `perfil_habilidades`. | RF2.4.3 |
 
 El mensaje de error nunca se muestra crudo cuando se lo puede traducir: el
 `23505` de una postulación repetida se lee como «Ya te habías postulado a esta
 búsqueda», y el `23514` del constraint `perfiles_mayor_de_edad` como «Tenés que
 ser mayor de 18 años para registrarte». La regla de edad vive solo en la base
 (RF1.1.8); el código traduce su respuesta y no la reimplementa.
+
+Las cuatro acciones de etiquetas comparten `cambiarVinculo`, que además
+**absorbe el `23505`**: dos clics en el mismo tick mandan dos inserts iguales y
+el segundo choca con la clave primaria `(perfil_id, tag_id)`. La fila quedó
+como la quería quien hizo clic, así que devolver error ahí haría que la
+interfaz revirtiera una etiqueta que sí está guardada.
 
 El límite de 600 caracteres de la biografía vive solo en `actualizarPerfil`:
 `db/schema.sql` declara `bio` como `text` sin restricción, así que es una
@@ -388,7 +412,7 @@ para que no se lea como permiso general.
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
-| `NubeTags` | `tags`, `habilidades` | Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
+| `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 
 #### Páginas
@@ -597,3 +621,13 @@ de producto:
 - Las cinco pantallas de `(app)/` no se pudieron revisar en pantalla: exigen
   sesión y la auditoría se hizo sin crear cuentas. Lo listado acá sale de
   leer el código.
+
+### 7.7 La etiqueta seleccionable mide 24 px de alto
+
+`SelectorTags` reusa `ui/Etiqueta` como superficie del botón, así que el blanco
+de toque queda en 24 px de alto: por debajo de los 44 px que pide una pantalla
+táctil. Se dejó así a propósito —agrandarla cambia el tamaño de la etiqueta en
+toda la aplicación, y el rediseño está pausado— pero es lo primero a corregir
+cuando se retome. Con teclado y con puntero no hay problema: el
+`:focus-visible` global marca el foco y el objetivo es igual de grande que
+cualquier otra etiqueta de la aplicación.

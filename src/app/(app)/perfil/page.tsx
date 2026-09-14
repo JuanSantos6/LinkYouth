@@ -4,10 +4,10 @@ import { Encabezado } from "@/components/layout/Encabezado";
 import { AvatarEditable } from "@/components/perfil/AvatarEditable";
 import { FormularioPerfil } from "@/components/perfil/FormularioPerfil";
 import { ListaFormacion } from "@/components/perfil/ListaFormacion";
-import { NubeTags } from "@/components/perfil/NubeTags";
+import { SelectorTags } from "@/components/perfil/SelectorTags";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-import { obtenerPerfilActual } from "@/lib/data/consultas";
+import { obtenerCatalogos, obtenerPerfilActual } from "@/lib/data/consultas";
 
 export const metadata: Metadata = { title: "Mi perfil" };
 export const dynamic = "force-dynamic";
@@ -41,7 +41,11 @@ function Seccion({
  * derecha que repita los datos que se están editando acá.
  */
 export default async function PaginaPerfil() {
-  const perfil = await obtenerPerfilActual();
+  // Las dos lecturas son independientes: el catálogo no depende del perfil.
+  const [perfil, catalogos] = await Promise.all([
+    obtenerPerfilActual(),
+    obtenerCatalogos(),
+  ]);
   const datos = perfil.datos;
   const nombreCompleto = `${datos.nombre} ${datos.apellido}`;
 
@@ -66,9 +70,14 @@ export default async function PaginaPerfil() {
 
       <Seccion
         titulo="Intereses y habilidades"
-        descripcion="Las etiquetas con las que la plataforma te acerca vacantes y eventos."
+        descripcion="Las etiquetas con las que la plataforma te acerca vacantes y eventos. Elegí las tuyas del catálogo."
       >
-        <NubeTags tags={datos.tags} habilidades={datos.habilidades} />
+        <SelectorTags
+          catalogos={catalogos.datos}
+          tags={datos.tags}
+          habilidades={datos.habilidades}
+          esEjemplo={catalogos.origen === "ejemplo"}
+        />
       </Seccion>
 
       <Seccion

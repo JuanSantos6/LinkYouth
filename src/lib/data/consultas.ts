@@ -5,12 +5,14 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 import {
+  CATALOGOS_EJEMPLO,
   EVENTOS_EJEMPLO,
   PERFIL_EJEMPLO,
   POSTULACIONES_EJEMPLO,
   VACANTES_EJEMPLO,
 } from "./ejemplos";
 import {
+  type Catalogos,
   comoEstadoEvento,
   comoEstadoFormacion,
   comoEstadoPostulacion,
@@ -278,6 +280,42 @@ export async function obtenerPerfilActual(
     },
     origen: "supabase",
   };
+}
+
+/**
+ * RF2.3 y RF2.4.3 — Los dos catálogos cerrados, enteros.
+ *
+ * Se traen completos y sin filtrar: son 36 tags y 20 habilidades, y a ese
+ * tamaño una lectura de cada tabla cuesta menos que un buscador con paginado
+ * que después hay que mantener. Si el catálogo creciera a varios cientos, esto
+ * es lo primero que hay que cambiar.
+ *
+ * `db/politicas.sql` le da lectura pública a las dos tablas y no le da
+ * escritura a nadie: el catálogo se carga por seed, no lo amplía el usuario.
+ */
+export async function obtenerCatalogos(): Promise<Resultado<Catalogos>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(CATALOGOS_EJEMPLO, SIN_CREDENCIALES);
+
+  const [consultaTags, consultaHabilidades] = await Promise.all([
+    supabase.from("tags").select("id, nombre").order("nombre"),
+    supabase.from("habilidades").select("id, nombre").order("nombre"),
+  ]);
+
+  const error = consultaTags.error ?? consultaHabilidades.error;
+  if (error) return ejemplo(CATALOGOS_EJEMPLO, error.message);
+
+  const tags = consultaTags.data ?? [];
+  const habilidades = consultaHabilidades.data ?? [];
+
+  // Sin catálogo no hay nada que elegir, y una lista vacía sin explicación
+  // parece una pantalla rota. Se avisa con `AvisoOrigen` como cualquier otra
+  // lectura que no llegó a los datos reales.
+  if (tags.length === 0 || habilidades.length === 0) {
+    return ejemplo(CATALOGOS_EJEMPLO, TABLA_VACIA);
+  }
+
+  return { datos: { tags, habilidades }, origen: "supabase" };
 }
 
 // --- Postulaciones ----------------------------------------------------------
