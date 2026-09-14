@@ -45,11 +45,12 @@ const RUTAS_PRIVADAS = [
  * Lo que `ENTRADA` e `INFORMATIVAS` de `src/middleware.ts` dejan pasar sin
  * sesión.
  *
- * Las tres informativas están enlazadas desde la cabecera y el pie, que
- * aparecen en todas las pantallas: si el guard se las come, el sitio le pide
- * credenciales a alguien que solo quería leer qué es LinkYouth.
+ * La portada y las tres informativas están enlazadas desde la cabecera y el
+ * pie, que aparecen en todas las pantallas: si el guard se las come, el sitio
+ * le pide credenciales a alguien que solo quería leer qué es LinkYouth.
  */
 const RUTAS_PUBLICAS = [
+  "/",
   "/login",
   "/registro",
   "/empresas",
@@ -79,11 +80,16 @@ test.describe("guard de rutas sin sesión", () => {
     });
   }
 
-  test("/ redirige a /login y no al feed", async ({ page }) => {
-    // `src/app/page.tsx` manda a /inicio; el middleware corta después.
+  test("/ muestra la portada y no el feed", async ({ page }) => {
+    // Antes `/` redirigía a `/inicio` y el middleware cortaba en `/login`.
+    // Desde que existe la portada, `/` es la puerta de entrada pública: tiene
+    // que abrirse sin sesión, y no puede colarse el feed de nadie.
     await page.goto("/");
 
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /habilidades/i }),
+    ).toBeVisible();
   });
 });
 

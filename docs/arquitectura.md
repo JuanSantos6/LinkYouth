@@ -138,7 +138,8 @@ docs/                     SRS, decisiones, plan, changelog, este documento
 
 src/app/
   layout.tsx              Layout raíz (lang="es", fuentes)
-  page.tsx                Redirige al feed
+  page.tsx                Portada pública: qué es, cómo funciona, empresas,
+                          preguntas frecuentes y consultas
   (app)/layout.tsx        Cabecera, barra lateral y pie
   (app)/inicio|empleos|eventos|postulaciones|
         perfil|avisos|ajustes/page.tsx  Las siete pantallas de la cuenta
@@ -152,7 +153,7 @@ src/app/
 src/components/
   ui/                     Primitivas sin dominio
   layout/                 Estructura y navegación
-  auth/ empleos/ eventos/ perfil/   Por dominio
+  auth/ empleos/ eventos/ landing/ perfil/   Por dominio
 
 src/lib/
   supabase/               Cliente de servidor y credenciales
@@ -366,6 +367,7 @@ propósito**:
 | `cancelarPostulacion` | **Actualiza** el estado a `cancelada`. No borra la fila. | RF3.8 |
 | `inscribirse` | Inserta en `inscripciones_evento`. | RF4.5 |
 | `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. Hoy **sin consumidor**: no hay UI de cancelación de eventos. | RF4.6 |
+| `enviarConsulta` | Valida la consulta de la portada. **No la entrega**: no hay tabla ni casilla. Devuelve `error` con la explicación en vez de un «gracias» falso. | — |
 | `actualizarPerfil` | Actualiza nombre, apellido, país y biografía. | RF1.5, RF2.2 |
 | `agregarTag` / `quitarTag` | Insertan o borran una fila de `perfil_tags`. | RF2.3 |
 | `agregarHabilidad` / `quitarHabilidad` | Insertan o borran una fila de `perfil_habilidades`. | RF2.4.3 |
@@ -493,13 +495,18 @@ para que no se lea como permiso general.
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
+| `landing/CabeceraLanding` | — | Cabecera de la portada: anclas a la misma página y los dos menús de acceso. Hasta 1024 px las anclas bajan a su propia fila, porque compartiendo la primera quedaban en 36 px. |
+| `landing/MenuDeAcceso` | `etiqueta`, `opciones`, `destacado?` | Las dos puertas de entrada, joven y organización. Es un `<details>`: abrir, cerrar y enfocar con teclado ya los resuelve el navegador. |
+| `landing/CarruselEmpresas` | `empresas` | Las organizaciones que publican. No se mueve solo: avanza con las flechas, el dedo o la rueda. `"use client"` solo por el `scrollBy` de las dos flechas; sin JavaScript la fila se desplaza igual. |
+| `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `<details>`. |
+| `landing/FormularioConsulta` | — | Consultas de la portada. El aviso de que todavía no entrega va **antes** del formulario, no después de enviarlo. |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 
 #### Páginas
 
 | Ruta | Función | Qué hace |
 | --- | --- | --- |
-| `/` | `Home` | Redirige a `/inicio`. |
+| `/` | `Portada` | Portada pública. Cabecera con anclas a la misma página, carrusel de organizaciones, preguntas frecuentes y formulario de consultas. |
 | `/login` | `PaginaLogin` | Inicio de sesión. Layout propio de `(auth)/`: una columna centrada, sin barra lateral. |
 | `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |

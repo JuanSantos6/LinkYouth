@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import {
   AVISOS_EJEMPLO,
+  EMPRESAS_EJEMPLO,
   CATALOGOS_EJEMPLO,
   EVENTOS_EJEMPLO,
   PERFIL_EJEMPLO,
@@ -21,6 +22,7 @@ import {
   comoTipoCuenta,
   comoTipoOportunidad,
   type Aviso,
+  type EmpresaResumen,
   type TipoCuenta,
   type Evento,
   type PerfilCompleto,
@@ -132,6 +134,32 @@ export async function obtenerTipoCuenta(
     .maybeSingle();
 
   return data ? comoTipoCuenta(data.tipo) : null;
+}
+
+/**
+ * Las organizaciones que ya publican en LinkYouth, para la portada.
+ *
+ * Lectura pública: `empresas_lectura_publica` habilita el select a cualquiera
+ * y `cuenta_activa` deja fuera a las dadas de baja. No hace falta sesión, que
+ * es justamente el punto: esta consulta la hace alguien que todavía no se
+ * registró.
+ */
+export async function obtenerEmpresas(
+  limite = 12,
+): Promise<Resultado<EmpresaResumen[]>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(EMPRESAS_EJEMPLO, SIN_CREDENCIALES);
+
+  const { data, error } = await supabase
+    .from("empresas")
+    .select("id, razon_social, rubro, logo_url")
+    .order("razon_social")
+    .limit(limite);
+
+  if (error) return ejemplo(EMPRESAS_EJEMPLO, error.message);
+  if (!data || data.length === 0) return ejemplo(EMPRESAS_EJEMPLO, TABLA_VACIA);
+
+  return { datos: data, origen: "supabase" };
 }
 
 const EMPRESA = "empresas ( id, razon_social, rubro, logo_url )";

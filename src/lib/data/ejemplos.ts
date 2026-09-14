@@ -1,5 +1,6 @@
 import type {
   Aviso,
+  EmpresaResumen,
   Catalogos,
   Evento,
   Formacion,
@@ -297,4 +298,15 @@ export const AVISOS_EJEMPLO: Aviso[] = [
     leida: true,
     creada_en: haceHoras(72),
   },
+];
+
+/**
+ * Las mismas organizaciones que publican las vacantes de ejemplo. La portada
+ * las muestra en el carrusel cuando no hay base cargada, y lo aclara.
+ */
+export const EMPRESAS_EJEMPLO: EmpresaResumen[] = [
+  MERCADO_LIBRE,
+  PEDIDOSYA,
+  DLOCAL,
+  UDELAR,
 ];

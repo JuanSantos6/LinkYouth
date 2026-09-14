@@ -13,6 +13,46 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-14 — Portada pública (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **`/` deja de redirigir al feed y pasa a ser la portada.** Hasta ahora la
+  raíz mandaba a `/inicio` y el middleware cortaba en `/login`: alguien que
+  llegaba por primera vez no tenía forma de enterarse de qué era LinkYouth sin
+  crear una cuenta primero.
+  Contiene lo que faltaba: qué es el proyecto, cómo funciona en tres pasos, un
+  carrusel con las organizaciones que publican, preguntas frecuentes,
+  formulario de consultas y el pie con los enlaces y los derechos.
+
+- **La cabecera de la portada navega dentro de la misma página.** Son anclas,
+  no rutas: quien todavía no se registró no tiene secciones propias adónde ir.
+  Hasta 1024 px bajan a una segunda fila — compartiendo la primera con los dos
+  botones de acceso quedaban en 36 px de ancho en el teléfono y 104 px en una
+  tablet, o sea que el menú estaba pero no se podía usar.
+
+- **Ingresar y Crear cuenta ofrecen las dos puertas**, la del joven y la de la
+  organización. Son `<details>` y no menús con estado: el navegador ya sabe
+  abrirlos, enfocarlos con teclado y anunciarlos.
+  En el registro la distinción es real y ya existía (`?tipo=empresa`). En el
+  login es solo de texto: la contraseña se verifica igual y el tipo de cuenta
+  lo sabe la base, que es la que decide a qué mitad entrás.
+
+- **El carrusel no se mueve solo.** Avanza con las flechas, el dedo o la rueda.
+  Un carrusel con reproducción automática obliga a leer al ritmo de otro y es
+  de lo primero que molesta con movimiento reducido activado.
+
+- **El formulario de consultas valida pero todavía no entrega**, y lo dice
+  **antes** de que alguien escriba, no después de enviar.
+  Motivo: no hay tabla `consultas` en `db/schema.sql` ni servicio de correo, y
+  ninguna de las dos cosas se decide desde el front-end. Fingir un «gracias, te
+  respondemos pronto» sobre un mensaje que se descarta deja a alguien esperando
+  una respuesta que nadie va a leer.
+
+- **`/` entra en `INFORMATIVAS`** del middleware y `e2e/auth.spec.ts` cambia el
+  test que esperaba la redirección a `/login`: ahora verifica que la portada se
+  abra sin sesión y que no se cuele el feed.
+
+---
+
 ## 2026-09-14 (rama `claude/linkyouth-applicant-dashboard-eweeld`)
 
 - **El rediseño «ficha técnica» absorbe todo lo funcional de `main`.** La rama

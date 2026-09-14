@@ -6,6 +6,56 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-14 — El formulario de consultas se publica sin canal de entrega
+
+**Decisión.** Publicar el formulario de la portada con validación real, y
+avisar en pantalla —antes de escribir— que el mensaje todavía no llega a
+ninguna parte.
+
+**Alternativas consideradas.**
+
+- No publicar el formulario hasta que exista el canal.
+- Agregar una tabla `consultas` a `db/schema.sql` con inserción pública.
+- Publicarlo con un «gracias, te respondemos pronto» y descartar el mensaje.
+
+**Motivo.** La tercera es la peor y es la más común: deja a alguien esperando
+una respuesta que nadie va a leer. Entre las otras dos, agregar la tabla es la
+solución correcta, pero el esquema es del equipo y tocarlo desde una tarea de
+interfaz lo convierte en algo que cada uno extiende cuando le hace falta — el
+mismo criterio que se aplicó al no inventar columnas de salario o modalidad.
+
+Queda publicado con el aviso porque el formulario ya está escrito contra el
+contrato que va a usar cuando el canal exista, y porque la portada sin sección
+de contacto tampoco resuelve nada: la vía que sí funciona —el repositorio—
+queda enlazada al pie.
+
+**Qué falta decidir.** Una tabla `consultas` con su política de inserción, o un
+servicio de correo transaccional. Es del equipo.
+
+---
+
+## 2026-09-14 — Menús de acceso con `<details>`, no con estado
+
+**Decisión.** Que los desplegables de «Ingresar» y «Crear cuenta» de la portada
+sean elementos `<details>`.
+
+**Alternativas consideradas.**
+
+- Un componente cliente con `useState` y manejo de clic afuera.
+- Dos botones separados por tipo de cuenta, sin desplegable.
+
+**Motivo.** El navegador ya sabe abrir y cerrar una divulgación, enfocarla con
+teclado y anunciarla a un lector de pantalla. Escribirlo con `useState`
+significa mandar JavaScript para reimplementar —peor— algo que viene resuelto,
+y es lo que suele terminar en un menú que no cierra con Escape ni se puede
+recorrer con Tab.
+
+Cuatro botones sueltos en la cabecera era la otra opción: más simple de
+programar, pero la cabecera de la portada ya compite con cinco anclas y dos
+acciones, y cuatro botones la vuelven ilegible en el teléfono.
+
+---
+
 ## 2026-09-14 — La lógica de `main`, el diseño de la rama
 
 **Decisión.** Al integrar las dos líneas de trabajo, resolver cada conflicto

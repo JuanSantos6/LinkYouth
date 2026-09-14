@@ -10,14 +10,16 @@ import type { Database } from "@/types/database";
 const ENTRADA = ["/login", "/registro"];
 
 /**
- * Las pantallas que cuentan qué es LinkYouth.
+ * La portada y las pantallas que cuentan qué es LinkYouth.
  *
  * Se leen con o sin sesión, y por los dos tipos de cuenta: son la cara pública
  * del sitio y están enlazadas desde la cabecera y el pie, que aparecen en
  * todas partes. Mandar a `/login` a alguien que toca «Cómo funciona» sería
- * pedirle credenciales para leer un folleto.
+ * pedirle credenciales para leer un folleto, y `/` es literalmente la puerta
+ * de entrada: si pidiera sesión, nadie sin cuenta podría enterarse de qué es
+ * esto.
  */
-const INFORMATIVAS = ["/empresas", "/como-funciona", "/legales"];
+const INFORMATIVAS = ["/", "/empresas", "/como-funciona", "/legales"];
 
 /** Prefijo del panel de empresa. Todo lo demás es territorio del postulante. */
 const AREA_EMPRESA = "/empresa";
