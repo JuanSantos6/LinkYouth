@@ -1,0 +1,396 @@
+/* ===========================================================================
+   LinkYouth — propuesta v3, conservadora
+   ---------------------------------------------------------------------------
+   Misma paleta, misma tipografía y misma navegación que la aplicación de hoy.
+   Lo único que cambia es el peso visual de cada cosa.
+
+   Los tokens de color son exactamente los de `src/app/globals.css`, así que
+   lo que se decida acá se puede trasladar sin recalcular contrastes.
+   =========================================================================== */
+
+:root{
+  /* Superficies — sin cambios */
+  --lienzo:#f6f7f9;
+  --superficie:#ffffff;
+  --superficie-suave:#f9fafb;
+  --borde:#7d8795;
+  --borde-fuerte:#667085;
+
+  /* Texto — sin cambios */
+  --tinta:#101828;
+  --tinta-media:#475467;
+  --tinta-suave:#667085;
+  --tinta-tenue:#98a2b3;
+
+  /* Acción — sin cambios */
+  --primario:#1d4ed8;
+  --primario-fuerte:#1e40af;
+  --primario-suave:#eff4ff;
+  --primario-borde:#c7d7fe;
+
+  /* Estado — sin cambios */
+  --exito:#067647;
+  --exito-suave:#ecfdf3;
+  --exito-borde:#abefc6;
+  --aviso:#b54708;
+  --aviso-suave:#fffaeb;
+  --aviso-borde:#fedf89;
+  --alerta:#b42318;
+  --alerta-suave:#fef3f2;
+  --alerta-borde:#fecdca;
+
+  /* ---- NUEVO: la escala de jerarquía ----------------------------------
+     Hoy existe un solo radio y una sola sombra para todo. Acá hay cuatro
+     niveles, y el nivel dice qué tan importante es lo que estás mirando. */
+  --radio-1:12px;   /* vacante: lo que la pantalla existe para mostrar */
+  --radio-2:10px;   /* evento: contenido de apoyo */
+  --radio-control:8px;
+  --sombra-1:0 1px 2px rgb(16 24 40/.05), 0 4px 10px -3px rgb(16 24 40/.10);
+  --sombra-2:none;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--lienzo);color:var(--tinta);
+  font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui,sans-serif;
+  font-size:15px;line-height:1.55;letter-spacing:-.011em;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{letter-spacing:-.021em;text-wrap:balance;margin:0}
+p{text-wrap:pretty;margin:0}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--primario);outline-offset:2px;border-radius:4px}
+::selection{background:var(--primario-suave);color:var(--primario-fuerte)}
+
+/* ===========================================================================
+   Estructura general — idéntica a `src/app/(app)/layout.tsx`
+   =========================================================================== */
+.marco{
+  margin:0 auto;display:grid;width:100%;max-width:1400px;gap:24px;
+  padding:24px 16px;
+}
+@media (min-width:1024px){
+  .marco{grid-template-columns:228px minmax(0,1fr);padding:32px 24px}
+}
+.contenido{min-width:0}
+/* El contenedor de la barra es el item de grilla, así que necesita `min-width:0`
+   igual que el `nav` de la aplicación: sin él, la fila de secciones impone su
+   ancho máximo y empuja la página entera fuera del viewport en un teléfono. */
+#barra{min-width:0}
+
+/* ---- barra lateral: sin cambios respecto de la app ---- */
+.nav{display:flex;min-width:0;flex-direction:column}
+@media (min-width:1024px){.nav{position:sticky;top:24px;align-self:start}}
+.nav-cabeza{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+@media (min-width:1024px){.nav-cabeza{display:contents}}
+.marca{display:flex;align-items:center;gap:10px}
+@media (min-width:1024px){.marca{order:1;margin-bottom:24px}}
+.marca-cuadro{
+  display:flex;height:36px;width:36px;align-items:center;justify-content:center;
+  border-radius:var(--radio-control);background:var(--primario);
+  font-size:14px;font-weight:700;color:#fff
+}
+.marca-nombre{font-size:16px;font-weight:700;letter-spacing:-.02em}
+.nav-lista{
+  display:flex;gap:4px;overflow-x:auto;scroll-padding-left:4px;padding-bottom:4px;
+  margin:0;list-style:none;scroll-snap-type:x mandatory
+}
+@media (min-width:1024px){
+  .nav-lista{order:2;flex-direction:column;overflow:visible;padding-bottom:0;scroll-snap-type:none}
+}
+.nav-lista li{flex-shrink:0;scroll-snap-align:start}
+@media (min-width:1024px){.nav-lista li{flex-shrink:1}}
+.nav-lista a{
+  display:flex;align-items:center;gap:12px;border-radius:var(--radio-control);
+  padding:10px 12px;font-size:14px;font-weight:500;color:var(--tinta-media);
+  transition:color 150ms,background-color 150ms
+}
+.nav-lista a:hover{background:var(--superficie-suave);color:var(--tinta)}
+.nav-lista a[aria-current=page]{background:var(--primario-suave);color:var(--primario-fuerte);font-weight:600}
+.nav-lista svg{height:18px;width:18px;color:var(--tinta-tenue);flex-shrink:0}
+.nav-lista a[aria-current=page] svg{color:var(--primario)}
+.salir{flex-shrink:0}
+@media (min-width:1024px){.salir{order:3;margin-top:24px}}
+.salir button{
+  border-radius:var(--radio-control);border:0;background:none;padding:10px 12px;
+  font:inherit;font-size:14px;font-weight:500;color:var(--tinta-media);cursor:pointer;
+  transition:color 150ms,background-color 150ms
+}
+@media (min-width:1024px){.salir button{width:100%;text-align:left}}
+.salir button:hover{background:var(--superficie-suave);color:var(--tinta)}
+
+/* ===========================================================================
+   Encabezado de pantalla
+   La escala de hoy es demasiado plana: 20px de h1 contra 14px de cuerpo. Acá
+   el h1 sube a 26px para que exista un escalón real.
+   =========================================================================== */
+.encabezado h1{font-size:26px;font-weight:700;line-height:1.2}
+.encabezado p{margin-top:6px;max-width:60ch;font-size:15px;color:var(--tinta-suave)}
+.pila{display:grid;gap:20px}
+
+/* ===========================================================================
+   NIVEL 4 — avisos y estados vacíos
+   No son tarjetas. No tienen superficie propia, ni sombra, ni radio grande.
+   Antes pesaban igual que una vacante.
+   =========================================================================== */
+.aviso{
+  display:flex;align-items:flex-start;gap:12px;border-left:3px solid var(--aviso);
+  background:var(--aviso-suave);padding:12px 16px;border-radius:0 8px 8px 0
+}
+.aviso p{font-size:14px;color:var(--aviso)}
+.aviso b{font-weight:700}
+.aviso code{font-family:ui-monospace,monospace;font-size:13px}
+.aviso-icono{
+  margin-top:2px;display:flex;height:18px;width:18px;flex-shrink:0;align-items:center;
+  justify-content:center;border-radius:50%;background:var(--aviso);font-size:11px;font-weight:700;color:#fff
+}
+.vacio{
+  border:1px dashed var(--borde);border-radius:8px;background:none;
+  padding:36px 24px;text-align:center
+}
+.vacio h3{font-size:16px;font-weight:600}
+.vacio p{margin:6px auto 0;max-width:46ch;font-size:14px;color:var(--tinta-suave)}
+.vacio a{margin-top:14px;display:inline-block;font-size:14px;font-weight:600;color:var(--primario)}
+.vacio a:hover{text-decoration:underline}
+
+/* ===========================================================================
+   NIVEL 1 — vacante
+   Lo único de la aplicación con elevación real. Además lleva una regla de
+   3px a la izquierda cuyo color dice qué tan compatible es: el puntaje se
+   percibe antes de leer nada.
+   =========================================================================== */
+.vacante{
+  position:relative;overflow:hidden;border:1px solid var(--borde);
+  border-left:3px solid var(--tinta-tenue);
+  border-radius:var(--radio-1);background:var(--superficie);
+  box-shadow:var(--sombra-1);padding:20px 22px
+}
+.vacante.alta{border-left-color:var(--exito)}
+.vacante.media{border-left-color:var(--primario)}
+
+.vacante-cuerpo{display:grid;grid-template-columns:78px minmax(0,1fr);gap:0 20px}
+
+/* ---- el puntaje, que antes era un chip de 12px escondido y oculto en móvil ---- */
+.puntaje{grid-column:1;text-align:center}
+.puntaje-cifra{
+  font-size:34px;font-weight:800;line-height:1;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;color:var(--tinta-media)
+}
+.alta .puntaje-cifra{color:var(--exito)}
+.media .puntaje-cifra{color:var(--primario)}
+.puntaje-palabra{margin-top:2px;font-size:11px;font-weight:500;color:var(--tinta-suave);line-height:1.25}
+.puntaje-barra{display:flex;gap:2px;margin-top:8px;height:5px}
+.puntaje-barra span{flex:1;border-radius:1px;background:#e3e7ec}
+.puntaje-barra span.ok{background:var(--tinta-media)}
+.alta .puntaje-barra span.ok{background:var(--exito)}
+.media .puntaje-barra span.ok{background:var(--primario)}
+.puntaje-detalle{margin-top:7px;font-size:11px;color:var(--tinta-suave);line-height:1.3}
+
+.vacante-texto{grid-column:2;min-width:0}
+.vacante-empresa{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--tinta-suave)}
+.vacante-empresa strong{font-weight:600;color:var(--tinta-media)}
+.vacante h2{margin-top:5px;font-size:18px;font-weight:700;line-height:1.25}
+.vacante-desc{
+  margin-top:7px;font-size:14.5px;line-height:1.6;color:var(--tinta-media);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+
+/* ---- rótulos en oración, no en MAYÚSCULAS espaciadas ---- */
+.rotulo{font-size:12.5px;font-weight:500;color:var(--tinta-suave)}
+.grupo{margin-top:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0;padding:0;list-style:none}
+.chip{
+  display:inline-flex;align-items:center;border:1px solid var(--borde);border-radius:6px;
+  background:var(--superficie-suave);padding:2px 9px;font-size:12.5px;font-weight:500;color:var(--tinta-media)
+}
+.chip.propia{border-color:var(--primario-borde);background:var(--primario-suave);color:var(--primario-fuerte);font-weight:600}
+.chip.propia::before{content:"✓";margin-right:5px}
+
+.vacante-pie{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;
+  margin-top:18px;border-top:1px solid var(--borde);padding-top:16px
+}
+.vacante-pie .izq{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.meta{font-size:12.5px;color:var(--tinta-suave)}
+
+.insignia{
+  display:inline-flex;align-items:center;gap:4px;border:1px solid var(--borde);
+  border-radius:999px;background:var(--superficie-suave);padding:1px 10px;
+  font-size:12px;font-weight:600;color:var(--tinta-media)
+}
+.insignia.primario{border-color:var(--primario-borde);background:var(--primario-suave);color:var(--primario-fuerte)}
+.insignia.exito{border-color:var(--exito-borde);background:var(--exito-suave);color:var(--exito)}
+.insignia.alerta{border-color:var(--alerta-borde);background:var(--alerta-suave);color:var(--alerta)}
+
+.boton{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:0;border-radius:var(--radio-control);background:var(--primario);
+  padding:9px 18px;font:inherit;font-size:14px;font-weight:600;color:#fff;cursor:pointer;
+  transition:color 150ms,background-color 150ms,border-color 150ms
+}
+.boton:hover{background:var(--primario-fuerte)}
+.boton:disabled{background:var(--superficie-suave);color:var(--tinta-media);cursor:not-allowed}
+.boton.secundario{border:1px solid var(--borde);background:var(--superficie);color:var(--tinta)}
+.boton.secundario:hover{border-color:var(--borde-fuerte);background:var(--superficie-suave)}
+.boton.fantasma{background:none;color:var(--tinta-media);padding:5px 10px;font-size:12.5px}
+.boton.fantasma:hover{background:var(--superficie-suave);color:var(--tinta)}
+
+/* ===========================================================================
+   NIVEL 2 — evento
+   Sin sombra, radio menor, padding menor, título menor. Y sin la franja de
+   degradado de 112px: el bloque de fecha, que ya existía, pasa a ser el
+   elemento gráfico y se corre a la izquierda.
+   =========================================================================== */
+.evento{
+  display:grid;grid-template-columns:68px minmax(0,1fr);gap:0 18px;
+  border:1px solid var(--borde);border-radius:var(--radio-2);
+  background:var(--superficie);box-shadow:var(--sombra-2);padding:16px 18px
+}
+.fecha-bloque{
+  grid-column:1;display:flex;height:68px;flex-direction:column;align-items:center;
+  justify-content:center;border:1px solid var(--primario-borde);border-radius:8px;
+  background:var(--primario-suave)
+}
+.fecha-dia{font-size:22px;font-weight:800;line-height:1;color:var(--primario-fuerte);font-variant-numeric:tabular-nums}
+.fecha-mes{margin-top:3px;font-size:10px;font-weight:700;letter-spacing:.09em;color:var(--primario)}
+.evento-texto{grid-column:2;min-width:0}
+.evento-org{font-size:12.5px;font-weight:600;color:var(--tinta-media)}
+.evento h2{margin-top:2px;font-size:16px;font-weight:600;line-height:1.3}
+.evento-desc{
+  margin-top:5px;font-size:14px;line-height:1.55;color:var(--tinta-media);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.evento-cuando{margin-top:8px;font-size:12.5px;color:var(--tinta-suave)}
+.evento-pie{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+
+/* ===========================================================================
+   NIVEL 3 — secciones de página (perfil, listados)
+   No son tarjetas flotantes: son secciones de la hoja. Superficie plana, sin
+   sombra, título con una regla debajo.
+   =========================================================================== */
+.seccion{border:1px solid var(--borde);border-radius:var(--radio-2);background:var(--superficie);padding:22px 24px}
+.seccion-cabeza{margin-bottom:18px;border-bottom:1px solid var(--borde);padding-bottom:14px}
+.seccion-cabeza h2{font-size:19px;font-weight:700}
+.seccion-cabeza p{margin-top:3px;font-size:14px;color:var(--tinta-suave)}
+
+/* ---- pestañas de /inicio: sin cambios ---- */
+.pestanas{display:flex;gap:4px;border-bottom:1px solid var(--borde)}
+.pestanas a{
+  margin-bottom:-1px;border-bottom:2px solid transparent;padding:10px 16px;
+  font-size:14px;font-weight:500;color:var(--tinta-suave);transition:color 150ms,border-color 150ms
+}
+.pestanas a:hover{color:var(--tinta)}
+.pestanas a[aria-current=page]{border-bottom-color:var(--primario);color:var(--primario);font-weight:600}
+
+/* ---- buscador y filtros de /empleos ---- */
+.barra-busqueda{display:flex;flex-direction:column;gap:12px}
+@media (min-width:640px){.barra-busqueda{flex-direction:row;align-items:center;justify-content:space-between}}
+.buscador{position:relative;flex:1;max-width:420px}
+.buscador svg{position:absolute;left:12px;top:50%;height:16px;width:16px;transform:translateY(-50%);color:var(--tinta-tenue);pointer-events:none}
+.buscador input{
+  width:100%;border:1px solid var(--borde);border-radius:var(--radio-control);
+  background:var(--superficie);padding:9px 12px 9px 36px;font:inherit;font-size:14px;color:var(--tinta)
+}
+.buscador input::placeholder{color:var(--tinta-tenue)}
+.buscador input:focus{border-color:var(--primario)}
+.filtros{display:flex;gap:6px}
+.filtros a{
+  border:1px solid var(--borde);border-radius:var(--radio-control);background:var(--superficie);
+  padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--tinta-media)
+}
+.filtros a:hover{border-color:var(--borde-fuerte)}
+.filtros a[aria-current=page]{border-color:var(--primario-borde);background:var(--primario-suave);color:var(--primario-fuerte)}
+
+/* ===========================================================================
+   Ficha del postulante — sin degradado, con estadísticas asimétricas
+   =========================================================================== */
+.ficha{border:1px solid var(--borde);border-radius:var(--radio-2);background:var(--superficie);padding:20px}
+.ficha-quien{display:flex;align-items:center;gap:13px}
+.avatar{
+  display:flex;flex-shrink:0;align-items:center;justify-content:center;overflow:hidden;
+  border:1px solid var(--borde);background:var(--superficie-suave);
+  font-weight:600;color:var(--tinta-suave)
+}
+.avatar.redondo{border-radius:50%}
+.avatar.cuadrado{border-radius:var(--radio-control)}
+.avatar.sm{height:36px;width:36px;font-size:12px}
+.avatar.md{height:48px;width:48px;font-size:14px}
+.avatar.lg{height:80px;width:80px;font-size:22px}
+.ficha-quien h2{font-size:16px;font-weight:700}
+.ficha-quien p{font-size:12.5px;color:var(--tinta-suave)}
+.ficha-estudia{margin-top:12px;font-size:14px;line-height:1.55;color:var(--tinta-media)}
+.ficha-donde{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:var(--tinta-suave)}
+.ficha-donde svg{height:14px;width:14px;color:var(--tinta-tenue)}
+
+/* la métrica que importa es una; las otras dos son contexto, no columnas
+   iguales en una grilla de tres */
+.metricas{margin-top:16px;border-top:1px solid var(--borde);padding-top:14px}
+.metrica-principal{display:flex;align-items:baseline;gap:8px}
+.metrica-principal b{font-size:28px;font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.metrica-principal span{font-size:14px;color:var(--tinta-media)}
+.metrica-resto{margin-top:5px;font-size:12.5px;color:var(--tinta-suave)}
+.ficha .grupo{margin-top:16px}
+.ficha .boton{margin-top:16px;width:100%}
+
+/* ===========================================================================
+   /postulaciones
+   =========================================================================== */
+.postulacion{border:1px solid var(--borde);border-radius:var(--radio-2);background:var(--superficie);padding:18px 20px}
+.postulacion-cabeza{display:flex;align-items:flex-start;gap:14px}
+.postulacion-cabeza h2{font-size:16px;font-weight:700}
+.postulacion-cabeza p{margin-top:2px;font-size:12.5px;color:var(--tinta-suave)}
+.recorrido{display:flex;align-items:center;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.recorrido li{display:flex;flex:1;align-items:center;gap:8px}
+.paso{display:flex;align-items:center;gap:8px}
+.punto{height:8px;width:8px;flex-shrink:0;border-radius:50%;background:var(--borde-fuerte)}
+.punto.hecho{background:var(--primario)}
+.punto.mal{background:var(--alerta)}
+.paso span{font-size:12px;color:var(--tinta-suave)}
+.paso.hecho span{font-weight:600;color:var(--tinta)}
+.linea-paso{height:1px;flex:1;background:var(--borde)}
+.linea-paso.hecha{background:var(--primario)}
+.postulacion-pie{display:flex;justify-content:flex-end;margin-top:14px;border-top:1px solid var(--borde);padding-top:12px}
+
+/* ===========================================================================
+   /perfil
+   =========================================================================== */
+.campo{display:block}
+.campo>span{font-size:14px;font-weight:500}
+.campo input,.campo textarea{
+  width:100%;margin-top:6px;border:1px solid var(--borde);border-radius:var(--radio-control);
+  background:var(--superficie);padding:9px 12px;font:inherit;font-size:14px;color:var(--tinta)
+}
+.campo input:focus,.campo textarea:focus{border-color:var(--primario)}
+.campo .ayuda{margin-top:4px;display:block;font-size:12.5px;color:var(--tinta-suave)}
+.rejilla{display:grid;gap:16px}
+@media (min-width:640px){.rejilla{grid-template-columns:1fr 1fr}}
+.foto{display:flex;align-items:center;gap:16px}
+.foto p{font-size:13px;color:var(--tinta-suave);margin-top:3px}
+.foto h3{font-size:14px;font-weight:600}
+.formacion{margin:0;padding:0;list-style:none}
+.formacion li{display:flex;align-items:flex-start;gap:14px;border-top:1px solid var(--borde);padding:14px 0}
+.formacion li:first-child{border-top:0;padding-top:0}
+.formacion h3{display:inline;font-size:14px;font-weight:700}
+.formacion .inst{margin-top:2px;font-size:14px;color:var(--tinta-media)}
+.acciones-derecha{display:flex;justify-content:flex-end;margin-top:20px}
+
+/* ---- columna derecha de /inicio ---- */
+.dos-columnas{display:grid;gap:24px}
+@media (min-width:1280px){
+  .dos-columnas{grid-template-columns:minmax(0,1fr) 300px}
+  .dos-columnas>aside{position:sticky;top:32px;align-self:start}
+}
+
+@media (max-width:640px){
+  .vacante-cuerpo{grid-template-columns:minmax(0,1fr)}
+  .puntaje{grid-column:1;display:flex;align-items:center;gap:10px;margin-bottom:12px;text-align:left}
+  .puntaje-barra{margin-top:0;width:64px}
+  .puntaje-palabra{margin-top:0}
+  .puntaje-detalle{margin-top:0}
+  .vacante-texto{grid-column:1}
+  .encabezado h1{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}

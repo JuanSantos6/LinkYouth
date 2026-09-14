@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C · Coincidencia — LinkYouth /inicio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#f2f7f6;
+  --sobre:#ffffff;
+  --tinta:#10322e;
+  --tinta-2:#3c5551;
+  --tinta-3:#4f6764;
+  --regla:#6e8c87;
+  --acento:#0f766e;
+  --acento-fuerte:#115e59;
+  --acento-tenue:#dbeeeb;
+  --vacio:#c9dbd8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);
+  font-family:"DM Sans",system-ui,sans-serif;font-size:16px;line-height:1.55}
+:focus-visible{outline:2px solid var(--acento);outline-offset:3px}
+
+.barra{display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:15px 34px;border-bottom:1px solid var(--regla)}
+.marca{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em}
+.marca b{color:var(--acento)}
+.quien{font-size:14px;color:var(--tinta-3)}
+.quien strong{color:var(--tinta-2);font-weight:600}
+
+/* grilla asimétrica: el panel de habilidades es angosto y fijo, el resultado manda */
+.hoja{display:grid;grid-template-columns:288px minmax(0,1fr);gap:0;
+  min-height:calc(100dvh - 54px)}
+
+/* ---- panel de habilidades: control, no adorno ---- */
+.panel{border-right:1px solid var(--regla);padding:26px 24px 50px;position:sticky;top:0;align-self:start}
+.panel h2{margin:0;font-size:19px;font-weight:600;line-height:1.25}
+.panel>p{margin:6px 0 18px;font-size:13.5px;color:var(--tinta-3);line-height:1.5}
+.habs{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.habs button{font:inherit;font-size:13.5px;padding:4px 11px;cursor:pointer;
+  border:1px solid var(--regla);border-radius:999px;background:none;color:var(--tinta-3)}
+.habs button[aria-pressed=true]{background:var(--acento);border-color:var(--acento);color:#fff;font-weight:500}
+.panel .pista{margin:16px 0 0;font-size:13px;color:var(--tinta-3);line-height:1.5}
+.panel .pista b{color:var(--tinta-2)}
+
+/* ---- resultados ---- */
+.resultados{padding:26px 34px 80px;max-width:900px}
+.cabeza{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:0 0 6px}
+.cabeza h1{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:34px;line-height:1.1;
+  letter-spacing:-.025em;margin:0;max-width:18ch}
+.orden{display:flex;gap:2px}
+.orden button{font:inherit;font-size:13.5px;font-weight:500;padding:6px 12px;cursor:pointer;
+  background:none;border:1px solid var(--regla);color:var(--tinta-2)}
+.orden button:first-child{border-radius:4px 0 0 4px}
+.orden button:last-child{border-radius:0 4px 4px 0;border-left:0}
+.orden button[aria-pressed=true]{background:var(--acento);border-color:var(--acento);color:#fff}
+.cabeza+p{margin:0 0 26px;font-size:15px;color:var(--tinta-3);max-width:62ch}
+
+.puestos{list-style:none;margin:0;padding:0}
+/* sin tarjeta: cada puesto se separa por espacio y por su propia barra */
+.puesto{padding:24px 0 26px;border-top:1px solid var(--vacio)}
+.puesto:first-child{border-top:0;padding-top:6px}
+
+/* la barra segmentada ES el gráfico propio: un tramo por requisito */
+.barra-req{display:flex;gap:3px;height:12px;margin:0 0 12px}
+.tramo{flex:1;border-radius:2px;background:var(--vacio)}
+.tramo.ok{background:var(--acento)}
+.cifra{display:flex;align-items:baseline;gap:10px;margin:0 0 3px}
+.pct{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:28px;line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.pct.alta{color:var(--acento)}
+.de{font-size:13.5px;color:var(--tinta-3)}
+
+.puesto h2{margin:6px 0 0;font-size:22px;font-weight:600;line-height:1.25;max-width:28ch}
+.donde{margin:3px 0 0;font-size:14px;color:var(--tinta-3)}
+.puesto>p.desc{margin:10px 0 0;font-size:15.5px;color:var(--tinta-2);max-width:64ch;line-height:1.6}
+
+.detalle{margin:14px 0 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 28px;max-width:620px}
+.detalle div{min-width:0}
+.detalle h3{margin:0 0 5px;font-size:13.5px;font-weight:600;color:var(--tinta-2)}
+.detalle ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:5px}
+.detalle li{font-size:13px;padding:2px 9px;border-radius:3px}
+.tengo li{background:var(--acento-tenue);color:var(--acento-fuerte);font-weight:500}
+.nada li{border:1px dashed var(--regla);color:var(--tinta-3)}
+.detalle p.sin{margin:0;font-size:13px;color:var(--tinta-3)}
+
+.fila-accion{margin:18px 0 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fila-accion button{background:var(--acento);border:0;color:#fff;border-radius:4px;padding:10px 22px;
+  font:inherit;font-weight:600;font-size:15px;cursor:pointer}
+.fila-accion button:hover{background:var(--acento-fuerte)}
+.fila-accion span{font-size:13.5px;color:var(--tinta-3)}
+
+.agenda{margin:50px 0 0;padding:22px 0 0;border-top:1px solid var(--regla)}
+.agenda h2{margin:0 0 14px;font-family:"Space Grotesk",sans-serif;font-size:20px;font-weight:600;letter-spacing:-.02em}
+.agenda ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.agenda li{display:grid;grid-template-columns:86px minmax(0,1fr);gap:16px;align-items:baseline}
+.agenda .cuando{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:14px;color:var(--acento);
+  font-variant-numeric:tabular-nums}
+.agenda h3{margin:0;font-size:16px;font-weight:600}
+.agenda p{margin:1px 0 0;font-size:13.5px;color:var(--tinta-3)}
+
+@media (max-width:880px){
+  .hoja{grid-template-columns:minmax(0,1fr)}
+  .panel{position:static;border-right:0;border-bottom:1px solid var(--regla);padding:22px 20px 26px}
+  .resultados{padding:24px 20px 70px}
+  .cabeza h1{font-size:27px}
+  .detalle{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="marca">Link<b>Youth</b></div>
+  <div class="quien"><strong>Mateo Silveira</strong>, Ingeniería en Computación</div>
+</header>
+
+<div class="hoja">
+
+  <aside class="panel">
+    <h2>Lo que sabés hacer</h2>
+    <p>Todo lo de abajo sale de tu perfil. Sacá o agregá algo y mirá cómo cambia lo que te conviene.</p>
+    <ul class="habs" id="habs"></ul>
+    <p class="pista" id="pista"></p>
+  </aside>
+
+  <main class="resultados">
+    <div class="cabeza">
+      <h1 id="titulo">4 llamados, ordenados por lo que ya tenés</h1>
+      <div class="orden" role="group" aria-label="Ordenar">
+        <button type="button" data-o="coincidencia" aria-pressed="true">Coincidencia</button>
+        <button type="button" data-o="reciente" aria-pressed="false">Reciente</button>
+      </div>
+    </div>
+    <p>Cada tramo de la barra es un requisito del puesto. Lleno significa que ya lo declaraste en tu perfil.</p>
+
+    <ol class="puestos" id="puestos"></ol>
+
+    <section class="agenda">
+      <h2>Actividades abiertas</h2>
+      <ul>
+        <li><span class="cuando">23 set 18:30</span><span><h3>Cómo preparar tu primera entrevista técnica</h3><p>PedidosYa, taller de dos horas</p></span></li>
+        <li><span class="cuando">4 oct 14:00</span><span><h3>Feria de Primer Empleo Tecnológico</h3><p>Universidad de la República</p></span></li>
+        <li><span class="cuando">15 oct 19:00</span><span><h3>Primeros pasos en análisis de datos</h3><p>dLocal, charla abierta</p></span></li>
+      </ul>
+    </section>
+  </main>
+
+</div>
+
+<script>
+const HABILIDADES = ["React","TypeScript","JavaScript","HTML y CSS","Git","SQL","Inglés B2","Trabajo en equipo","Comunicación","Desarrollo web","Diseño de interfaces","Primera experiencia"];
+const activas = new Set(HABILIDADES);
+
+const PUESTOS = [
+  {id:"v1",titulo:"Desarrollador Frontend Junior",empresa:"Mercado Libre",rubro:"Comercio electrónico",
+   orden:1,posiciones:"2 posiciones",publicada:"hace 3 horas",
+   desc:"Equipo de design system: componentes reutilizables en React y TypeScript, con un referente técnico durante los primeros seis meses. No piden experiencia previa en la industria.",
+   req:["React","TypeScript","HTML y CSS","Git","Desarrollo web","Diseño de interfaces"]},
+  {id:"v2",titulo:"Pasantía en Ingeniería de Interfaces",empresa:"PedidosYa",rubro:"Tecnología y logística",
+   orden:2,posiciones:"3 posiciones",publicada:"hace 9 horas",
+   desc:"Seis meses rentados en el equipo de checkout, sobre la interfaz que usan miles de personas por día. Revisión de código y mentoría semanal.",
+   req:["React","JavaScript","HTML y CSS","Desarrollo web","Primera experiencia"]},
+  {id:"v3",titulo:"Analista de Datos Junior",empresa:"dLocal",rubro:"Fintech",
+   orden:3,posiciones:"1 posición",publicada:"hace 1 día",
+   desc:"Reportes de negocio: consultas SQL, mantenimiento de tableros y presentación de hallazgos al equipo comercial.",
+   req:["SQL","Planillas de cálculo","Inglés B2","Datos","Negocios"]},
+  {id:"v4",titulo:"Pasantía en Atención al Cliente",empresa:"Mercado Libre",rubro:"Comercio electrónico",
+   orden:4,posiciones:"5 posiciones",publicada:"hace 2 días",
+   desc:"Primera experiencia en posventa. Formación paga las primeras cuatro semanas y horario compatible con estudio.",
+   req:["Comunicación","Trabajo en equipo","Atención al cliente","Primera experiencia"]},
+];
+
+let orden = "coincidencia";
+
+const tengo = r => [...activas].some(h => h.toLowerCase() === r.toLowerCase());
+const pct = p => Math.round(100 * p.req.filter(tengo).length / p.req.length);
+
+function pintarHabs(){
+  document.getElementById("habs").innerHTML = HABILIDADES.map(h=>
+    `<li><button type="button" data-h="${h}" aria-pressed="${activas.has(h)}">${h}</button></li>`).join("");
+  const n = activas.size;
+  document.getElementById("pista").innerHTML =
+    `<b>${n}</b> de ${HABILIDADES.length} activas. El orden de la derecha se recalcula solo.`;
+}
+
+function pintarPuestos(){
+  const lista = [...PUESTOS].sort((a,b)=>
+    orden==="coincidencia" ? pct(b)-pct(a) || a.orden-b.orden : a.orden-b.orden);
+
+  document.getElementById("titulo").textContent = orden==="coincidencia"
+    ? lista.length+" llamados, ordenados por lo que ya tenés"
+    : lista.length+" llamados, del más nuevo al más viejo";
+
+  document.getElementById("puestos").innerHTML = lista.map(p=>{
+    const v = pct(p);
+    const cubiertos = p.req.filter(tengo);
+    const faltantes = p.req.filter(r=>!tengo(r));
+    return `<li class="puesto">
+      <div class="barra-req" role="img" aria-label="${cubiertos.length} de ${p.req.length} requisitos cubiertos">
+        ${p.req.map(r=>`<span class="tramo ${tengo(r)?"ok":""}"></span>`).join("")}
+      </div>
+      <div class="cifra">
+        <span class="pct ${v>=70?"alta":""}">${v}%</span>
+        <span class="de">${cubiertos.length} de ${p.req.length} requisitos</span>
+      </div>
+      <h2>${p.titulo}</h2>
+      <p class="donde">${p.empresa}, ${p.rubro}</p>
+      <p class="desc">${p.desc}</p>
+      <div class="detalle">
+        <div><h3>Ya lo tenés</h3>${cubiertos.length
+          ? `<ul class="tengo">${cubiertos.map(r=>`<li>${r}</li>`).join("")}</ul>`
+          : `<p class="sin">Nada de lo que piden está en tu perfil.</p>`}</div>
+        <div><h3>Te falta</h3>${faltantes.length
+          ? `<ul class="nada">${faltantes.map(r=>`<li>${r}</li>`).join("")}</ul>`
+          : `<p class="sin">Nada. Cumplís con todo lo que piden.</p>`}</div>
+      </div>
+      <div class="fila-accion">
+        <button type="button">Postularme</button>
+        <span>${p.posiciones}, publicado ${p.publicada}</span>
+      </div>
+    </li>`;
+  }).join("");
+}
+
+document.getElementById("habs").addEventListener("click", ev=>{
+  const b = ev.target.closest("button");
+  if(!b) return;
+  const h = b.dataset.h;
+  activas.has(h) ? activas.delete(h) : activas.add(h);
+  b.setAttribute("aria-pressed", String(activas.has(h)));
+  document.getElementById("pista").innerHTML =
+    `<b>${activas.size}</b> de ${HABILIDADES.length} activas. El orden de la derecha se recalcula solo.`;
+  pintarPuestos();
+});
+
+document.querySelector(".orden").addEventListener("click", ev=>{
+  const b = ev.target.closest("button");
+  if(!b) return;
+  orden = b.dataset.o;
+  document.querySelectorAll(".orden button")
+    .forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+  pintarPuestos();
+});
+
+pintarHabs(); pintarPuestos();
+</script>
+</body>
+</html>

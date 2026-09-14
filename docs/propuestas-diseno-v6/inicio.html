@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inicio · LinkYouth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<div class="marco">
+  <div id="barra"></div>
+  <div class="contenido">
+    <div class="dos-col">
+      <main class="hoja">
+        <header class="titulo">
+          <h1 id="saludo"></h1>
+          <p>Estas son las oportunidades y los eventos que mejor coinciden con las habilidades de tu perfil.</p>
+        </header>
+
+        <div class="hoja" style="gap:28px">
+          <div id="aviso"></div>
+          <nav class="pestanas" aria-label="Vista del feed">
+            <a href="inicio.html" aria-current="page">Oportunidades</a>
+            <a href="inicio.html?vista=eventos">Actividades</a>
+          </nav>
+          <section class="grupo-items" id="feed" aria-label="Oportunidades laborales"></section>
+        </div>
+      </main>
+      <aside id="ficha"></aside>
+    </div>
+  </div>
+</div>
+<script src="datos.js"></script>
+<script>
+montar("inicio.html");
+document.getElementById("saludo").textContent = "Hola, " + PERFIL.nombre;
+document.getElementById("aviso").innerHTML = aviso();
+document.getElementById("ficha").innerHTML = ficha();
+
+const verEventos = new URLSearchParams(location.search).get("vista") === "eventos";
+const feed = document.getElementById("feed");
+const tabs = document.querySelectorAll(".pestanas a");
+
+if (verEventos) {
+  tabs[0].removeAttribute("aria-current");
+  tabs[1].setAttribute("aria-current", "page");
+  feed.setAttribute("aria-label", "Actividades");
+  feed.className = "eventos";
+  feed.innerHTML = EVENTOS.map(filaEvento).join("");
+} else {
+  feed.innerHTML = [...VACANTES].sort((a,b)=>afinidad(b)-afinidad(a)).map(tarjetaVacante).join("");
+}
+</script>
+</body>
+</html>

@@ -252,6 +252,20 @@ fallar.
 
 ---
 
+## Pendientes de interfaz
+
+Defectos con arreglo conocido, sin hito propio. Los dos salieron de prototipar
+la jerarquía de tarjetas en [`propuestas-diseno-v3.md`](./propuestas-diseno-v3.md).
+
+- **Salto de nivel de encabezado.** `TarjetaVacante.tsx:64` y
+  `TarjetaEvento.tsx:84` usan `h3` directo bajo el `h1` de la página, sin `h2`
+  intermedio.
+- **Contraste insuficiente.** `tinta-tenue` (`#98a2b3`) en
+  `postulaciones/page.tsx` da 2.58:1 contra blanco en el texto de los pasos
+  futuros, por debajo del 4.5:1 mínimo para texto normal.
+
+---
+
 ## Lo que hay que decidir en el camino
 
 Ninguna de estas dos tiene respuesta hoy, y las dos van a frenar el trabajo

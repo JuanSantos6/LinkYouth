@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Postulaciones · LinkYouth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<div class="marco">
+  <div id="barra"></div>
+  <main class="contenido">
+    <div class="hoja" style="max-width:860px">
+      <header class="titulo">
+        <h1>Mis postulaciones</h1>
+        <p>El estado de cada proceso, actualizado por la empresa que publicó la búsqueda.</p>
+      </header>
+      <div class="hoja" style="gap:26px">
+        <div id="aviso"></div>
+        <section id="lista" aria-label="Postulaciones enviadas"></section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="datos.js"></script>
+<script>
+montar("postulaciones.html");
+document.getElementById("aviso").innerHTML = aviso();
+
+const ETIQUETA = {pendiente:"Enviada",en_revision:"En revisión",aceptada:"Aceptada",
+                  rechazada:"No seleccionada",cancelada:"Cancelada por vos"};
+const TONO = {pendiente:"",en_revision:"acento",aceptada:"exito",rechazada:"alerta",cancelada:""};
+const PASOS = ["Enviada","En revisión","Resolución"];
+const actual = e => e==="pendiente" ? 0 : e==="en_revision" ? 1 : 2;
+
+function recorrido(estado){
+  const a = actual(estado);
+  const mal = estado==="rechazada" || estado==="cancelada";
+  return `<ol class="recorrido">${PASOS.map((paso,i)=>{
+    const hecho = i <= a, finalMal = mal && i === 2;
+    return `<li><span class="hito${hecho?" hecho":""}${finalMal?" mal":""}">
+      <span class="bolita" aria-hidden="true"></span>${paso}</span>
+      ${i<PASOS.length-1?`<span class="tramo${i<a?" hecho":""}" aria-hidden="true"></span>`:""}</li>`;
+  }).join("")}</ol>`;
+}
+
+document.getElementById("lista").innerHTML = POSTULACIONES.length
+  ? POSTULACIONES.map(p=>`<article class="postulacion">
+      <div class="post-cabeza">
+        <div style="min-width:0">
+          <h2>${esc(p.titulo)}</h2>
+          <p class="donde"><b>${esc(p.empresa)}</b>. Enviada ${esc(p.enviada)}.</p>
+        </div>
+        <span class="insignia ${TONO[p.estado]}">${ETIQUETA[p.estado]}</span>
+      </div>
+      ${recorrido(p.estado)}
+      ${["pendiente","en_revision"].includes(p.estado)
+        ? `<div class="post-pie"><button class="boton texto" type="button">Cancelar postulación</button></div>` : ""}
+    </article>`).join("")
+  : vacio("Todavía no te postulaste a ninguna búsqueda",
+          "Cuando te postules, vas a poder seguir acá en qué etapa está cada proceso.",
+          {href:"empleos.html", texto:"Ver empleos y pasantías"});
+</script>
+</body>
+</html>

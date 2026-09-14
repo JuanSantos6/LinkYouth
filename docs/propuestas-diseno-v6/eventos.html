@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eventos · LinkYouth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<div class="marco">
+  <div id="barra"></div>
+  <main class="contenido">
+    <div class="hoja" style="max-width:860px">
+      <header class="titulo">
+        <h1>Actividades abiertas</h1>
+        <p>Charlas, talleres y ferias que organizan empresas e instituciones educativas. La inscripción es gratuita.</p>
+      </header>
+      <div class="hoja" style="gap:26px">
+        <div id="aviso"></div>
+        <section class="eventos" id="lista" aria-label="Actividades en agenda"></section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="datos.js"></script>
+<script>
+montar("eventos.html");
+document.getElementById("aviso").innerHTML = aviso();
+document.getElementById("lista").innerHTML = EVENTOS.length
+  ? EVENTOS.map(filaEvento).join("")
+  : vacio("No hay actividades en agenda",
+          "Cuando una organización publique una actividad, vas a verla acá con su fecha y su organizador.");
+</script>
+</body>
+</html>

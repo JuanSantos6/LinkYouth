@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Empleos · LinkYouth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<div class="marco">
+  <div id="barra"></div>
+  <main class="contenido">
+    <div class="hoja" style="max-width:860px">
+      <header class="titulo">
+        <h1>Empleos y pasantías</h1>
+        <p>Búsquedas abiertas para primera experiencia laboral. La compatibilidad se calcula contra las habilidades de tu perfil.</p>
+      </header>
+
+      <div class="hoja" style="gap:26px">
+        <div id="aviso"></div>
+
+        <div class="filtro-fila">
+          <div class="buscador">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>
+            </svg>
+            <input type="search" id="q" autocomplete="off" spellcheck="false"
+                   aria-label="Buscar oportunidades"
+                   placeholder="Buscar por puesto, empresa o habilidad…">
+          </div>
+          <nav class="filtros" aria-label="Tipo de oportunidad">
+            <a href="empleos.html" data-tipo="">Todas</a>
+            <a href="empleos.html?tipo=empleo" data-tipo="empleo">Empleos</a>
+            <a href="empleos.html?tipo=pasantia" data-tipo="pasantia">Pasantías</a>
+          </nav>
+        </div>
+
+        <p class="meta" id="cuenta"></p>
+        <section class="grupo-items" id="lista" aria-label="Búsquedas abiertas"></section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="datos.js"></script>
+<script>
+montar("empleos.html");
+document.getElementById("aviso").innerHTML = aviso();
+const tipo = new URLSearchParams(location.search).get("tipo") || "";
+document.querySelectorAll(".filtros a").forEach(a=>{
+  if (a.dataset.tipo === tipo) a.setAttribute("aria-current","page");
+});
+function pintar(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const lista = VACANTES.filter(v =>
+    (!tipo || v.tipo === tipo) &&
+    (!q || (v.titulo+" "+v.empresa+" "+requisitos(v).join(" ")).toLowerCase().includes(q))
+  ).sort((a,b)=>afinidad(b)-afinidad(a));
+  document.getElementById("cuenta").textContent =
+    (lista.length===1 ? "1 búsqueda abierta" : lista.length+" búsquedas abiertas") + (q?` para «${q}»`:"");
+  document.getElementById("lista").innerHTML = lista.length
+    ? lista.map(tarjetaVacante).join("")
+    : vacio("No encontramos vacantes con ese criterio",
+            "Probá con menos palabras o mirá todas las búsquedas abiertas.",
+            {href:"empleos.html", texto:"Ver todas las vacantes"});
+}
+document.getElementById("q").addEventListener("input", pintar);
+pintar();
+</script>
+</body>
+</html>

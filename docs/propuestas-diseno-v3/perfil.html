@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi perfil · LinkYouth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<div class="marco">
+  <div id="barra"></div>
+  <main class="contenido">
+    <div class="pila" style="max-width:760px">
+      <header class="encabezado">
+        <h1>Mi perfil</h1>
+        <p>Esto es lo que ve una empresa cuando entra a tu perfil. LinkYouth no usa currículum: lo que cuenta son tus habilidades y tu formación.</p>
+      </header>
+
+      <div id="aviso"></div>
+
+      <section class="seccion">
+        <div class="seccion-cabeza">
+          <h2>Datos personales</h2>
+          <p>Tu nombre, dónde estás y cómo te presentás.</p>
+        </div>
+
+        <div class="foto">
+          <span class="avatar redondo lg" id="ini" aria-hidden="true"></span>
+          <div>
+            <h3>Foto de perfil</h3>
+            <p>JPG, PNG o WebP. Una foto donde se te vea la cara ayuda a que te reconozcan en una entrevista.</p>
+          </div>
+        </div>
+
+        <form style="margin-top:22px;display:grid;gap:16px" onsubmit="return false">
+          <div class="rejilla">
+            <label class="campo"><span>Nombre</span>
+              <input name="nombre" autocomplete="given-name" value="Mateo"></label>
+            <label class="campo"><span>Apellido</span>
+              <input name="apellido" autocomplete="family-name" value="Silveira"></label>
+          </div>
+          <div class="rejilla">
+            <label class="campo"><span>País</span>
+              <input name="pais" autocomplete="country-name" value="Uruguay"></label>
+            <label class="campo"><span>Nombre de usuario</span>
+              <input name="usuario" value="@mateo_silveira" spellcheck="false" readonly>
+              <span class="ayuda">Por ahora no se puede cambiar desde acá.</span></label>
+          </div>
+          <label class="campo"><span>Biografía</span>
+            <textarea name="bio" rows="4" id="bio"></textarea>
+            <span class="ayuda">Hasta 600 caracteres.</span></label>
+          <div class="acciones-derecha"><button class="boton" type="submit">Guardar cambios</button></div>
+        </form>
+      </section>
+
+      <section class="seccion">
+        <div class="seccion-cabeza">
+          <h2>Intereses y habilidades</h2>
+          <p>Las etiquetas con las que la plataforma te acerca vacantes y eventos.</p>
+        </div>
+        <div id="nube"></div>
+      </section>
+
+      <section class="seccion">
+        <div class="seccion-cabeza">
+          <h2>Formación</h2>
+          <p>Estudios en curso y finalizados.</p>
+        </div>
+        <ul class="formacion" id="formacion"></ul>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="datos.js"></script>
+<script>
+montar("perfil.html");
+document.getElementById("aviso").innerHTML = avisoDemo();
+document.getElementById("ini").textContent = iniciales(PERFIL.nombre + " " + PERFIL.apellido);
+document.getElementById("bio").value = PERFIL.bio;
+
+document.getElementById("nube").innerHTML = [
+  {titulo:"Habilidades", ayuda:"Lo que sabés hacer.", items:PERFIL.habilidades},
+  {titulo:"Áreas de interés", ayuda:"Hacia dónde querés ir.", items:PERFIL.tags},
+].map(g => `<div class="grupo" style="margin-top:0;margin-bottom:20px">
+    <p class="rotulo">${g.titulo}</p>
+    <p class="meta" style="margin-top:1px">${g.ayuda}</p>
+    <ul class="chips" style="margin-top:8px">${g.items.map(i=>`<li class="chip">${esc(i)}</li>`).join("")}</ul>
+  </div>`).join("");
+
+document.getElementById("formacion").innerHTML = PERFIL.formaciones.map(f => `<li>
+    <span class="avatar cuadrado md" aria-hidden="true">${iniciales(f.institucion)}</span>
+    <div style="min-width:0;flex:1">
+      <h3>${esc(f.titulo)}</h3>
+      <span class="insignia ${f.estado === "finalizado" ? "exito" : "primario"}" style="margin-left:8px">
+        ${f.estado === "finalizado" ? "Finalizado" : "En curso"}</span>
+      <p class="inst">${esc(f.institucion)}</p>
+    </div>
+  </li>`).join("");
+</script>
+</body>
+</html>

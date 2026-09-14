@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A · Llamado — LinkYouth /inicio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#ffffff;
+  --indice:#eef2f6;
+  --tinta:#0c1b2a;
+  --tinta-2:#33465c;
+  --tinta-3:#52657a;
+  --regla:#748aa0;
+  --acento:#0369a1;
+  --acento-fuerte:#075985;
+  --si:#15803d;
+  --no:#b42318;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font-family:Barlow,system-ui,sans-serif;font-size:16px;line-height:1.55}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--acento);outline-offset:3px}
+
+/* ---- barra superior: una línea, sin tarjeta, sin sombra ---- */
+.barra{display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+  padding:14px 28px;border-bottom:1px solid var(--regla)}
+.marca{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:22px;letter-spacing:.01em}
+.marca b{color:var(--acento)}
+.quien{font-size:14px;color:var(--tinta-3)}
+.quien strong{color:var(--tinta-2);font-weight:600}
+
+/* ---- la grilla asimétrica: índice angosto + expediente ancho ---- */
+.hoja{display:grid;grid-template-columns:330px minmax(0,1fr);min-height:calc(100dvh - 53px)}
+
+/* ---- índice ---- */
+.indice{background:var(--indice);border-right:1px solid var(--regla);padding:22px 0 40px}
+.indice-cabeza{padding:0 22px 14px}
+.indice-cabeza .indice-titulo{margin:0;font-family:"Barlow Condensed",sans-serif;font-weight:600;
+  font-size:26px;line-height:1.1;letter-spacing:.01em;margin:0}
+.indice-cabeza p{margin:2px 0 0;font-size:13px;color:var(--tinta-3)}
+.filtro{display:flex;gap:0;padding:0 22px 10px}
+.filtro button{flex:1;background:none;border:1px solid var(--regla);border-right-width:0;
+  padding:5px 4px;font:inherit;font-size:13px;font-weight:600;color:var(--tinta-2);cursor:pointer}
+.filtro button:last-child{border-right-width:1px}
+.filtro button[aria-pressed=true]{background:var(--acento);border-color:var(--acento);color:#fff}
+
+.entradas{list-style:none;margin:0;padding:0}
+.entrada{width:100%;display:grid;grid-template-columns:8px minmax(0,1fr) auto;gap:0 12px;
+  align-items:start;background:none;border:0;border-top:1px solid #cfd9e2;
+  padding:13px 22px 13px 0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.entrada:hover{background:#e4ebf2}
+/* la selección es una barra en el margen, no un bloque de color de fondo */
+.marca-sel{width:4px;align-self:stretch;background:transparent;margin-left:0}
+.entrada[aria-current=true] .marca-sel{background:var(--acento)}
+.entrada[aria-current=true] .puesto{color:var(--acento-fuerte)}
+.empresa{font-size:12.5px;color:var(--tinta-3);letter-spacing:.01em}
+.puesto{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:19px;line-height:1.15;margin-top:1px}
+.coincide{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:19px;color:var(--tinta-2);
+  font-variant-numeric:tabular-nums;padding-top:14px}
+.coincide.alta{color:var(--si)}
+
+/* ---- expediente ---- */
+.expediente{padding:44px 56px 80px;max-width:780px}
+.rotulo{font-size:13px;color:var(--tinta-3)}
+.titular{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:52px;line-height:1.02;
+  letter-spacing:-.005em;margin:4px 0 0;max-width:14ch}
+.bajada{margin:18px 0 0;font-size:17px;line-height:1.6;max-width:62ch;color:var(--tinta-2)}
+
+.datos{display:flex;gap:34px;margin:26px 0 0;padding:14px 0;border-top:1px solid var(--regla);border-bottom:1px solid var(--regla)}
+.dato dt{font-size:12.5px;color:var(--tinta-3)}
+.dato dd{margin:1px 0 0;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:21px}
+
+/* comparación: la estructura ES la información */
+.cotejo{margin:30px 0 0}
+.cotejo h2{margin:0 0 12px;font-size:16px;font-weight:600}
+.cotejo ul{list-style:none;margin:0;padding:0;display:grid;gap:1px;background:#dde4ea;border:1px solid #dde4ea}
+.cotejo li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;
+  background:var(--papel);padding:9px 14px}
+.cotejo .req{font-size:15px}
+.cotejo .ver{font-size:13.5px;font-weight:600}
+.tenes{color:var(--si)}
+.falta{color:var(--no)}
+
+.pie{display:flex;align-items:center;gap:18px;margin:32px 0 0}
+.postular{background:var(--acento);color:#fff;border:0;border-radius:3px;
+  padding:13px 30px;font:inherit;font-weight:600;font-size:16px;cursor:pointer}
+.postular:hover{background:var(--acento-fuerte)}
+.nota{font-size:13.5px;color:var(--tinta-3)}
+
+/* ---- agenda: al pie del expediente, no en una columna derecha ---- */
+.agenda{margin:56px 0 0;padding-top:22px;border-top:3px solid var(--tinta)}
+.agenda h2{margin:0 0 4px;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:26px}
+.agenda>p{margin:0 0 16px;font-size:14px;color:var(--tinta-3)}
+.agenda ol{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.agenda li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:18px;padding:14px 0;border-top:1px solid #dde4ea}
+.cuando{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;color:var(--acento);
+  text-align:right;font-variant-numeric:tabular-nums;line-height:1.25}
+.agenda h3{margin:0;font-size:16px;font-weight:600}
+.agenda p.org{margin:2px 0 0;font-size:13.5px;color:var(--tinta-3)}
+
+@media (max-width:900px){
+  .hoja{grid-template-columns:minmax(0,1fr)}
+  .indice{border-right:0;border-bottom:1px solid var(--regla)}
+  .expediente{padding:30px 22px 60px}
+  .titular{font-size:38px;max-width:none}
+  .datos{gap:22px;flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="marca">Link<b>Youth</b></div>
+  <div class="quien"><strong>Mateo Silveira</strong>, Ingeniería en Computación</div>
+</header>
+
+<div class="hoja">
+
+  <nav class="indice" aria-label="Llamados abiertos">
+    <div class="indice-cabeza">
+      <p class="indice-titulo" id="conteo">4 llamados abiertos</p>
+      <p>Ordenados por lo que coinciden con lo que sabés hacer.</p>
+    </div>
+    <div class="filtro" role="group" aria-label="Tipo de llamado">
+      <button type="button" data-tipo="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-tipo="empleo" aria-pressed="false">Empleos</button>
+      <button type="button" data-tipo="pasantia" aria-pressed="false">Pasantías</button>
+    </div>
+    <ul class="entradas" id="entradas"></ul>
+  </nav>
+
+  <main class="expediente" id="expediente" tabindex="-1"></main>
+
+</div>
+
+<script>
+// Igual que la app: `afinidad` compara contra tags + habilidades del perfil.
+const YO = ["React","TypeScript","JavaScript","HTML y CSS","Git","SQL","Inglés B2","Trabajo en equipo","Comunicación",
+            "Desarrollo web","Diseño de interfaces","Primera experiencia"];
+
+const VACANTES = [
+  {id:"v1",titulo:"Desarrollador Frontend Junior",empresa:"Mercado Libre",rubro:"Comercio electrónico",
+   tipo:"empleo",posiciones:2,publicada:"hace 3 horas",
+   descripcion:"Sumate al equipo de design system: vas a construir componentes reutilizables en React y TypeScript, con acompañamiento de un referente técnico durante los primeros seis meses. No pedimos experiencia previa en la industria.",
+   requisitos:["React","TypeScript","HTML y CSS","Git","Desarrollo web","Diseño de interfaces"]},
+  {id:"v2",titulo:"Pasantía en Ingeniería de Interfaces",empresa:"PedidosYa",rubro:"Tecnología y logística",
+   tipo:"pasantia",posiciones:3,publicada:"hace 9 horas",
+   descripcion:"Pasantía rentada de seis meses en el equipo de checkout. Vas a trabajar sobre la interfaz que usan miles de personas por día, con revisión de código y mentoría semanal.",
+   requisitos:["React","JavaScript","HTML y CSS","Desarrollo web","Primera experiencia"]},
+  {id:"v3",titulo:"Analista de Datos Junior",empresa:"dLocal",rubro:"Fintech",
+   tipo:"empleo",posiciones:1,publicada:"hace 1 día",
+   descripcion:"Buscamos una persona curiosa para el equipo de reportes de negocio: vas a escribir consultas SQL, mantener tableros y presentar hallazgos al equipo comercial.",
+   requisitos:["SQL","Planillas de cálculo","Inglés B2","Datos","Negocios"]},
+  {id:"v4",titulo:"Pasantía en Atención al Cliente",empresa:"Mercado Libre",rubro:"Comercio electrónico",
+   tipo:"pasantia",posiciones:5,publicada:"hace 2 días",
+   descripcion:"Primera experiencia laboral en el equipo de posventa. Formación paga las primeras cuatro semanas y horario compatible con estudio.",
+   requisitos:["Comunicación","Trabajo en equipo","Atención al cliente","Primera experiencia"]},
+];
+
+const EVENTOS = [
+  {cuando:"23 set<br>18:30",titulo:"Taller: cómo preparar tu primera entrevista técnica",org:"PedidosYa"},
+  {cuando:"4 oct<br>14:00",titulo:"Feria de Primer Empleo Tecnológico",org:"Universidad de la República"},
+  {cuando:"15 oct<br>19:00",titulo:"Charla abierta: primeros pasos en análisis de datos",org:"dLocal"},
+];
+
+const mias = new Set(YO.map(s=>s.toLowerCase()));
+const tengo = r => mias.has(r.toLowerCase());
+const afinidad = v => Math.round(100*v.requisitos.filter(tengo).length/v.requisitos.length);
+
+let tipo = "todos";
+let elegida = "v1";
+
+function visibles(){
+  return VACANTES
+    .filter(v => tipo==="todos" || v.tipo===tipo)
+    .sort((a,b)=>afinidad(b)-afinidad(a));
+}
+
+function pintarIndice(){
+  const lista = visibles();
+  document.getElementById("conteo").textContent =
+    lista.length===1 ? "1 llamado abierto" : lista.length+" llamados abiertos";
+  document.getElementById("entradas").innerHTML = lista.map(v=>{
+    const a = afinidad(v);
+    return `<li><button class="entrada" data-id="${v.id}" aria-current="${v.id===elegida}">
+      <span class="marca-sel" aria-hidden="true"></span>
+      <span>
+        <span class="empresa">${v.empresa}</span>
+        <span class="puesto">${v.titulo}</span>
+      </span>
+      <span class="coincide ${a>=70?"alta":""}">${a}%</span>
+    </button></li>`;
+  }).join("");
+}
+
+function pintarExpediente(){
+  const v = VACANTES.find(x=>x.id===elegida);
+  const a = afinidad(v);
+  const faltan = v.requisitos.filter(r=>!tengo(r)).length;
+  document.getElementById("expediente").innerHTML = `
+    <p class="rotulo">${v.empresa}, ${v.rubro}. Publicado ${v.publicada}.</p>
+    <h1 class="titular">${v.titulo}</h1>
+    <p class="bajada">${v.descripcion}</p>
+
+    <dl class="datos">
+      <div class="dato"><dt>Modalidad</dt><dd>${v.tipo==="pasantia"?"Pasantía":"Empleo"}</dd></div>
+      <div class="dato"><dt>Posiciones</dt><dd>${v.posiciones}</dd></div>
+      <div class="dato"><dt>Coincidencia</dt><dd>${a}%</dd></div>
+      <div class="dato"><dt>Te falta</dt><dd>${faltan===0?"nada":faltan+(faltan===1?" requisito":" requisitos")}</dd></div>
+    </dl>
+
+    <section class="cotejo">
+      <h2>Lo que piden, y lo que ya tenés</h2>
+      <ul>${v.requisitos.map(r=>`<li>
+        <span class="req">${r}</span>
+        <span class="ver ${tengo(r)?"tenes":"falta"}">${tengo(r)?"lo tenés":"te falta"}</span>
+      </li>`).join("")}</ul>
+    </section>
+
+    <div class="pie">
+      <button class="postular" type="button">Postularme</button>
+      <span class="nota">Se envía tu perfil completo. Podés cancelar mientras esté en revisión.</span>
+    </div>
+
+    <section class="agenda">
+      <h2>Y esta semana pasa esto</h2>
+      <p>Actividades abiertas, sin costo, de empresas e instituciones.</p>
+      <ol>${EVENTOS.map(e=>`<li>
+        <span class="cuando">${e.cuando}</span>
+        <span><h3>${e.titulo}</h3><p class="org">${e.org}</p></span>
+      </li>`).join("")}</ol>
+    </section>`;
+}
+
+document.getElementById("entradas").addEventListener("click", ev=>{
+  const b = ev.target.closest(".entrada");
+  if(!b) return;
+  elegida = b.dataset.id;
+  pintarIndice(); pintarExpediente();
+  document.getElementById("expediente").focus();
+});
+
+document.querySelector(".filtro").addEventListener("click", ev=>{
+  const b = ev.target.closest("button");
+  if(!b) return;
+  tipo = b.dataset.tipo;
+  document.querySelectorAll(".filtro button")
+    .forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+  const lista = visibles();
+  if(!lista.some(v=>v.id===elegida)) elegida = lista[0]?.id ?? elegida;
+  pintarIndice(); pintarExpediente();
+});
+
+pintarIndice(); pintarExpediente();
+</script>
+</body>
+</html>

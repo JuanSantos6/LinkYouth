@@ -1,0 +1,417 @@
+/* ===========================================================================
+   LinkYouth — propuesta v4, reescritura de superficie
+   ---------------------------------------------------------------------------
+   Misma composición de las cinco pantallas, mismo glifo de coincidencia,
+   mismo cero-sombra. Lo que cambia es el lenguaje visual, sobre tres
+   pedidos concretos:
+
+   1. Sin radio. `--radio` y `--radio-chico` son 0 en todo el documento,
+      del botón al avatar. Nada de esquinas redondeadas como atajo de
+      "amigable" — la jerarquía la da el tamaño y la tipografía, no la
+      forma del contenedor.
+   2. Sin relleno pastel. Ningún fondo con tinte claro de color (el
+      `-suave` de la versión anterior). Un estado se marca con texto y
+      borde del color que corresponde, o con un relleno sólido y
+      profundo — nunca con un lavado claro.
+   3. Tipografía nueva y con una función real: Public Sans para toda la
+      interfaz (títulos por peso, no por familia distinta) y JetBrains
+      Mono reservado a los números — el puntaje, la fecha, las cifras de
+      la ficha, el ordinal de la formación. La mezcla sans/mono es un
+      registro de instrumento técnico, no de marketing.
+
+   El acento deja de ser un magenta cercano al rosa: es un vino/oxblood
+   profundo (`#7A1230`), con menos luminosidad y una lectura mucho más
+   seria en pantalla. Se usa exactamente donde se usaba antes — el
+   puntaje, el glifo, la sección activa, los enlaces, el foco — nunca
+   como fondo.
+   =========================================================================== */
+
+:root{
+  /* Superficies: papel, no crema ni pastel */
+  --lienzo:#f1efea;
+  --barra:#dcd8cf;
+  --superficie:#ffffff;
+  --superficie-2:#e7e4dd;
+  --borde:#847d70;          /* 3.72:1 sobre blanco, 3.23:1 sobre lienzo, 2.93:1 sobre superficie-2 */
+  --borde-fuerte:#5e594e;
+
+  /* Tinta */
+  --tinta:#1a1814;          /* 15.43:1 sobre lienzo */
+  --tinta-2:#433e37;        /* 10.59:1 sobre blanco */
+  --tinta-3:#645d51;        /* 5.66:1 sobre lienzo */
+  --tinta-hover:#000000;
+
+  /* Acento: vino/oxblood. Nada de magenta pastel — es un color de tinta
+     de sello, no de marca de consumo. */
+  --acento:#7a1230;         /* 9.34:1 sobre lienzo, 10.73:1 sobre blanco */
+  --acento-fuerte:#5c0e24;  /* 11.84:1 sobre lienzo */
+
+  /* Estado: siempre texto/borde del color, nunca relleno claro */
+  --exito:#2f5d34;
+  --aviso:#8a4b12;
+  --alerta:#8c2318;
+
+  /* Ritmo: la separación entre secciones es varias veces la de los
+     elementos de una sección. */
+  --entre-items:14px;
+  --entre-secciones:56px;
+
+  /* Sin radio. Deliberado, en todo el documento. */
+  --radio:0px;
+  --radio-chico:0px;
+
+  /* Tipografía: sans de interfaz + mono reservado a cifras */
+  --font-ui:"Public Sans",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+
+  /* Curva propia: el ease de sistema es débil y no da la sensación de una
+     decisión tomada. cubic-bezier(0.23,1,0.32,1) es un ease-out marcado,
+     pensado para entradas y estados de interfaz. */
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--lienzo);color:var(--tinta);
+  font-family:var(--font-ui);
+  font-size:15px;line-height:1.55;
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0;font-weight:700}
+p{margin:0;text-wrap:pretty}
+a{color:inherit;text-decoration:none}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--acento);outline-offset:2px;border-radius:0}
+
+/* ---- escala: razón irregular, no la rampa 12/14/16/20/24 de siempre ---- */
+.t-38{font-size:38px;line-height:1.02;letter-spacing:-.028em;font-weight:800}
+.t-21{font-size:21px;line-height:1.2;letter-spacing:-.018em;font-weight:700}
+.t-17{font-size:17px;line-height:1.3;letter-spacing:-.01em;font-weight:600}
+.t-15{font-size:15px;line-height:1.6}
+.t-13{font-size:13px;line-height:1.5}
+.t-11{font-size:11px;line-height:1.45;letter-spacing:.012em}
+
+/* ---- cifras: JetBrains Mono en todo lo que sea un número que importa ---- */
+.mono{font-family:var(--font-mono);letter-spacing:-.02em}
+
+/* ===========================================================================
+   Estructura: misma grilla de la aplicación
+   =========================================================================== */
+.marco{margin:0 auto;display:grid;width:100%;max-width:1360px;min-height:100dvh;gap:28px;padding:22px 16px}
+@media (min-width:1024px){.marco{grid-template-columns:248px minmax(0,1fr);gap:36px;padding:34px 28px}}
+/* La banda sangra hasta los bordes del marco para leerse como una columna
+   completa y no como un bloque de color flotando en el medio. Gris papel
+   más oscuro, sin tinte de color: separa por valor, no por decoración. */
+#barra{min-width:0;background:var(--barra);margin:-22px -16px 0;padding:22px 16px 14px}
+@media (min-width:1024px){#barra{margin:-34px 0 -34px -28px;padding:34px 22px 34px 28px}}
+.contenido{min-width:0}
+.hoja{display:grid;gap:var(--entre-secciones)}
+.grupo-items{display:grid;gap:var(--entre-items)}
+
+/* ---- navegación ---- */
+.nav{display:flex;min-width:0;flex-direction:column}
+@media (min-width:1024px){.nav{position:sticky;top:34px;align-self:start}}
+.nav-cabeza{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+@media (min-width:1024px){.nav-cabeza{display:contents}}
+.marca{display:flex;align-items:center;gap:10px}
+@media (min-width:1024px){.marca{order:1;margin-bottom:30px}}
+.marca-nombre{font-size:17px;font-weight:800;letter-spacing:-.015em}
+.nav-lista{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+@media (min-width:1024px){.nav-lista{order:2;flex-direction:column;overflow:visible;padding-bottom:0;scroll-snap-type:none}}
+.nav-lista li{flex-shrink:0;scroll-snap-align:start}
+@media (min-width:1024px){.nav-lista li{flex-shrink:1}}
+.nav-lista a{
+  position:relative;display:flex;align-items:center;gap:10px;
+  padding:8px 12px;font-size:14px;font-weight:500;color:var(--tinta-2);
+  transition:color 140ms var(--ease-out)
+}
+/* microinteracción: el marcador crece desde el borde, no se mueve la fila */
+.nav-lista a::before{
+  content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;background:var(--acento);
+  transform:scaleY(0);transform-origin:center;transition:transform 160ms var(--ease-out)
+}
+@media (max-width:1023px){.nav-lista a::before{left:0;right:0;top:auto;bottom:0;width:auto;height:2px;transform:scaleX(0)}}
+.nav-lista a:hover{color:var(--tinta)}
+.nav-lista a[aria-current=page]{color:var(--acento-fuerte);font-weight:600}
+.nav-lista a[aria-current=page]::before{transform:scaleY(1)}
+@media (max-width:1023px){.nav-lista a[aria-current=page]::before{transform:scaleX(1)}}
+.nav-lista svg{height:17px;width:17px;flex-shrink:0;color:var(--tinta-3)}
+.nav-lista a[aria-current=page] svg{color:var(--acento)}
+.salir{flex-shrink:0}
+@media (min-width:1024px){.salir{order:3;margin-top:30px}}
+.salir button{
+  border:0;background:none;padding:8px 12px;font:inherit;font-size:14px;font-weight:500;
+  color:var(--tinta-2);cursor:pointer;transition:color 140ms var(--ease-out)
+}
+@media (min-width:1024px){.salir button{width:100%;text-align:left}}
+.salir button:hover{color:var(--tinta)}
+
+/* ===========================================================================
+   El glifo: la misma forma que la marca. Una celda por requisito, sin
+   redondear ninguna esquina — con el radio en 0 se lee como una retícula
+   técnica (código de barras, no ícono de librería), que es justo el
+   registro que se buscaba.
+   =========================================================================== */
+.glifo{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,1fr);gap:3px;width:max-content}
+.glifo i{
+  display:block;width:9px;height:9px;border-radius:var(--radio-chico);
+  border:1.5px solid var(--borde);background:transparent;
+  transform:scale(1)
+}
+.glifo i.llena{border-color:var(--acento);background:var(--acento)}
+.marca .glifo i{width:7px;height:7px}
+@media (prefers-reduced-motion:no-preference){
+  .glifo.anima i{animation:aparecer 260ms var(--ease-out) both}
+}
+@keyframes aparecer{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ===========================================================================
+   NIVEL 1 — vacante. Superficie, borde recto y una canaleta de 96px con
+   el puntaje en mono. Sin sombra y sin radio: lo que la distingue es el
+   tamaño del título, el glifo y el aire, no una elevación ni una esquina
+   suavizada.
+   =========================================================================== */
+.vacante{
+  display:grid;grid-template-columns:96px minmax(0,1fr);gap:0 24px;
+  border:1px solid var(--borde);border-radius:var(--radio);background:var(--superficie);
+  padding:22px 24px 18px;transition:border-color 160ms var(--ease-out)
+}
+.vacante:hover{border-color:var(--tinta-2)}
+
+.canaleta{grid-column:1;display:flex;flex-direction:column;gap:9px;align-items:flex-start}
+.puntaje{
+  font-family:var(--font-mono);letter-spacing:-.03em;
+  font-size:36px;line-height:.9;font-weight:700;
+  color:var(--acento)
+}
+.puntaje small{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.canaleta .cuantos{font-family:var(--font-mono);font-size:11px;letter-spacing:0;color:var(--tinta-3)}
+
+.vacante-texto{grid-column:2;min-width:0}
+.donde{font-size:13px;color:var(--tinta-3)}
+.donde b{font-weight:600;color:var(--tinta-2)}
+.vacante h2{margin-top:4px;font-size:21px;line-height:1.25;letter-spacing:-.012em;
+  font-weight:700}
+.resumen{margin-top:8px;font-size:15px;line-height:1.6;color:var(--tinta-2);max-width:62ch}
+
+.rotulo{font-size:11px;letter-spacing:.012em;color:var(--tinta-3)}
+.bloque{margin-top:16px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.chip{
+  display:inline-flex;align-items:center;border:1px solid var(--borde);border-radius:var(--radio-chico);
+  padding:2px 8px;font-size:13px;color:var(--tinta-2);background:var(--superficie)
+}
+/* Se marca lo que FALTA, no lo que ya tenés: con un perfil completo, marcar
+   lo que tenés pinta la pantalla entera del acento y lo devalúa. Además el
+   requisito que no cumplís es el dato accionable. El glifo ya da el recuento.
+   Fondo gris papel llano, sin tinte: no es un estado de color, es ausencia. */
+.chip.falta{border-style:dashed;color:var(--tinta-3);background:var(--superficie-2)}
+.vacante-pie{
+  grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:14px;margin-top:20px;border-top:1px solid var(--borde);padding-top:16px
+}
+.pie-izq{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.meta{font-size:13px;color:var(--tinta-3)}
+
+/* ===========================================================================
+   NIVEL 2 — evento. Sin superficie propia. Es una fila sobre el lienzo,
+   con la fecha en mono en la canaleta y una regla entre una y la
+   siguiente.
+   =========================================================================== */
+.eventos{display:grid}
+.evento{display:grid;grid-template-columns:96px minmax(0,1fr);gap:0 24px;
+  border-top:1px solid var(--borde);padding:20px 0}
+.evento:first-child{border-top:0;padding-top:2px}
+.cuando{grid-column:1}
+.cuando .dia{font-family:var(--font-mono);font-size:26px;line-height:.9;font-weight:700;letter-spacing:-.02em;display:block}
+.cuando .mes{font-size:11px;letter-spacing:.012em;color:var(--tinta-3);display:block;margin-top:4px}
+.cuando .hora{font-family:var(--font-mono);font-size:11px;color:var(--tinta-3);display:block}
+.evento-texto{grid-column:2;min-width:0}
+.evento h2{font-size:17px;line-height:1.3;letter-spacing:-.01em;font-weight:600}
+.evento .resumen{font-size:14px;margin-top:5px}
+.evento-pie{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+
+/* ===========================================================================
+   NIVEL 4 — aviso y estado vacío. Sin caja, sin borde, sin fondo propio.
+   =========================================================================== */
+.aviso{display:flex;gap:10px;border-left:2px solid var(--aviso);padding:2px 0 2px 14px}
+.aviso p{font-size:13px;color:var(--aviso);max-width:74ch}
+.aviso b{font-weight:600}
+.aviso code{font-family:var(--font-mono);font-size:12px}
+.vacio{padding:44px 0 8px;max-width:52ch}
+.vacio h2{font-size:21px;letter-spacing:-.012em;font-weight:700}
+.vacio p{margin-top:8px;font-size:15px;color:var(--tinta-3)}
+.vacio a{margin-top:16px;display:inline-block;font-size:15px;font-weight:600;color:var(--acento);
+  transition:color 140ms var(--ease-out)}
+.vacio a:hover{color:var(--acento-fuerte)}
+
+/* ===========================================================================
+   NIVEL 3 — sección de página. No es tarjeta: es una sección de documento,
+   abierta por una regla gruesa de tinta.
+   =========================================================================== */
+.seccion{border-top:2px solid var(--tinta);padding-top:18px}
+.seccion>header{margin-bottom:22px}
+.seccion h2{font-size:21px;letter-spacing:-.012em;font-weight:700}
+.seccion>header p{margin-top:4px;font-size:14px;color:var(--tinta-3)}
+
+/* ---- encabezado de pantalla ---- */
+.titulo h1{font-size:38px;line-height:1.03;letter-spacing:-.025em;font-weight:800;max-width:17ch}
+.titulo p{margin-top:12px;max-width:58ch;font-size:15px;color:var(--tinta-3)}
+
+/* ---- controles ---- */
+.boton{
+  display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:var(--radio-chico);
+  background:var(--tinta);padding:9px 18px;font:inherit;font-size:14px;font-weight:600;color:#fff;
+  cursor:pointer;transition:background-color 120ms var(--ease-out),transform 120ms var(--ease-out)
+}
+.boton:hover{background:var(--tinta-hover)}
+.boton:active{transform:scale(.97)}
+.boton:disabled{background:var(--superficie-2);color:var(--tinta-2);border:1px solid var(--borde);cursor:not-allowed}
+.boton:disabled:active{transform:none}
+.boton.secundario{background:none;border:1px solid var(--borde);color:var(--tinta)}
+.boton.secundario:hover{background:var(--superficie);border-color:var(--borde-fuerte)}
+.boton.texto{background:none;color:var(--tinta-3);padding:5px 0;font-size:13px}
+.boton.texto:hover{color:var(--acento-fuerte);background:none}
+
+/* Insignia: rótulo mono en mayúsculas, siempre con contorno. El único
+   relleno sólido es el de "Pasantía" — un tipo de vacante, no un estado —
+   y es color plano, no un lavado claro. Los estados de postulación
+   (Enviada / En revisión / Aceptada / No seleccionada) se leen por el
+   color del texto y del borde, nunca por un fondo de color. */
+.insignia{display:inline-flex;align-items:center;border:1px solid var(--borde);border-radius:var(--radio-chico);
+  padding:1px 9px;font-family:var(--font-mono);font-size:11px;letter-spacing:.03em;text-transform:uppercase;
+  font-weight:600;color:var(--tinta-2)}
+.insignia.acento{border-color:var(--acento);background:var(--acento);color:#fff}
+.insignia.exito{border-color:var(--exito);color:var(--exito)}
+.insignia.alerta{border-color:var(--alerta);color:var(--alerta)}
+
+.pestanas{display:flex;gap:24px;border-bottom:1px solid var(--borde)}
+.pestanas a{position:relative;padding:0 0 12px;font-size:15px;font-weight:500;color:var(--tinta-3);
+  transition:color 140ms var(--ease-out)}
+.pestanas a::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:var(--acento);transform:scaleX(0);transition:transform 160ms var(--ease-out)}
+.pestanas a:hover{color:var(--tinta)}
+.pestanas a[aria-current=page]{color:var(--acento-fuerte);font-weight:600}
+.pestanas a[aria-current=page]::after{transform:scaleX(1)}
+
+.filtro-fila{display:flex;flex-wrap:wrap;align-items:center;gap:16px;justify-content:space-between}
+.buscador{position:relative;flex:1;min-width:220px;max-width:400px}
+.buscador svg{position:absolute;left:0;top:50%;height:16px;width:16px;transform:translateY(-50%);color:var(--tinta-3)}
+.buscador input{
+  width:100%;border:0;border-bottom:1px solid var(--borde);background:none;
+  padding:8px 0 8px 24px;font:inherit;font-size:15px;color:var(--tinta)
+}
+.buscador input::placeholder{color:var(--tinta-3)}
+.buscador input:focus{border-bottom-color:var(--acento);outline:none}
+.buscador input:focus-visible{outline:none}
+.filtros{display:flex;gap:18px}
+.filtros a{position:relative;font-size:14px;font-weight:500;color:var(--tinta-3);
+  border-bottom:2px solid transparent;padding-bottom:2px;transition:color 140ms var(--ease-out),border-color 140ms var(--ease-out)}
+.filtros a:hover{color:var(--tinta)}
+.filtros a[aria-current=page]{color:var(--acento-fuerte);font-weight:600;border-bottom-color:var(--acento)}
+
+/* ---- columna de perfil: mismas filas sin superficie que el resto ----
+   Sin tarjeta, sin sombra, sin radio, sin foto de portada y sin la fila
+   de tres estadísticas iguales. El avatar va chico, cuadrado, a la
+   izquierda, y lo que se muestra es accionable. */
+.ficha{border-top:2px solid var(--tinta);padding-top:16px}
+.ficha-quien{display:flex;align-items:center;gap:12px}
+.retrato.chico{height:44px;width:44px;font-size:14px;border-radius:var(--radio-chico)}
+.ficha h2{font-size:17px;letter-spacing:-.01em;font-weight:600}
+.ficha .usuario{font-family:var(--font-mono);font-size:12px;color:var(--tinta-3)}
+.ficha .estudia{margin-top:12px;font-size:13px;line-height:1.5;color:var(--tinta-2)}
+
+.bloque-lateral{margin-top:28px}
+.bloque-lateral h3{font-family:var(--font-ui);font-size:11px;
+  letter-spacing:.012em;font-weight:500;color:var(--tinta-3)}
+.bloque-lateral ul{margin-top:8px}
+
+/* filas etiqueta/valor: alineadas a izquierda y derecha, separadas por regla */
+.datos-fila li{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  border-top:1px solid var(--borde);padding:8px 0;font-size:14px;color:var(--tinta-2)}
+.datos-fila li:first-child{border-top:0}
+.datos-fila b{font-family:var(--font-mono);font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--tinta)}
+.bloque-lateral .pista{margin-top:10px;font-size:12px;line-height:1.45;color:var(--tinta-3)}
+
+.post-mini li{border-top:1px solid var(--borde);padding:10px 0}
+.post-mini li:first-child{border-top:0}
+.post-mini .estado{font-family:var(--font-mono);font-size:11px;letter-spacing:.02em;text-transform:uppercase;color:var(--acento-fuerte);font-weight:600}
+.post-mini .puesto{margin-top:2px;font-size:14px;line-height:1.35;font-weight:600}
+.post-mini .emp{margin-top:1px;font-size:12px;color:var(--tinta-3)}
+.ficha .boton{margin-top:24px;width:100%}
+
+/* ---- postulaciones ---- */
+.postulacion{border-top:1px solid var(--borde);padding:20px 0}
+.postulacion:first-child{border-top:0;padding-top:2px}
+.post-cabeza{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px}
+.postulacion h2{font-size:17px;letter-spacing:-.01em;font-weight:600}
+.postulacion .donde{margin-top:2px}
+.recorrido{display:flex;align-items:center;gap:10px;margin-top:16px}
+.recorrido li{display:flex;flex:1;align-items:center;gap:10px}
+.hito{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--tinta-3)}
+.hito.hecho{color:var(--tinta);font-weight:600}
+.bolita{width:7px;height:7px;border-radius:var(--radio-chico);background:var(--borde);flex-shrink:0}
+.hito.hecho .bolita{background:var(--acento)}
+.hito.mal .bolita{background:var(--alerta)}
+.tramo{flex:1;height:1px;background:var(--borde)}
+.tramo.hecho{background:var(--acento)}
+.post-pie{display:flex;justify-content:flex-end;margin-top:14px}
+
+/* ---- perfil ---- */
+.campo{display:block}
+.campo>span{font-size:13px;font-weight:500;color:var(--tinta-2)}
+.campo input,.campo textarea{
+  width:100%;margin-top:5px;border:0;border-bottom:1px solid var(--borde);background:none;
+  padding:8px 0;font:inherit;font-size:15px;color:var(--tinta);border-radius:0
+}
+.campo textarea{border:1px solid var(--borde);border-radius:var(--radio-chico);padding:10px 12px;resize:vertical}
+.campo input:focus,.campo textarea:focus{border-color:var(--acento);outline:none}
+.campo input:focus-visible,.campo textarea:focus-visible{outline:none}
+.campo .ayuda{margin-top:5px;display:block;font-size:12px;color:var(--tinta-3)}
+.rejilla{display:grid;gap:22px}
+@media (min-width:640px){.rejilla{grid-template-columns:1fr 1fr}}
+.identidad{display:flex;align-items:center;gap:18px;margin-bottom:26px}
+.retrato{
+  display:flex;height:76px;width:76px;flex-shrink:0;align-items:center;justify-content:center;
+  border:1px solid var(--borde);border-radius:var(--radio-chico);background:var(--superficie);
+  font-family:var(--font-mono);font-size:21px;font-weight:700;letter-spacing:-.01em;color:var(--tinta-2)
+}
+.identidad h3{font-size:15px;font-weight:600}
+.identidad p{margin-top:3px;font-size:13px;color:var(--tinta-3);max-width:46ch}
+.formacion li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:0 24px;
+  border-top:1px solid var(--borde);padding:18px 0}
+.formacion li:first-child{border-top:0;padding-top:2px}
+.formacion .ord{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tinta-3)}
+.formacion h3{font-size:16px;letter-spacing:-.008em;font-weight:600}
+.formacion .inst{margin-top:3px;font-size:14px;color:var(--tinta-2)}
+.derecha{display:flex;justify-content:flex-end;margin-top:26px}
+
+.dos-col{display:grid;gap:var(--entre-secciones)}
+@media (min-width:1280px){
+  .dos-col{grid-template-columns:minmax(0,1fr) 264px;gap:48px}
+  .dos-col>aside{position:sticky;top:34px;align-self:start}
+}
+
+@media (max-width:640px){
+  :root{--entre-secciones:40px}
+  .titulo h1{font-size:28px;letter-spacing:-.02em}
+  .vacante,.evento,.formacion li{grid-template-columns:minmax(0,1fr)}
+  .vacante{padding:18px 18px 16px}
+  .canaleta{grid-column:1;flex-direction:row;align-items:center;gap:12px;margin-bottom:14px}
+  .puntaje{font-size:30px}
+  .vacante-texto,.evento-texto{grid-column:1}
+  .cuando{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+  .cuando .dia{font-size:21px}
+  .cuando .mes,.cuando .hora{margin-top:0}
+  .formacion .ord{margin-bottom:6px}
+}
+@media (hover:none){
+  .boton:active{transform:scale(.97)}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .boton:active{transform:none}
+}

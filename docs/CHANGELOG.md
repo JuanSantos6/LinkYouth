@@ -38,6 +38,71 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-13
 
+- **v6 revisada: paleta unificada, tipografía resuelta y el botón de la ficha
+  centrado.** Los tres colores de estado seguían siendo los cálidos de la
+  versión anterior (verde H148, ámbar H29, rojo H4) sobre un esquema azul; se
+  corrieron a la mitad fría (H170, H345) y el aviso pasó a ser el acento,
+  porque su único uso es informativo. La tipografía se comparó renderizando:
+  Public Sans, Hanken Grotesk e IBM Plex Sans; gana Plex por ser superfamilia
+  con Plex Mono, así el puntaje y el texto comparten esqueleto.
+  El botón «Ver mi perfil» tenía dos reglas de `.ficha .boton` en conflicto y
+  quedaba 32 px más ancho que su contenedor: se eliminó la vieja y la que
+  queda usa `display:flex` en vez de `calc`.
+
+- **Propuesta de diseño v6: blanco y celeste, con portada, en
+  `docs/propuestas-diseno-v6.md`.** Pivote de piel sobre la estructura de v4,
+  que no se tocó. Acento `#12506E` (H200 S72 L25), fondo casi blanco, un
+  único plano celeste en la barra de navegación, Hanken Grotesk en lugar de
+  Public Sans, y banner de portada con el avatar montado sobre el borde.
+  Motivo del acento: los diez azules más usados de la industria viven todos
+  entre L 40 y L 68 porque son el relleno del botón primario; este vive en
+  L 25 porque es tinta, no relleno. La justificación completa está en la §2
+  del documento.
+  La portada necesita una columna nueva, `perfiles.portada_url`, que todavía
+  no existe: por ahora es un degradado de la paleta, anotado en el HTML.
+  0 violaciones de axe-core en las cinco pantallas y sin desborde a 390 px.
+
+- **Propuesta de diseño v4, terminada, en `docs/propuestas-diseno-v4.md`.**
+  Las cinco pantallas navegables con la barra lateral completa. Acento
+  frambuesa `#A3195B` reservado al dato —los botones primarios son tinta—,
+  neutros cálidos, escala 11/13/15/17/21/38 con Bricolage Grotesque e
+  Instrument Sans variables, cero `box-shadow` en toda la aplicación, y un
+  glifo propio que es a la vez la marca y el gráfico de coincidencia.
+  Motivo: v2 se leyó como otro producto y v3 cambió tan poco que siguió
+  sintiéndose genérica. Esta parte de qué decisiones concretas toman los
+  productos profesionales bien resueltos, no de elegir una categoría de estilo.
+  0 violaciones de axe-core en las cinco pantallas y sin desborde a 390 px.
+
+- **Propuesta de diseño v3, conservadora y completa, en
+  `docs/propuestas-diseno-v3.md`.** Las cinco pantallas navegables con la barra
+  lateral real, misma paleta y misma tipografía; lo único que cambia es la
+  jerarquía: cuatro niveles de superficie en vez de uno, el puntaje de
+  compatibilidad como pieza principal de la vacante, y fuera los tells de
+  plantilla (mayúsculas espaciadas, degradados sueltos, grilla pareja de tres).
+  Motivo: la v2 cambiaba la composición de raíz y se leía como otro producto.
+  Esta mantiene las pantallas reconocibles.
+  Hallazgo que se traslada a la aplicación: el título de vacante y de evento es
+  `h3` bajo un `h1` sin `h2` intermedio, y el paso no alcanzado de
+  `/postulaciones` usa `tinta-tenue`, 2.58:1 sobre blanco.
+
+- **Rediseño estructural de `/inicio`, tres prototipos navegables en
+  `docs/propuestas-diseno-v2.md`.** Las propuestas v1 sólo cambiaban paleta y
+  tipografía sobre el mismo layout y seguían sintiéndose genéricas. Esta
+  segunda vuelta ataca la composición: índice + expediente asimétrico, línea
+  de tiempo única con numerales de fecha, y barras de compatibilidad como
+  criterio de orden. Son HTML sueltos fuera de `src/`, con interacción real.
+  Motivo: el diagnóstico de `frontend-design` ubica la interfaz actual en dos
+  de los grupos que delatan diseño generado —el kit de tarjetas SaaS y el
+  chrome de plantilla— y ninguno de los dos se arregla con color.
+
+- **Tres direcciones de diseño a elegir, en `docs/propuestas-diseno.md`.** Cada
+  una con su paleta completa como variables CSS, su par tipográfico y capturas
+  de las cinco pantallas repintadas con esos tokens. No se aplicó ninguna: el
+  código sigue con la paleta actual.
+  Motivo: la revisión de tono quedó pendiente en la auditoría de interfaz
+  (`arquitectura.md` §7.6) y bloquea decisiones como partir `--color-borde` en
+  dos tokens. Hace falta elegir antes de seguir tocando color.
+
 - **Latencia de navegación investigada y no resuelta.** Los ~800 ms por
   navegación son dos viajes de red en serie a Supabase, a ~240 ms cada uno por
   la distancia a us-east-2. Se descartan por ahora el Auth Hook, saltear la
