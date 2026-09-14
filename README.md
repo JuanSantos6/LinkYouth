@@ -27,10 +27,10 @@ La especificación funcional completa está en [`docs/`](./docs).
 
 ```
 db/
-  migrations/            Esquema, Row Level Security, vistas y matching
-  seed/                  Catálogo de tags y datos de demostración
-  README.md              Cómo aplicar el esquema y por qué está así
-docs/                    SRS y decisiones técnicas
+  schema.sql             Tablas, restricciones, funciones y disparadores
+  politicas.sql          Row Level Security
+  seed.sql               Catálogo de tags y habilidades
+docs/                    SRS, arquitectura, decisiones, plan y changelog
 src/
   app/
     layout.tsx           Layout raíz: idioma, tipografías, metadata
@@ -90,17 +90,23 @@ la base de datos.
 
 ## Base de datos
 
-El esquema y las instrucciones para aplicarlo están en
-[`db/README.md`](./db/README.md). En resumen, desde el SQL Editor de Supabase
-se ejecutan en orden:
+Desde el **SQL Editor** de Supabase se ejecutan estos tres archivos, en este
+orden:
 
 ```
-db/migrations/0001_esquema.sql
-db/migrations/0002_rls.sql
-db/migrations/0003_vistas_y_matching.sql
-db/seed/0001_tags.sql
-db/seed/0002_demo.sql
+db/schema.sql      Tablas, restricciones, funciones y disparadores
+db/politicas.sql   Row Level Security
+db/seed.sql        Catálogo de tags y habilidades
 ```
+
+`seed.sql` son inserts con `on conflict (nombre) do nothing`: correrlo de
+nuevo agrega lo que falte y no toca lo que ya está. **Nunca borra filas de
+`tags` ni de `habilidades`** — las tablas puente las referencian
+`on delete cascade`, así que un borrado se llevaría los intereses de cada
+perfil y los tags ocultos de cada vacante.
+
+Sobre una base donde el esquema ya corrió, `create policy` falla con
+`already exists`: hay que hacer `drop policy` o `alter policy` antes.
 
 Después conviene regenerar los tipos:
 
@@ -117,7 +123,6 @@ improvisar uno nuevo por pantalla:
 | Skill              | Para qué                                                                                                      |
 | ------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `diseno-linkyouth` | Sistema de diseño: paleta, tipografía, elevación, espaciado, componentes, accesibilidad y tono de los textos. |
-| `datos-linkyouth`  | Modelo de datos: esquema, RLS, tipos, consultas y acciones de servidor.                                       |
 | `graphify`         | Grafo de conocimiento del repositorio.                                                                        |
 
 ## Otros comandos
@@ -129,4 +134,32 @@ npm run lint          # ESLint
 npm run typecheck     # Chequeo de tipos
 npm run format        # Formatea con Prettier
 npm run format:check  # Verifica el formato sin escribir
+npm run test:e2e      # Tests de extremo a extremo con Playwright
+npm run kill-port     # Libera el puerto 3000 (Windows)
 ```
+
+## Problemas conocidos
+
+### `npm run dev` falla con el puerto ocupado
+
+```
+⚠ Port 3000 is in use by process 12928, using available port 3003 instead.
+```
+
+Next arranca en otro puerto y sigue andando, pero todo lo que apunta a
+`localhost:3000` —el navegador, y el `webServer` de `playwright.config.ts`—
+queda hablando con el servidor viejo, que suele estar sirviendo un `.next` ya
+borrado. Los síntomas son un `HTTP 500` en pantallas que funcionan, o
+`Error: Timed out waiting 120000ms from config.webServer` al correr los tests.
+
+Correr antes de reintentar:
+
+```bash
+npm run kill-port
+npm run dev
+```
+
+En Windows, `pkill -f next` desde Git Bash **no** mata esos procesos: no
+coinciden con el patrón. Por eso el script va por `Get-NetTCPConnection`, que
+busca quién tiene tomado el puerto y lo termina por PID. Es idempotente: si no
+hay nada escuchando, no hace nada y no falla.

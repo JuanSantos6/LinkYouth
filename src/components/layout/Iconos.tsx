@@ -119,6 +119,24 @@ export function IconoCodigo(props: IconoProps) {
   );
 }
 
+export function IconoCorreo(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <rect x="3" y="5.5" width="18" height="13" rx="2" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </Base>
+  );
+}
+
+export function IconoSalir(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <path d="M14.5 4.5h-8v15h8" />
+      <path d="M12 12h8m0 0-3-3m3 3-3 3" />
+    </Base>
+  );
+}
+
 export function IconoCamara(props: IconoProps) {
   return (
     <Base {...props}>

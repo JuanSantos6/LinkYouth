@@ -12,9 +12,12 @@ import { FilaVacante } from "./FilaVacante";
 export function ListadoDeVacantes({
   feed,
   yaPostuladas,
+  esEjemplo = false,
 }: {
   feed: FeedDeVacantes;
   yaPostuladas: Set<string>;
+  /** Las vacantes salieron de `ejemplos.ts`. */
+  esEjemplo?: boolean;
 }) {
   const [primera, ...resto] = feed.entradas;
   const destacada = primera?.destacada ? primera : null;
@@ -26,6 +29,7 @@ export function ListadoDeVacantes({
         <FilaVacante
           entrada={destacada}
           yaPostulado={yaPostuladas.has(destacada.vacante.id)}
+          esEjemplo={esEjemplo}
         />
       )}
 
@@ -36,6 +40,7 @@ export function ListadoDeVacantes({
               <FilaVacante
                 entrada={entrada}
                 yaPostulado={yaPostuladas.has(entrada.vacante.id)}
+                esEjemplo={esEjemplo}
               />
             </li>
           ))}

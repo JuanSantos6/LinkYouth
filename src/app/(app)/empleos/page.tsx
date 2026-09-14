@@ -8,6 +8,7 @@ import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import {
   obtenerPerfilActual,
+  obtenerUsuarioId,
   obtenerVacantes,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
@@ -36,10 +37,12 @@ export default async function PaginaEmpleos({
     ? (tipo as TipoOportunidad)
     : undefined;
 
+  const usuarioId = (await obtenerUsuarioId()) ?? undefined;
+
   const [vacantes, perfil, yaPostuladas] = await Promise.all([
     obtenerVacantes({ busqueda: q, tipo: tipoValido, limite: 30 }),
-    obtenerPerfilActual(),
-    obtenerVacantesPostuladas(),
+    obtenerPerfilActual(usuarioId),
+    obtenerVacantesPostuladas(usuarioId),
   ]);
 
   const feed = FeedDeVacantes.armar(vacantes.datos, perfil.datos);
@@ -67,7 +70,7 @@ export default async function PaginaEmpleos({
               <Link
                 key={etiqueta}
                 href={destino}
-                aria-current={activo ? "true" : undefined}
+                aria-current={activo ? "page" : undefined}
                 className={`rounded-control border px-3 py-1.5 text-[13px] transition-colors duration-150 ${
                   activo
                     ? "border-tinta text-tinta"
@@ -103,7 +106,11 @@ export default async function PaginaEmpleos({
             }
           />
         ) : (
-          <ListadoDeVacantes feed={feed} yaPostuladas={yaPostuladas} />
+          <ListadoDeVacantes
+            feed={feed}
+            yaPostuladas={yaPostuladas}
+            esEjemplo={vacantes.origen === "ejemplo"}
+          />
         )}
       </section>
     </div>

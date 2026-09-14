@@ -7,7 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Insignia } from "@/components/ui/Insignia";
-import { obtenerPostulaciones } from "@/lib/data/consultas";
+import { obtenerPostulaciones, obtenerUsuarioId } from "@/lib/data/consultas";
 import {
   ETAPAS,
   ProcesoDePostulacion,
@@ -67,7 +67,9 @@ function Recorrido({ proceso }: { proceso: ProcesoDePostulacion }) {
 }
 
 export default async function PaginaPostulaciones() {
-  const postulaciones = await obtenerPostulaciones();
+  const postulaciones = await obtenerPostulaciones(
+    (await obtenerUsuarioId()) ?? undefined,
+  );
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

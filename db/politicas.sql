@@ -26,15 +26,30 @@ with check (auth.uid() = id);
 
 -- ============================================================
 -- PERFILES
--- Públicos para lectura (RF2.5), salvo los de cuentas dadas de baja.
--- Cada quien crea y edita el suyo.
+-- La tabla NO se lee desde la API. El perfil público de RF2.5 se sirve
+-- por la vista `perfiles_publicos` de schema.sql, que expone solo las
+-- columnas publicables; acá queda únicamente la fila propia, completa.
+--
+-- Motivo (CN-001 de la auditoría del 2026-09-12): RLS es control por
+-- fila, no por columna. La política anterior, `perfiles_lectura_publica
+-- using (cuenta_activa(id))`, autorizaba la fila entera y sin cláusula
+-- `to`, así que alcanzaba también al rol `anon`. Como la ANON_KEY viaja
+-- al navegador por diseño, cualquiera podía consultar PostgREST y leer
+-- `fecha_nacimiento` de todos los usuarios: una columna que la interfaz
+-- no muestra en ningún lado y que solo existe para el constraint
+-- `perfiles_mayor_de_edad` (RF1.1.8).
 -- ============================================================
 
 alter table perfiles enable row level security;
 
-create policy "perfiles_lectura_publica"
+-- Sobre una base que ya tiene la política vieja, esto la saca. En una
+-- base nueva no hace nada: por eso el `if exists`.
+drop policy if exists "perfiles_lectura_publica" on perfiles;
+
+create policy "perfiles_veo_el_mio_completo"
 on perfiles for select
-using (cuenta_activa(id));
+to authenticated
+using (auth.uid() = id);
 
 create policy "perfiles_creo_el_mio"
 on perfiles for insert

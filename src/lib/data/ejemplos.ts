@@ -1,8 +1,10 @@
 import type {
   Aviso,
+  Catalogos,
   Evento,
   Formacion,
   PerfilCompleto,
+  OpcionCatalogo,
   PostulacionResumen,
   Vacante,
 } from "./tipos";
@@ -198,6 +200,48 @@ export const PERFIL_EJEMPLO: PerfilCompleto = {
     "Comunicación",
   ],
   formaciones: FORMACIONES_EJEMPLO,
+};
+
+/**
+ * Catálogos de demostración.
+ *
+ * Los `id` son inventados: sin credenciales no hay fila de `tags` ni de
+ * `habilidades` que referenciar. Por eso `SelectorTags` no deja elegir cuando
+ * el origen es «ejemplo», igual que `BotonAccion` con `esEjemplo`: un clic que
+ * no puede terminar en la base no se ofrece.
+ *
+ * La lista contiene todos los nombres que usan los demás ejemplos de este
+ * archivo, así que lo que el perfil de demostración muestra como elegido
+ * siempre existe en el catálogo.
+ */
+function opcionesDe(nombres: string[]): OpcionCatalogo[] {
+  return nombres
+    .map((nombre) => ({ id: `ejemplo-${nombre}`, nombre }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+}
+
+export const CATALOGOS_EJEMPLO: Catalogos = {
+  tags: opcionesDe([
+    "Atención al cliente",
+    "Datos",
+    "Desarrollo web",
+    "Diseño de interfaces",
+    "Negocios",
+    "Networking",
+    "Primera experiencia",
+  ]),
+  habilidades: opcionesDe([
+    "Comunicación",
+    "Git",
+    "HTML y CSS",
+    "Inglés B2",
+    "JavaScript",
+    "Planillas de cálculo",
+    "React",
+    "SQL",
+    "Trabajo en equipo",
+    "TypeScript",
+  ]),
 };
 
 export const POSTULACIONES_EJEMPLO: PostulacionResumen[] = [

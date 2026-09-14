@@ -1,21 +1,27 @@
 import "server-only";
 
+import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
 
 import {
   AVISOS_EJEMPLO,
+  CATALOGOS_EJEMPLO,
   EVENTOS_EJEMPLO,
   PERFIL_EJEMPLO,
   POSTULACIONES_EJEMPLO,
   VACANTES_EJEMPLO,
 } from "./ejemplos";
 import {
+  type Catalogos,
   comoEstadoEvento,
   comoEstadoFormacion,
   comoEstadoPostulacion,
   comoEstadoVacante,
+  comoTipoCuenta,
   comoTipoOportunidad,
   type Aviso,
+  type TipoCuenta,
   type Evento,
   type PerfilCompleto,
   type PostulacionResumen,
@@ -37,6 +43,8 @@ import {
  * impide a cualquier sesión que no sea la empresa dueña de la vacante.
  */
 
+type ClienteSupabase = NonNullable<Awaited<ReturnType<typeof createClient>>>;
+
 const SIN_CREDENCIALES =
   "Faltan NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY en .env.local";
 
@@ -57,6 +65,73 @@ function nombresDe<C extends string>(
     .map((fila) => fila[catalogo]?.nombre)
     .filter((nombre): nombre is string => Boolean(nombre))
     .sort((a, b) => a.localeCompare(b, "es"));
+}
+
+/**
+ * Id del usuario de la sesión, o `null` si no hay ninguna.
+ *
+ * Cada llamada a `auth.getUser()` es un viaje de red al servidor de auth
+ * (~240 ms medidos). Una pantalla que pide varias lecturas las pagaba todas:
+ * `/inicio` hacía cinco validaciones de la misma sesión para una sola
+ * navegación. Las páginas resuelven el usuario una vez con esta función y se lo
+ * pasan a las consultas.
+ */
+export async function obtenerUsuarioId(): Promise<string | null> {
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user?.id ?? null;
+}
+
+/**
+ * Devuelve el id recibido, o lo resuelve contra el servidor de auth si no vino.
+ *
+ * El parámetro es opcional a propósito: las consultas se llaman también desde
+ * pantallas que solo necesitan una, donde resolver la sesión por su cuenta es
+ * lo correcto y ahorra ceremonia. Quien pide varias lo resuelve una vez y lo
+ * pasa.
+ */
+async function resolverUsuarioId(
+  supabase: ClienteSupabase,
+  usuarioId?: string,
+): Promise<string | null> {
+  if (usuarioId) return usuarioId;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user?.id ?? null;
+}
+
+/**
+ * En qué mitad de la aplicación vive la sesión, o `null` si no hay ninguna.
+ *
+ * La cabecera y el pie aparecen en todas las pantallas, incluidas las
+ * públicas, así que necesitan saberlo para no ofrecerle a una cuenta de
+ * empresa enlaces a secciones del postulante que el middleware le va a
+ * rebotar.
+ */
+export async function obtenerTipoCuenta(
+  usuarioId?: string,
+): Promise<TipoCuenta | null> {
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return null;
+
+  const { data } = await supabase
+    .from("cuentas")
+    .select("tipo")
+    .eq("id", id)
+    .maybeSingle();
+
+  return data ? comoTipoCuenta(data.tipo) : null;
 }
 
 const EMPRESA = "empresas ( id, razon_social, rubro, logo_url )";
@@ -184,21 +259,23 @@ export async function obtenerEventos(
 /**
  * RF2.1 — Perfil de la sesión activa, con sus tags, habilidades y formación.
  *
- * Sin sesión iniciada devuelve el perfil de demostración: hasta que exista el
- * módulo de autenticación (RF1.3, deuda 7.4), es la única forma de recorrer la
- * pantalla.
+ * Sin credenciales de Supabase devuelve el perfil de demostración: sin base no
+ * hay sesión posible y la aplicación tiene que poder recorrerse igual (§2.3).
+ *
+ * Con Supabase configurado y sin sesión, en cambio, manda a `/login`. Antes
+ * devolvía `PERFIL_EJEMPLO` también en ese caso, que desde que existe el login
+ * (RF1.3) significa mostrarle a un desconocido un perfil inventado como si
+ * fuera el suyo. El middleware ya corta ese request antes de llegar acá; esto
+ * es la segunda barrera, para cualquier llamada que no venga de una pantalla.
  */
-export async function obtenerPerfilActual(): Promise<
-  Resultado<PerfilCompleto>
-> {
+export async function obtenerPerfilActual(
+  usuarioId?: string,
+): Promise<Resultado<PerfilCompleto>> {
   const supabase = await createClient();
   if (!supabase) return ejemplo(PERFIL_EJEMPLO, SIN_CREDENCIALES);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return ejemplo(PERFIL_EJEMPLO, SIN_SESION);
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) redirect("/login");
 
   const { data, error } = await supabase
     .from("perfiles")
@@ -209,7 +286,7 @@ export async function obtenerPerfilActual(): Promise<
        perfil_habilidades ( habilidades ( nombre ) ),
        formaciones ( id, institucion, titulo, estado )`,
     )
-    .eq("id", user.id)
+    .eq("id", id)
     .maybeSingle();
 
   if (error) return ejemplo(PERFIL_EJEMPLO, error.message);
@@ -235,20 +312,53 @@ export async function obtenerPerfilActual(): Promise<
   };
 }
 
+/**
+ * RF2.3 y RF2.4.3 — Los dos catálogos cerrados, enteros.
+ *
+ * Se traen completos y sin filtrar: son 36 tags y 20 habilidades, y a ese
+ * tamaño una lectura de cada tabla cuesta menos que un buscador con paginado
+ * que después hay que mantener. Si el catálogo creciera a varios cientos, esto
+ * es lo primero que hay que cambiar.
+ *
+ * `db/politicas.sql` le da lectura pública a las dos tablas y no le da
+ * escritura a nadie: el catálogo se carga por seed, no lo amplía el usuario.
+ */
+export async function obtenerCatalogos(): Promise<Resultado<Catalogos>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(CATALOGOS_EJEMPLO, SIN_CREDENCIALES);
+
+  const [consultaTags, consultaHabilidades] = await Promise.all([
+    supabase.from("tags").select("id, nombre").order("nombre"),
+    supabase.from("habilidades").select("id, nombre").order("nombre"),
+  ]);
+
+  const error = consultaTags.error ?? consultaHabilidades.error;
+  if (error) return ejemplo(CATALOGOS_EJEMPLO, error.message);
+
+  const tags = consultaTags.data ?? [];
+  const habilidades = consultaHabilidades.data ?? [];
+
+  // Sin catálogo no hay nada que elegir, y una lista vacía sin explicación
+  // parece una pantalla rota. Se avisa con `AvisoOrigen` como cualquier otra
+  // lectura que no llegó a los datos reales.
+  if (tags.length === 0 || habilidades.length === 0) {
+    return ejemplo(CATALOGOS_EJEMPLO, TABLA_VACIA);
+  }
+
+  return { datos: { tags, habilidades }, origen: "supabase" };
+}
+
 // --- Postulaciones ----------------------------------------------------------
 
 /** RF3.7 — Postulaciones propias con su estado actual. */
-export async function obtenerPostulaciones(): Promise<
-  Resultado<PostulacionResumen[]>
-> {
+export async function obtenerPostulaciones(
+  usuarioId?: string,
+): Promise<Resultado<PostulacionResumen[]>> {
   const supabase = await createClient();
   if (!supabase) return ejemplo(POSTULACIONES_EJEMPLO, SIN_CREDENCIALES);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return ejemplo(POSTULACIONES_EJEMPLO, SIN_SESION);
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return ejemplo(POSTULACIONES_EJEMPLO, SIN_SESION);
 
   const { data, error } = await supabase
     .from("postulaciones")
@@ -256,7 +366,7 @@ export async function obtenerPostulaciones(): Promise<
       `id, estado, creada_en,
        vacantes ( id, titulo, empresas ( razon_social, logo_url ) )`,
     )
-    .eq("perfil_id", user.id)
+    .eq("perfil_id", id)
     .order("creada_en", { ascending: false });
 
   if (error) return ejemplo(POSTULACIONES_EJEMPLO, error.message);
@@ -285,39 +395,37 @@ export async function obtenerPostulaciones(): Promise<
  * por (vacante, perfil) sin mirar el estado, así que un segundo intento sobre
  * la misma vacante falla igual.
  */
-export async function obtenerVacantesPostuladas(): Promise<Set<string>> {
+export async function obtenerVacantesPostuladas(
+  usuarioId?: string,
+): Promise<Set<string>> {
   const supabase = await createClient();
   if (!supabase) return new Set();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return new Set();
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return new Set();
 
   const { data } = await supabase
     .from("postulaciones")
     .select("vacante_id")
-    .eq("perfil_id", user.id);
+    .eq("perfil_id", id);
 
   return new Set((data ?? []).map((fila) => fila.vacante_id));
 }
 
 /** Ids de los eventos a los que ya está inscripta la sesión activa (RF4.5). */
-export async function obtenerEventosInscriptos(): Promise<Set<string>> {
+export async function obtenerEventosInscriptos(
+  usuarioId?: string,
+): Promise<Set<string>> {
   const supabase = await createClient();
   if (!supabase) return new Set();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return new Set();
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return new Set();
 
   const { data } = await supabase
     .from("inscripciones_evento")
     .select("evento_id")
-    .eq("perfil_id", user.id);
+    .eq("perfil_id", id);
 
   return new Set((data ?? []).map((fila) => fila.evento_id));
 }
@@ -329,22 +437,22 @@ export async function obtenerEventosInscriptos(): Promise<Set<string>> {
  *
  * Las filas las crea el disparador `postulaciones_notificar_cambio` de
  * `db/schema.sql`, nunca el cliente: `notificaciones` no tiene política de
- * insert.
+ * insert, así que ningún navegador puede fabricar un aviso.
  */
-export async function obtenerAvisos(limite = 30): Promise<Resultado<Aviso[]>> {
+export async function obtenerAvisos(
+  usuarioId?: string,
+  limite = 30,
+): Promise<Resultado<Aviso[]>> {
   const supabase = await createClient();
   if (!supabase) return ejemplo(AVISOS_EJEMPLO, SIN_CREDENCIALES);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return ejemplo(AVISOS_EJEMPLO, SIN_SESION);
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return ejemplo(AVISOS_EJEMPLO, SIN_SESION);
 
   const { data, error } = await supabase
     .from("notificaciones")
     .select("id, tipo, mensaje, enlace, leida, creada_en")
-    .eq("cuenta_id", user.id)
+    .eq("cuenta_id", id)
     .order("creada_en", { ascending: false })
     .limit(limite);
 

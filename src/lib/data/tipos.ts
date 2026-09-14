@@ -74,6 +74,14 @@ export const comoEstadoFormacion = (valor: string): EstadoFormacion =>
 export const comoEstadoEvento = (valor: string): EstadoEvento =>
   estrechar(ESTADOS_EVENTO, valor, "activo");
 
+/**
+ * El respaldo es `individual` a propósito: es el tipo con menos alcance. Ante
+ * un valor que no se reconoce, la sesión cae en la aplicación del postulante,
+ * nunca en el panel de empresa.
+ */
+export const comoTipoCuenta = (valor: string): TipoCuenta =>
+  estrechar(TIPOS_CUENTA, valor, "individual");
+
 // --- Formas que consume la interfaz ----------------------------------------
 
 /** Datos públicos de la empresa que publica una vacante o un evento. */
@@ -121,6 +129,22 @@ export type Formacion = {
   institucion: string;
   titulo: string;
   estado: EstadoFormacion;
+};
+
+/** Una opción de un catálogo cerrado: la fila de `tags` o de `habilidades`. */
+export type OpcionCatalogo = { id: string; nombre: string };
+
+/**
+ * Los dos catálogos cerrados, enteros (RF2.3, RF2.4.3).
+ *
+ * Acá sí viajan los `id`, porque son lo que `perfil_tags` y
+ * `perfil_habilidades` guardan. `PerfilCompleto` sigue llevando solo nombres:
+ * las pantallas que muestran tags ajenos —una vacante, la ficha del feed— no
+ * tienen nada que hacer con el id, y el nombre es único en las dos tablas.
+ */
+export type Catalogos = {
+  tags: OpcionCatalogo[];
+  habilidades: OpcionCatalogo[];
 };
 
 export type PerfilCompleto = Tabla<"perfiles"> & {

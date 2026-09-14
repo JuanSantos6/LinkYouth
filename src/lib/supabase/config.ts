@@ -19,7 +19,3 @@ export function leerCredenciales(): CredencialesSupabase | null {
 
   return { url, anonKey };
 }
-
-export function supabaseConfigurado(): boolean {
-  return leerCredenciales() !== null;
-}

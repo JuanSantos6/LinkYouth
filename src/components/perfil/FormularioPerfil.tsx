@@ -3,40 +3,18 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
-import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
+import { CAMPO, Campo } from "@/components/ui/Campo";
 import { actualizarPerfil } from "@/lib/acciones/perfil";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 import type { PerfilCompleto } from "@/lib/data/tipos";
-
-const CAMPO =
-  "mt-1.5 w-full rounded-control border border-borde-control bg-superficie px-3 py-2 text-[14px] text-tinta placeholder:text-apagado focus:border-acento focus:outline-none";
-
-function Campo({
-  etiqueta,
-  ayuda,
-  children,
-}: {
-  etiqueta: string;
-  ayuda?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="text-[14px] font-medium text-tinta">{etiqueta}</span>
-      {children}
-      {ayuda && (
-        <span className="mt-1 block text-[13px] text-apagado">{ayuda}</span>
-      )}
-    </label>
-  );
-}
 
 /**
  * Edición de los datos públicos del perfil (RF1.5 y RF2.2).
  *
  * Solo aparecen los campos que existen en `db/schema.sql`: nombre, apellido,
- * país y biografía. El nombre de usuario se muestra sin poder editarse, porque
- * cambiarlo toca una regla de unicidad que hoy no está resuelta.
+ * país y biografía. El nombre de usuario y la fecha de nacimiento se muestran
+ * sin poder editarse, porque cambiarlos toca reglas que hoy no están
+ * resueltas (unicidad del nickname y la restricción de mayoría de edad).
  */
 export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
   const [estado, enviar, enCurso] = useActionState(
@@ -53,7 +31,7 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
             defaultValue={perfil.nombre}
             required
             minLength={2}
-            className={CAMPO}
+            className={`mt-1.5 ${CAMPO}`}
           />
         </Campo>
 
@@ -63,7 +41,7 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
             defaultValue={perfil.apellido}
             required
             minLength={2}
-            className={CAMPO}
+            className={`mt-1.5 ${CAMPO}`}
           />
         </Campo>
       </div>
@@ -74,7 +52,7 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
             name="pais"
             defaultValue={perfil.pais}
             required
-            className={CAMPO}
+            className={`mt-1.5 ${CAMPO}`}
           />
         </Campo>
 
@@ -86,7 +64,7 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
             value={`@${perfil.nombre_usuario}`}
             readOnly
             disabled
-            className={`${CAMPO} bg-realce text-apagado`}
+            className={`mt-1.5 ${CAMPO} border-borde bg-realce text-apagado`}
           />
         </Campo>
       </div>
@@ -97,12 +75,19 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
           defaultValue={perfil.bio ?? ""}
           rows={4}
           maxLength={600}
-          className={`${CAMPO} resize-y`}
+          className={`mt-1.5 resize-y ${CAMPO}`}
         />
       </Campo>
 
-      <div className="flex flex-wrap items-center justify-end gap-4">
-        <MensajeDeAccion estado={estado} />
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <p
+          aria-live="polite"
+          className={`text-[14px] ${
+            estado.estado === "error" ? "text-tinta" : "text-acento"
+          }`}
+        >
+          {estado.mensaje}
+        </p>
         <Boton type="submit" disabled={enCurso}>
           {enCurso ? "Guardando…" : "Guardar cambios"}
         </Boton>

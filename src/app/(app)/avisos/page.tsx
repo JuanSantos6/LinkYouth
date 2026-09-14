@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
-import { obtenerAvisos } from "@/lib/data/consultas";
+import { obtenerAvisos, obtenerUsuarioId } from "@/lib/data/consultas";
 import { tiempoRelativo } from "@/lib/formato";
 
 export const metadata: Metadata = { title: "Avisos" };
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  * aviso.
  */
 export default async function PaginaAvisos() {
-  const avisos = await obtenerAvisos();
+  const avisos = await obtenerAvisos((await obtenerUsuarioId()) ?? undefined);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

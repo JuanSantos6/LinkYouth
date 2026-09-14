@@ -41,7 +41,7 @@ export function BotonCancelarPostulacion({
         </Boton>
       </form>
 
-      <MensajeDeAccion estado={estado} className="text-right" />
+      <MensajeDeAccion estado={estado} className="max-w-xs text-right" />
     </div>
   );
 }

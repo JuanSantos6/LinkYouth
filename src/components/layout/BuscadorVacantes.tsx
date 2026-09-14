@@ -1,13 +1,13 @@
 import { IconoBusqueda } from "./Iconos";
 
 /**
- * Búsqueda del listado. Es un formulario GET: el resultado queda en la URL, se
+ * Búsqueda del feed. Es un formulario GET: el resultado queda en la URL, se
  * puede compartir y volver atrás funciona. No necesita JavaScript para andar.
  */
 export function BuscadorVacantes({
   accion,
   valor = "",
-  placeholder = "Buscar por puesto",
+  placeholder = "Buscar por puesto, empresa o habilidad",
 }: {
   accion: string;
   valor?: string;
@@ -22,7 +22,7 @@ export function BuscadorVacantes({
         defaultValue={valor}
         placeholder={placeholder}
         aria-label="Buscar oportunidades"
-        className="w-full rounded-control border border-borde-control bg-superficie py-2 pl-9 pr-3 text-[14px] text-tinta placeholder:text-apagado focus:border-acento focus:outline-none"
+        className="w-full rounded-control border border-borde bg-superficie py-2 pl-9 pr-3 text-[14px] text-tinta placeholder:text-apagado focus:border-acento"
       />
     </form>
   );

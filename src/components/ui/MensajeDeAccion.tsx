@@ -28,7 +28,7 @@ export function MensajeDeAccion({
   return (
     <p
       aria-live="polite"
-      className={`max-w-xs text-[13px] ${
+      className={`text-[13px] ${
         esError
           ? "border-l-2 border-tinta pl-2 font-medium text-tinta"
           : "text-apagado"

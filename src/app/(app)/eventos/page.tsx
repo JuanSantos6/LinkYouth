@@ -4,15 +4,21 @@ import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
-import { obtenerEventos, obtenerEventosInscriptos } from "@/lib/data/consultas";
+import {
+  obtenerEventos,
+  obtenerEventosInscriptos,
+  obtenerUsuarioId,
+} from "@/lib/data/consultas";
 
 export const metadata: Metadata = { title: "Eventos" };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaEventos() {
+  const usuarioId = (await obtenerUsuarioId()) ?? undefined;
+
   const [eventos, yaInscriptos] = await Promise.all([
     obtenerEventos(20),
-    obtenerEventosInscriptos(),
+    obtenerEventosInscriptos(usuarioId),
   ]);
 
   return (
@@ -36,6 +42,7 @@ export default async function PaginaEventos() {
               key={evento.id}
               evento={evento}
               yaInscripto={yaInscriptos.has(evento.id)}
+              esEjemplo={eventos.origen === "ejemplo"}
             />
           ))
         )}

@@ -42,19 +42,39 @@ Antes de escribir una línea de funcionalidad nueva.
 
 ## Hito 1 — Autenticación (RF1)
 
-Lo que desbloquea todo lo demás. Hoy no hay sesión, así que cada consulta cae
-en datos de ejemplo.
+Lo que desbloquea todo lo demás. **Parcialmente resuelto**: el hito no se cierra
+hasta que entren la recuperación de contraseña y los tests del flujo que escribe
+en la base.
 
-**Qué entra**
+**Ya resuelto**
 
-- Registro de postulante y de empresa (RF1.1, RF1.2), con la creación de la
-  fila de `perfiles` o `empresas` en el mismo flujo.
-- Inicio y cierre de sesión (RF1.3, RF1.4).
-- Recuperación de contraseña (RF1.6).
-- Pantallas en `src/app/(auth)/`: `login`, `registro`, `recuperar`.
-- Protección de rutas en `src/middleware.ts`: `(app)/` redirige a `/login` sin
-  sesión.
-- Route handler `/auth/callback` para el intercambio de código de Supabase.
+- ✔ Registro de postulante (RF1.1) y de empresa (RF1.2). Las dos altas crean la
+  fila de `cuentas` más la de `perfiles` o `empresas` en el mismo flujo, y las
+  dos toleran la confirmación por correo dejando los datos en `user_metadata`.
+- ✔ Inicio y cierre de sesión (RF1.3, RF1.4).
+- ✔ Protección de rutas en `src/middleware.ts`, con la sesión y además con el
+  tipo de cuenta: cada mitad de la aplicación es inaccesible para el otro tipo.
+- ✔ `cuentas.tipo` consumido de verdad, no solo declarado. Cierra la mitad de
+  la deuda 7.5 de `arquitectura.md`.
+- ✔ Tests e2e del control de acceso, en `e2e/auth.spec.ts`.
+
+**Qué falta**
+
+- **Tests e2e del registro y el login.** Los de control de acceso ya están en
+  `e2e/auth.spec.ts`; falta el flujo que escribe en la base. No se escribieron
+  todavía porque el único proyecto de Supabase es el que usa la aplicación: una
+  suite que registre usuarios dejaría cuentas huérfanas en cada corrida y se
+  bloquearía sola contra el límite de 2 correos por hora del plan gratuito.
+  Antes hace falta un proyecto de Supabase de test, o `supabase start` local.
+- **Recuperación de contraseña (RF1.6).** La pantalla `/recuperar` no está
+  implementada. `login` y `registro` ya existen en `src/app/(auth)/`.
+- El panel de empresa propiamente dicho. Hoy `/empresa` es un placeholder que
+  solo dice que está en construcción: el contenido es el Hito 6 entero.
+- **Route handler `/auth/callback` para el intercambio de código de Supabase.**
+  No existe todavía. No bloquea el flujo actual: `iniciarSesion()` usa
+  `signInWithPassword` directo y no depende de que un enlace deje la sesión
+  abierta. Hace falta si más adelante se suma inicio de sesión por magic link o
+  por OAuth, donde Supabase vuelve con un código que hay que intercambiar.
 
 **Qué no entra**
 
@@ -78,10 +98,20 @@ adónde ir.
 **Qué entra**
 
 - `obtenerPerfilActual()` leyendo la sesión real en vez del perfil de ejemplo.
-- Selección de tags contra el catálogo, con nivel 1–5 (RF2.3).
+- ✔ Selección de tags y habilidades contra el catálogo cerrado (RF2.3,
+  RF2.4.3). Resuelto el 2026-09-14 en `5364f4d`. Sin el nivel 1–5 que pedía
+  este ítem: `perfil_habilidades` es una tabla puente sin columna de nivel
+  (`arquitectura.md` §7.1).
 - Alta, edición y baja de formación (RF2.4).
 - Subida de foto a Supabase Storage, completando `AvatarEditable` (RF2.1.4).
-- Perfil público de otro usuario (RF2.5).
+- Perfil público de otro usuario (RF2.5), leyendo la vista `perfiles_publicos`.
+- **`FormularioPerfil` no muestra `fecha_nacimiento`, aunque el dato existe y se
+  lee correctamente.** El comentario del componente dice que se muestra sin poder
+  editarse, pero el código solo hace eso con `nombre_usuario`. Verificado el
+  2026-09-12: la política `perfiles_veo_el_mio_completo` deja al dueño leer la
+  columna y `obtenerPerfilActual` la trae; falta el campo en pantalla. Es una
+  mejora de interfaz, no de seguridad: quedó fuera de la rama de la auditoría a
+  propósito.
 
 **Qué no entra**
 
@@ -140,8 +170,11 @@ forma de saber que se cumple es intentar romperlo.
 **Qué entra**
 
 - Alta, edición y cancelación de evento por la empresa (RF4.1, RF4.2, RF4.3).
-- Inscripción y baja del postulante (RF4.5, RF4.6) — `inscribirse()` ya está,
-  falta la baja.
+- Inscripción y baja del postulante (RF4.5, RF4.6). Las dos acciones de
+  servidor ya existen —`inscribirse()` y `cancelarInscripcion()` en
+  `src/lib/acciones/eventos.ts`—: **falta el botón de cancelar inscripción a
+  un evento, la acción del servidor ya existe.** Hasta que lo tenga,
+  `cancelarInscripcion` queda exportada sin consumidor.
 - Control de cupo: no se puede pasar del límite.
 - Listado de inscriptos para la empresa dueña.
 
@@ -196,6 +229,12 @@ sus postulantes ordenados por compatibilidad.
 sabe la interfaz si la sesión es de un postulante o de una empresa, y adónde
 la manda al entrar? Conviene resolverlo en el Hito 1 aunque el panel recién
 llegue acá.
+
+`src/lib/data/tipos.ts` ya declara `TIPOS_CUENTA` y `TipoCuenta` (`'individual'`
+/ `'empresa'`), pero **ningún archivo los usa todavía**: son la mitad hecha de
+la deuda 7.5 de `arquitectura.md`. Se dejan a propósito, para que el día que se
+mire `cuentas.tipo` el conjunto cerrado ya esté declarado en un solo lugar y no
+aparezca un `string` suelto en la navegación.
 
 ---
 

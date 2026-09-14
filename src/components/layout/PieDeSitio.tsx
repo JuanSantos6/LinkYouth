@@ -3,16 +3,24 @@ import Link from "next/link";
 import { IconoCodigo } from "./Iconos";
 import { Marca } from "./Marca";
 
+const PLATAFORMA_POSTULANTE = [
+  { href: "/empleos", etiqueta: "Empleos y pasantías" },
+  { href: "/eventos", etiqueta: "Eventos" },
+  { href: "/postulaciones", etiqueta: "Mis postulaciones" },
+  { href: "/perfil", etiqueta: "Mi perfil" },
+];
+
+/**
+ * Una cuenta de empresa no puede entrar a las secciones del postulante: el
+ * middleware la manda a su panel. Ofrecerle esos enlaces sería mandarla a
+ * rebotar.
+ */
+const PLATAFORMA_EMPRESA = [
+  { href: "/empresa", etiqueta: "Panel de empresa" },
+  { href: "/empresas", etiqueta: "Qué ofrece LinkYouth" },
+];
+
 const COLUMNAS = [
-  {
-    titulo: "Plataforma",
-    enlaces: [
-      { href: "/empleos", etiqueta: "Empleos y pasantías" },
-      { href: "/eventos", etiqueta: "Eventos" },
-      { href: "/postulaciones", etiqueta: "Mis postulaciones" },
-      { href: "/perfil", etiqueta: "Mi perfil" },
-    ],
-  },
   {
     titulo: "LinkYouth",
     enlaces: [
@@ -39,7 +47,19 @@ const COLUMNAS = [
  * que existe de verdad. Sumar íconos de LinkedIn o Instagram que no llevan a
  * ninguna cuenta sería decorar el pie con enlaces muertos.
  */
-export function PieDeSitio() {
+export function PieDeSitio({
+  area = "postulante",
+}: {
+  area?: "publico" | "postulante" | "empresa";
+}) {
+  const columnas = [
+    {
+      titulo: "Plataforma",
+      enlaces: area === "empresa" ? PLATAFORMA_EMPRESA : PLATAFORMA_POSTULANTE,
+    },
+    ...COLUMNAS,
+  ];
+
   return (
     <footer className="mt-16 border-t border-borde bg-realce">
       <div className="mx-auto max-w-[1320px] px-4 py-12 sm:px-6">
@@ -52,7 +72,7 @@ export function PieDeSitio() {
             </p>
           </div>
 
-          {COLUMNAS.map((columna) => (
+          {columnas.map((columna) => (
             <nav key={columna.titulo} aria-label={columna.titulo}>
               <h2 className="text-[14px] font-semibold text-tinta">
                 {columna.titulo}

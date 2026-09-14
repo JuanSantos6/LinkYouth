@@ -168,6 +168,13 @@ export type Database = {
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "formaciones_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_publicos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       habilidades: {
@@ -214,6 +221,13 @@ export type Database = {
             columns: ["perfil_id"]
             isOneToOne: false
             referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscripciones_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_publicos"
             referencedColumns: ["id"]
           },
         ]
@@ -284,6 +298,13 @@ export type Database = {
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "perfil_habilidades_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_publicos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       perfil_tags: {
@@ -305,6 +326,13 @@ export type Database = {
             columns: ["perfil_id"]
             isOneToOne: false
             referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfil_tags_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_publicos"
             referencedColumns: ["id"]
           },
           {
@@ -394,6 +422,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "postulaciones_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_publicos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "postulaciones_vacante_id_fkey"
             columns: ["vacante_id"]
             isOneToOne: false
@@ -440,6 +475,13 @@ export type Database = {
             columns: ["perfil_id"]
             isOneToOne: false
             referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resenias_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_publicos"
             referencedColumns: ["id"]
           },
         ]
@@ -592,7 +634,47 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      perfiles_publicos: {
+        Row: {
+          apellido: string | null
+          bio: string | null
+          creado_en: string | null
+          foto_url: string | null
+          id: string | null
+          nombre: string | null
+          nombre_usuario: string | null
+          pais: string | null
+        }
+        Insert: {
+          apellido?: string | null
+          bio?: string | null
+          creado_en?: string | null
+          foto_url?: string | null
+          id?: string | null
+          nombre?: string | null
+          nombre_usuario?: string | null
+          pais?: string | null
+        }
+        Update: {
+          apellido?: string | null
+          bio?: string | null
+          creado_en?: string | null
+          foto_url?: string | null
+          id?: string | null
+          nombre?: string | null
+          nombre_usuario?: string | null
+          pais?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "cuentas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       cuenta_activa: { Args: { cuenta: string }; Returns: boolean }

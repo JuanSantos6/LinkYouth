@@ -11,6 +11,7 @@ import {
   obtenerEventosInscriptos,
   obtenerPerfilActual,
   obtenerPostulaciones,
+  obtenerUsuarioId,
   obtenerVacantes,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
@@ -63,14 +64,19 @@ export default async function PaginaInicio({
   const { vista } = await searchParams;
   const activa: Vista = vista === "eventos" ? "eventos" : "empleos";
 
+  // La sesión se valida una sola vez para toda la pantalla. Si cada lectura
+  // llamara a `auth.getUser()` por su cuenta, una sola navegación pagaría seis
+  // viajes de red para validar siempre la misma sesión.
+  const usuarioId = (await obtenerUsuarioId()) ?? undefined;
+
   const [vacantes, eventos, perfil, postulaciones, yaPostuladas, yaInscriptos] =
     await Promise.all([
       obtenerVacantes({ limite: 6 }),
       obtenerEventos(4),
-      obtenerPerfilActual(),
-      obtenerPostulaciones(),
-      obtenerVacantesPostuladas(),
-      obtenerEventosInscriptos(),
+      obtenerPerfilActual(usuarioId),
+      obtenerPostulaciones(usuarioId),
+      obtenerVacantesPostuladas(usuarioId),
+      obtenerEventosInscriptos(usuarioId),
     ]);
 
   const feed = FeedDeVacantes.armar(vacantes.datos, perfil.datos);
@@ -96,7 +102,11 @@ export default async function PaginaInicio({
                 descripcion="Cuando una empresa publique una búsqueda que coincida con tus habilidades, la vas a ver acá."
               />
             ) : (
-              <ListadoDeVacantes feed={feed} yaPostuladas={yaPostuladas} />
+              <ListadoDeVacantes
+                feed={feed}
+                yaPostuladas={yaPostuladas}
+                esEjemplo={vacantes.origen === "ejemplo"}
+              />
             )}
           </section>
         ) : (
@@ -112,6 +122,7 @@ export default async function PaginaInicio({
                   key={evento.id}
                   evento={evento}
                   yaInscripto={yaInscriptos.has(evento.id)}
+                  esEjemplo={eventos.origen === "ejemplo"}
                 />
               ))
             )}

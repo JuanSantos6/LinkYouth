@@ -6,10 +6,25 @@ export type EstadoAccion = {
 
 export const ACCION_INICIAL: EstadoAccion = { estado: "inicial", mensaje: "" };
 
+/**
+ * No hay nadie autenticado. Es el caso del `if (!user)`, después de que el
+ * cliente de Supabase se creó bien.
+ */
 export const SIN_SESION: EstadoAccion = {
   estado: "error",
+  mensaje: "Necesitás iniciar sesión para hacer esto.",
+};
+
+/**
+ * Faltan las credenciales de Supabase. Es el caso del `if (!supabase)`, y no
+ * se mezcla con el anterior a propósito: quien todavía no cargó `.env.local`
+ * no tiene ningún inicio de sesión que hacer, y decirle que lo intente lo
+ * manda a buscar el problema al lugar equivocado.
+ */
+export const SIN_CONFIGURAR: EstadoAccion = {
+  estado: "error",
   mensaje:
-    "Necesitás iniciar sesión para hacer esto. El módulo de autenticación (RF1.3) todavía no está implementado.",
+    "La conexión con Supabase no está configurada. Cargá las credenciales en .env.local.",
 };
 
 /** Código de Postgres para violación de restricción única. */

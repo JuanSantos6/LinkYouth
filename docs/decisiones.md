@@ -6,114 +6,313 @@ se eligió esa opción.
 
 ---
 
-## 2026-09-11 — Dirección de diseño «ficha técnica»
+## 2026-09-14 — La lógica de `main`, el diseño de la rama
 
-**Decisión.** Adoptar un vocabulario visual de registro sellado: paleta de
-cinco valores con el ámbar reservado a lo acreditado, radios distintos según
-la jerarquía, las vacantes como listado con filetes y los eventos como
-tarjetas.
+**Decisión.** Al integrar las dos líneas de trabajo, resolver cada conflicto
+con un criterio fijo: la funcionalidad se toma de `main` y el lenguaje visual
+de la rama de rediseño. Después, un barrido de tokens lleva todo lo que vino
+de `main` a la paleta nueva.
 
 **Alternativas consideradas.**
 
-- Seguir con el kit de tarjetas y solo cambiar la paleta.
-- Un rediseño más expresivo, con degradados y fotografía.
+- Rehacer el rediseño encima de `main`, componente por componente.
+- Portar la funcionalidad a mano dentro de la rama, sin merge.
 
-**Motivo.** El diseño anterior era correcto y anónimo: el azul por defecto de
-cualquier dashboard, todo el contenido troceado en rectángulos idénticos y la
-misma sombra gris debajo de cada uno. Cambiar solo el color no arreglaba eso,
-porque el problema era la forma. La dirección elegida además dice algo cierto
-del producto: LinkYouth acredita habilidades en vez de leer un currículum, y
-un registro se lee distinto de un feed.
+**Motivo.** Las dos alternativas tiran trabajo: la primera pierde las
+decisiones de diseño que ya estaban tomadas y verificadas, la segunda pierde
+el historial de `main` y con él las razones de cada arreglo de seguridad y
+accesibilidad. El merge conserva los dos y deja el criterio explícito, que es
+lo que hace que un conflicto no se resuelva a ojo.
 
-Lo expresivo se descartó por el usuario: alguien buscando su primer trabajo
-está ansioso, y la interfaz tiene que transmitir orden, no entusiasmo.
+El barrido de tokens fue mecánico a propósito —un mapa del sistema viejo al
+nuevo, aplicado con un script— y después se revisó a mano lo que el mapa no
+puede decidir: el botón primario, el borde de los campos y el rótulo en
+versalitas que traía el selector de tags.
 
 ---
 
-## 2026-09-11 — El ámbar solo para lo acreditado
+## 2026-09-14 — La cabecera y el pie preguntan de qué cuenta se trata
 
-**Decisión.** Que el ámbar aparezca en dos lugares de toda la aplicación: el
-canto de la vacante destacada y la insignia de una postulación aceptada.
+**Decisión.** Que `CabeceraGlobal` y `PieDeSitio` reciban un `area` y cambien
+sus enlaces según sea público, postulante o empresa.
 
 **Alternativas consideradas.**
 
-- Pintar de ámbar cada etiqueta que el perfil ya declara.
-- Usarlo también en el logo, como remate de marca.
+- Una cabecera y un pie iguales para todos.
+- Un layout distinto para cada mitad, con su propia cabecera.
 
-**Motivo.** La primera versión hacía lo primero, y la revisión visual lo
-mostró: con un perfil que coincide con casi todo, cada fila era una pared
-ámbar. El color seguía siendo técnicamente correcto —marcaba lo acreditado—
-pero a esa densidad dejaba de leerse como señal y pasaba a leerse como fondo.
-Lo que coincide se distingue ahora por peso y por la marca de verificación,
-que además no depende del color.
-
-El remate en el logo se sacó por la misma regla: un logo no acredita nada, y
-el ámbar puesto en cualquier lado deja de decir algo donde sí importa.
+**Motivo.** El middleware manda a una cuenta de empresa a su panel apenas pide
+una sección del postulante. Con la cabecera única, esa cuenta veía «Mi perfil»
+y «Avisos» y cada clic la devolvía al lugar donde estaba: un menú que promete
+lo que no puede cumplir. Duplicar el layout arreglaba eso y traía el problema
+de siempre —dos cabeceras que se van separando—, así que la diferencia queda
+en un parámetro y la estructura sigue siendo una sola.
 
 ---
 
-## 2026-09-11 — Los tokens en `:root` y `@theme inline`
+## 2026-09-14 — El catálogo lleva `id`; `PerfilCompleto` sigue llevando nombres
 
-**Decisión.** Declarar los valores en `:root` con prefijo `--ly-` y exponerlos
-a Tailwind con `@theme inline`, en vez de declararlos directamente dentro de
-`@theme`.
+**Decisión.** `obtenerCatalogos()` devuelve `{ id, nombre }` porque las
+acciones escriben `perfil_tags` y `perfil_habilidades`, que guardan `id`.
+`PerfilCompleto.tags` y `.habilidades` quedan como `string[]`.
 
 **Alternativas consideradas.**
 
-- Declarar todo dentro de `@theme`, que es lo que muestra la documentación.
-- Repetir los valores: una copia para las utilidades y otra para el CSS a mano.
+- Pasar `PerfilCompleto.tags` a `{ id, nombre }[]`, que era el plan inicial.
+- Resolver nombre → `id` dentro de cada acción, con una lectura extra por clic.
 
-**Motivo.** Tailwind 4 emite únicamente las variables de `@theme` que alguna
-utilidad usa. Con la primera versión, `var(--color-acento)` escrito a mano en
-la regla del anillo de foco se quedaba sin valor y caía en `currentColor`: el
-foco tomaba el color del texto del enlace. El rodeo cuesta doce líneas y
-garantiza que las variables existan siempre. Repetir los valores era la otra
-salida, y es la que garantiza que en algún momento discrepen.
+**Motivo.** `PerfilCompleto.tags` no lo consume solo el perfil: también
+`/empleos` y `/inicio` se lo pasan a `TarjetaVacante` como `tagsPerfil` para
+marcar qué coincide, y `TarjetaUsuario` cuenta habilidades. Ninguno de esos
+usos necesita el `id` —comparan y muestran nombres— así que cambiarles la
+forma era tocar cinco archivos fuera del perfil, más `ejemplos.ts`, para que
+todos hicieran `.map((t) => t.nombre)` y volvieran al punto de partida.
+
+El `id` viaja donde hace falta, que es el catálogo. La correspondencia entre
+los dos lados la garantiza el esquema: `tags.nombre` y `habilidades.nombre`
+son `unique`, así que marcar por nombre la opción ya elegida no es una
+heurística, es una clave.
+
+Resolver nombre → `id` en la acción se descartó por lo obvio: agrega una
+lectura por clic para recuperar un dato que el componente ya tenía.
+
+**Consecuencia.** El día que exista el perfil público de otro usuario (RF2.5),
+que es de solo lectura, le sirve `PerfilCompleto` tal cual está: muestra
+nombres y no necesita ningún `id`.
 
 ---
 
-## 2026-09-11 — Clases de dominio en vez de funciones sueltas
+## 2026-09-13 — Latencia de ~800 ms en producción: investigada, no resuelta
 
-**Decisión.** Mover la lógica de negocio de los componentes a tres clases:
-`Compatibilidad`, `FeedDeVacantes` y `ProcesoDePostulacion`.
+**Decisión.** No seguir optimizando la latencia de navegación por ahora.
+
+**Diagnóstico.** Cada navegación hace dos viajes de red **en serie** a Supabase
+—uno del middleware y otro de la página—, cada uno con unos 240 ms de latencia
+base por la distancia geográfica a la región us-east-2. Bajar de cinco a dos las
+llamadas a `auth.getUser()` en `/inicio` no movió la latencia percibida —una
+mejora del 2 %, dentro del ruido de la medición— porque esas llamadas ya corrían
+en paralelo, no en serie. Sí redujo el consumo de la API de Auth, que importa
+por los límites del plan gratuito.
 
 **Alternativas consideradas.**
 
-- Dejarla como funciones puras en `formato.ts`.
-- Una clase base común de la que hereden las tres.
+- Un Auth Hook que escriba el tipo de cuenta como claim del JWT, para que el
+  middleware no consulte `cuentas` en cada pedido.
+- Que la página no revalide la sesión que el middleware ya validó.
+- Mover el proyecto de Supabase a una región más cercana.
 
-**Motivo.** `afinidad()` devolvía un número, pero la pantalla necesitaba tres
-cosas del mismo cálculo: el porcentaje, si una etiqueta puntual coincide y si
-el total alcanza para destacar la vacante. Con una función suelta, cada
-componente rehacía la comparación por su cuenta. Una clase deja que el
-resultado se calcule una vez y se consulte de varias maneras.
+**Motivo.** El Auth Hook toca la pieza de seguridad más sensible del proyecto.
+Saltear la revalidación de la página baja la garantía que da `auth.getUser()`,
+que es justamente verificar el token contra el servidor. Cambiar de región es
+una migración grande para un beneficio chico en esta etapa —y la decisión de
+us-east-2 ya está tomada por otros motivos.
 
-No hay clase base: entre comparar etiquetas, ordenar un listado e interpretar
-un estado no hay comportamiento real compartido, y una jerarquía ahí sería
-decorativa.
+Unos 800 ms no son un problema real para un proyecto de facultad con usuarios
+de prueba. Se revisita si aparecen usuarios reales quejándose de lentitud.
 
 ---
 
-## 2026-09-11 — Páginas reales para los enlaces del header y del pie
+## 2026-09-12 — Un selector en `/registro`, no una ruta aparte para empresa
 
-**Decisión.** Escribir `/empresas`, `/como-funciona`, `/legales` y `/avisos`
-como páginas con contenido verdadero, en vez de dejar los enlaces inertes o
-sacarlos de la navegación.
+**Decisión.** Los dos registros comparten la ruta `/registro` y se eligen con
+`?tipo=empresa`. La página decide qué formulario montar; el resto de la pantalla
+—encabezado, tarjeta, enlace a iniciar sesión, layout de `(auth)`— es uno solo.
 
 **Alternativas consideradas.**
 
-- Enlaces marcados como pendientes.
-- Limitar el header a las dos secciones que ya existían.
+- Una ruta `/registro/empresa` con su propia página.
+- Un interruptor con `useState` dentro de la página.
 
-**Motivo.** La cabecera se ve en todas las pantallas, y dos enlaces muertos
-ahí minan justamente la sensación de registro serio que busca la dirección. El
-contenido dice lo que el proyecto hace hoy y lo que todavía no —el panel de
-empresa no existe, la autenticación tampoco—, así que las páginas informan sin
-prometer de más.
+**Motivo.** Los dos formularios no comparten casi ningún campo: individual pide
+nombre, apellido, nombre de usuario, país y fecha de nacimiento; empresa pide
+razón social, rubro, descripción y logo. Lo único común es el correo y la
+contraseña. Pero sí comparten *todo lo que los rodea*, y eso es lo que una ruta
+aparte obliga a duplicar: el `h1`, la `Tarjeta`, el pie con el enlace a `/login`
+y la metadata. Duplicarlo significa que el día que cambie el texto del pie haya
+que acordarse de dos archivos.
 
-`/legales` era además una deuda del proyecto: RNF6 y RF1.1.12 exigen política
-de privacidad, y la decisión de alojar los datos en us-east-2 tiene una
-consecuencia que había que dejar escrita donde la lea un usuario.
+El interruptor con estado del cliente queda descartado por la regla de
+`CLAUDE.md`: filtros y pestañas se hacen con enlaces y `searchParams`. Así
+`/registro?tipo=empresa` es una URL que se puede compartir, el botón de atrás
+funciona, y la página sigue siendo un Server Component.
+
+---
+
+## 2026-09-12 — El tipo de cuenta se lee de `cuentas`, nunca de `user_metadata`
+
+**Decisión.** Tanto el middleware como el login resuelven a qué mitad de la
+aplicación pertenece una sesión consultando `cuentas.tipo`, con una consulta por
+request.
+
+**Alternativas consideradas.**
+
+- Guardar `tipo` en `user_metadata` durante el `signUp` y leerlo del JWT, sin
+  tocar la base.
+- Un claim propio en el JWT, vía auth hook de Supabase.
+
+**Motivo.** `user_metadata` lo puede reescribir el propio usuario con
+`auth.updateUser`. Usarlo para decidir a qué panel entra sería dejar que cada
+uno elija su tipo de cuenta: un postulante se pone `tipo: 'empresa'` y entra al
+panel. `cuentas.tipo` en cambio está protegido por RLS y por el disparador
+`validar_cambio_tipo_cuenta`, que bloquea el cambio cuando la cuenta ya tiene
+fila de detalle.
+
+Los datos del formulario **sí** siguen viajando en `user_metadata`, porque son
+el acarreo que permite completar el alta en el primer login cuando la
+confirmación por correo está activada. La distinción importa: metadata como
+transporte de un formulario está bien; metadata como fuente de permisos, no.
+
+El claim propio en el JWT es la solución correcta a escala y evita la consulta
+por request, pero exige configurar un auth hook en el proyecto de Supabase, que
+es infraestructura que hoy no está. Queda anotado en el código con un comentario
+`ponytail:` que nombra el techo y el camino de salida.
+
+---
+
+## 2026-09-12 — El perfil público se sirve por una vista, no por la tabla
+
+**Decisión.** Sacar `perfiles` del alcance de lectura de la API y publicar
+RF2.5 a través de la vista `perfiles_publicos`, que enumera las columnas
+publicables. La política de la tabla queda en `to authenticated using
+(auth.uid() = id)`: solo la fila propia, completa.
+
+**Alternativas consideradas.**
+
+- Dejar la política como estaba y confiar en que la aplicación no pida
+  `fecha_nacimiento`.
+- `grant select (columnas...) on perfiles` en vez de una vista.
+- Mover `fecha_nacimiento` a una tabla aparte con su propio RLS.
+
+**Motivo.** RLS es control por fila, no por columna: `perfiles_lectura_publica
+using (cuenta_activa(id))` autorizaba la fila entera, y sin cláusula `to`
+alcanzaba también al rol `anon`. Como la `ANON_KEY` viaja al navegador por
+diseño, cualquiera podía consultar PostgREST directamente y bajar nombre,
+apellido, país y fecha de nacimiento exacta de todos los usuarios. Que la
+interfaz no muestre esa columna no es una defensa: el atacante no usa la
+interfaz.
+
+El `grant` por columnas resuelve lo mismo en una línea, pero no deja rastro
+legible de *qué* es público y *por qué*: el día que alguien agregue una columna
+a `perfiles`, el grant no se actualiza solo y nadie se entera. La vista enumera
+las columnas de forma explícita, así que sumar una es una decisión visible en el
+diff. Mover la columna a otra tabla era la solución más limpia en el papel, pero
+obliga a un join en el registro y a tocar el constraint
+`perfiles_mayor_de_edad`, que hoy vive en la misma fila.
+
+La vista corre sin `security_invoker`, es decir con los permisos de su dueño, y
+por lo tanto saltea el RLS de `perfiles`. Es deliberado: es lo que permite que un
+visitante sin sesión lea un perfil público ahora que la tabla se limita a la fila
+propia. El filtro de cuentas dadas de baja, que antes hacía la política, pasó al
+`where` de la vista.
+
+---
+
+## 2026-09-12 — Los estados finales de una postulación se bloquean en un disparador
+
+**Decisión.** Agregar `postulacion_transicion_valida()`, un disparador `before
+update` que impide salir de `aceptada`, `rechazada` o `cancelada`.
+
+**Alternativas consideradas.**
+
+- Extender el `with check` de `postulaciones_transiciones_permitidas`.
+- Resolverlo en las acciones de servidor, antes del `update`.
+
+**Motivo.** La política acota el estado *destino* pero no puede mirar el
+*origen*: RLS no ve `OLD`. Sin eso, la empresa dueña de la vacante podía tomar
+una postulación que el postulante había cancelado (RF3.8) y moverla a
+`aceptada`, reabriendo un proceso del que la persona se había bajado y
+disparándole la notificación de RF6.2 por un cambio que nunca pidió. Una
+política que leyera `postulaciones` para comparar caería en «infinite recursion
+detected in policy for relation», el mismo motivo por el que
+`postulacion_identidad_inmutable` ya es un disparador y no una política.
+
+Resolverlo en las acciones de servidor lo dejaría afuera de la base, contra la
+regla de `CLAUDE.md` de que el control de acceso vive en la base: una empresa con
+la `ANON_KEY` puede llamar a PostgREST sin pasar por la aplicación.
+
+## 2026-09-12 — La navegación angosta se desplaza, no se pliega
+
+**Decisión.** En viewports angostos la barra lateral sigue siendo una fila de
+cinco secciones que se desplaza en horizontal, ahora con `min-w-0` en el `nav`
+y `snap-x snap-mandatory` en la lista. La marca y «Cerrar sesión» comparten
+una fila arriba; en `lg` el `lg:contents` del contenedor la disuelve y `order`
+devuelve cada pieza a su lugar.
+
+**Alternativas consideradas.**
+
+- Un menú desplegable para las cinco secciones en angosto.
+- Una barra inferior fija estilo aplicación nativa.
+- Dejar la fila como estaba y sumarle solo una señal visual de que hay más.
+
+**Motivo.** El desplegable esconde cinco destinos detrás de un toque y obliga
+a un componente con estado, `aria-expanded` y cierre por foco: es la opción
+que más código agrega y la que más se aleja del layout de escritorio, que era
+justamente lo que había que tocar lo menos posible. La barra inferior es mejor
+ergonomía en un teléfono, pero es otra estructura, no una variante de esta.
+La tercera no arreglaba nada: el problema no era solo la falta de señal, era
+que la fila estiraba la grilla entera a 574 px y el desplazamiento horizontal
+ni siquiera existía.
+
+Queda anotado que el `scroll-snap` ordena el recorrido pero no agrega por sí
+mismo una señal de que hay más secciones: en escritorio la da la barra de
+desplazamiento, en un teléfono la da el recorte del último ítem visible. Si
+hace falta algo más explícito, es un degradado en el borde derecho, no un
+cambio de estructura.
+
+---
+
+## 2026-09-12 — El borde sube a contraste de control, y arrastra al hover
+
+**Decisión.** `--color-borde` pasa de `#e5e7eb` a `#7d8795` (3.64:1 contra
+blanco, 3.39:1 contra el lienzo) y `--color-borde-fuerte` de `#d1d5db` a
+`#667085`.
+
+**Alternativas consideradas.**
+
+- Un token nuevo solo para los bordes que delimitan controles, dejando
+  `--color-borde` como está para los separadores decorativos.
+- Subir solo el borde del campo en la clase `CAMPO` y el de `.tarjeta`.
+
+**Motivo.** Las dos alternativas evitan que los separadores internos de las
+tarjetas se vuelvan más pesados, que es el efecto secundario real de este
+cambio. Se descartaron porque los dos lugares que hay que arreglar —el campo
+y la tarjeta— leen del mismo token, y partirlo en dos obliga a decidir, en
+cada uso de `border-borde` que ya existe, a cuál de los dos pertenece. Esa
+clasificación es parte de la revisión de tono que está pendiente; hasta que se
+haga, un solo token que cumple 1.4.11 es preferible a dos que hay que repartir
+a mano.
+
+`--color-borde-fuerte` no se tocó por gusto: es el hover de esos mismos
+bordes. Si `borde` sube y `borde-fuerte` se queda en `#d1d5db`, pasar el
+puntero **aclara** el borde en vez de oscurecerlo.
+
+---
+
+## 2026-09-12 — La protección de rutas vive en el middleware
+
+**Decisión.** Controlar el acceso a `(app)/` en `src/middleware.ts`: si hay
+credenciales de Supabase y no hay sesión, redirigir a `/login`, salvo en las
+rutas de `PUBLICAS` (`/login`, `/registro`). `obtenerPerfilActual` conserva un
+`redirect("/login")` propio como segunda barrera.
+
+**Alternativas consideradas.**
+
+- Un chequeo de sesión en cada una de las cinco `page.tsx` de `(app)/`.
+- Solo el guard en `obtenerPerfilActual`, sin tocar el middleware.
+- Seguir sin protección y confiar en RLS.
+
+**Motivo.** El middleware es el único punto por el que pasan las cinco
+pantallas: un guard ahí es un diff más chico que cinco, y no se puede olvidar
+al agregar la sexta. Poner el control solo en `obtenerPerfilActual` protegía
+`/inicio`, `/empleos` y `/perfil`, pero dejaba `/eventos` y `/postulaciones`
+abiertas, que es peor que no tener nada porque parece resuelto. RLS sigue
+siendo la defensa de los datos —ninguna de estas rutas podía leer filas
+ajenas— pero no impedía que un desconocido recorriera las pantallas y viera
+`PERFIL_EJEMPLO` presentado como su propio perfil.
+
+El caso «sin credenciales» queda expresamente afuera del control: sin Supabase
+no hay sesión posible, y la regla §2.3 pide que la aplicación se pueda
+recorrer igual con los datos de ejemplo.
 
 ---
 
@@ -423,3 +622,58 @@ sería peor que no admitir menores.
 527 y 551) quedan sin efecto. Conviene corregirlas en la próxima revisión del
 SRS para que no vuelvan a leerse como un requisito vigente.
 
+---
+
+## 2026-09-11 — El alta se completa en la sesión, no en un disparador
+
+**Decisión.** `registrarse()` crea las filas de `cuentas` y `perfiles` desde
+la propia Server Action, con la sesión que devuelve `signUp`. Si el proyecto
+de Supabase tiene activada la confirmación por correo, el `signUp` devuelve
+usuario pero **no** sesión: en ese caso los datos del perfil quedan guardados
+en `user_metadata` y el alta se completa en el primer inicio de sesión.
+`completarAlta()` es la misma función en los dos caminos, e ignora el
+conflicto por clave primaria, así que llamarla de más no hace nada.
+
+**Alternativas consideradas.**
+
+- Un disparador `on insert on auth.users` con `security definer`, que es el
+  patrón que recomienda Supabase.
+- Exigir que el proyecto tenga la confirmación por correo desactivada, y
+  crear las filas siempre en el registro.
+- Guardar el perfil en `user_metadata` y crearlo desde un route handler en
+  `/auth/callback`.
+
+**Motivo.** Sin sesión, `auth.uid()` es nulo y las políticas
+`cuentas_creo_la_mia` y `perfiles_creo_el_mio` —que exigen `auth.uid() = id`—
+rechazan las dos inserciones. Cualquier solución tiene que resolver ese hueco.
+
+El disparador en `auth.users` es la opción más robusta y la que dejaría el
+alta atómica, pero obliga a modificar `db/schema.sql`, que esta historia tenía
+prohibido tocar. Queda como la mejora natural cuando se decida abrir el
+esquema: convierte el alta en una sola operación y elimina la ventana en la
+que existe un usuario en `auth.users` sin fila en `perfiles`.
+
+Depender de que la confirmación esté desactivada hace que el registro se rompa
+en silencio apenas alguien la active en el panel — y viene activada por
+omisión en los proyectos nuevos.
+
+El route handler en `/auth/callback` resuelve el mismo caso, pero agrega una
+ruta más para el único momento en que hace falta; el inicio de sesión ya
+pasa por la acción que puede hacerlo.
+
+**Consecuencia a tener presente.** Entre el `signUp` y el primer inicio de
+sesión existe un usuario en `auth.users` sin fila en `perfiles`. No puede
+navegar la aplicación —no tiene sesión—, pero el correo ya quedó tomado. Si
+nunca confirma, esa cuenta queda huérfana.
+
+**Consecuencia a tener presente.** El nombre de usuario lo garantiza el
+índice único de `perfiles`, que con la confirmación por correo activada se
+evalúa recién en el primer inicio de sesión. Para que nadie se entere tan
+tarde, `registrarse()` consulta `perfiles` antes del `signUp` y corta ahí el
+caso común. Queda la carrera: dos registros simultáneos con el mismo nombre
+pasan los dos la verificación, y el segundo choca contra el índice al entrar.
+
+La verificación previa lee a través de `perfiles_lectura_publica`, que filtra
+por `cuenta_activa(id)`. Un nombre tomado por una cuenta dada de baja no
+aparece, así que la verificación lo da por libre y el choque vuelve a caer en
+el índice único. Es el mismo caso raro de siempre, con la misma defensa.

@@ -45,16 +45,16 @@ export function BarraLateral() {
       // ensanchar la grilla: sin eso, la página entera se corre en horizontal.
       className="min-w-0 lg:sticky lg:top-20 lg:self-start"
     >
-      <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:gap-0 lg:overflow-visible lg:pb-0">
+      <ul className="flex snap-x snap-mandatory gap-1 overflow-x-auto scroll-px-1 pb-1 lg:snap-none lg:flex-col lg:gap-0 lg:overflow-visible lg:pb-0">
         {SECCIONES.map(({ href, etiqueta, Icono }) => {
           const activa = ruta === href || ruta.startsWith(`${href}/`);
 
           return (
-            <li key={href} className="shrink-0 lg:shrink">
+            <li key={href} className="shrink-0 snap-start lg:shrink">
               <Link
                 href={href}
                 aria-current={activa ? "page" : undefined}
-                className={`flex items-center gap-3 border-l-2 py-2.5 pl-3 pr-3 text-[14px] transition-colors duration-150 ${
+                className={`flex items-center gap-3 border-l-2 py-2.5 pl-3 pr-3 text-[14px] transition-[color,border-color] duration-150 ${
                   activa
                     ? "border-acento font-medium text-tinta"
                     : "border-transparent text-apagado hover:text-tinta"

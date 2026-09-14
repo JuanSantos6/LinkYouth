@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { IconoCamara } from "@/components/layout/Iconos";
 import { Avatar } from "@/components/ui/Avatar";
+import { Aviso } from "@/components/ui/AvisoOrigen";
 
 /**
  * Avatar con acción de cambiar foto (RF1.5.6).
@@ -41,7 +42,7 @@ export function AvatarEditable({
         <button
           type="button"
           onClick={() => campo.current?.click()}
-          className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border border-borde bg-superficie text-apagado transition-colors duration-150 hover:border-acento hover:text-acento"
+          className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border border-borde bg-superficie text-apagado shadow-elevada transition-colors hover:border-acento hover:text-acento"
         >
           <IconoCamara className="h-4 w-4" />
           <span className="sr-only">Cambiar foto de perfil</span>
@@ -56,20 +57,17 @@ export function AvatarEditable({
         />
       </div>
 
-      <div>
-        <p className="text-[14px] font-medium text-tinta">Foto de perfil</p>
+      <div className="text-[14px]">
+        <p className="font-semibold text-tinta">Foto de perfil</p>
         <p className="mt-0.5 text-[13px] text-apagado">
           JPG, PNG o WebP. Una foto donde se te vea la cara ayuda a que te
           reconozcan en una entrevista.
         </p>
-        {aviso && (
-          <p
-            aria-live="polite"
-            className="mt-1.5 border-l-2 border-tinta pl-2 text-[13px] text-tinta"
-          >
-            {aviso}
-          </p>
-        )}
+        {/* La región vive siempre en el DOM: un `aria-live` que aparece
+            junto con su texto no siempre se anuncia. */}
+        <div aria-live="polite" className="mt-2 empty:mt-0">
+          {aviso && <Aviso>{aviso}</Aviso>}
+        </div>
       </div>
     </div>
   );

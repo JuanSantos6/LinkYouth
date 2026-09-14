@@ -326,6 +326,28 @@ as $$
 $$;
 
 -- ============================================================
+-- MÓDULO: Perfil público (CN-001)
+-- RF2.5 pide que el perfil sea consultable por otros. RLS no sabe de
+-- columnas, así que exponer la tabla entera exponía también
+-- `fecha_nacimiento`, que la interfaz nunca muestra. La vista publica
+-- la lista exacta de columnas publicables y deja la fecha afuera.
+--
+-- Sin `security_invoker`, una vista corre con los permisos de su dueño
+-- y por lo tanto saltea el RLS de `perfiles`. Eso es deliberado: es lo
+-- que permite que un visitante sin sesión lea un perfil público ahora
+-- que la política de la tabla se limita a la fila propia. El filtro de
+-- cuentas dadas de baja, que antes hacía la política, lo hace el
+-- `where` de la vista.
+-- ============================================================
+
+create view perfiles_publicos as
+select id, nombre_usuario, nombre, apellido, pais, bio, foto_url, creado_en
+from perfiles
+where cuenta_activa(id);
+
+grant select on perfiles_publicos to anon, authenticated;
+
+-- ============================================================
 -- ÍNDICES
 -- Postgres no indexa las claves foráneas por su cuenta. Cada política
 -- de RLS que hace `exists (select 1 from vacantes ...)` corre por fila,
@@ -402,3 +424,36 @@ $$;
 create trigger postulaciones_identidad_inmutable
 before update on postulaciones
 for each row execute function postulacion_identidad_inmutable();
+
+
+-- ============================================================
+-- MÓDULO: Estados finales de una postulación (CN-003)
+-- `postulaciones_transiciones_permitidas` acota el estado destino pero
+-- no ve la fila vieja, así que no podía exigir nada sobre el origen.
+-- Sin esto, la empresa dueña de la vacante podía tomar una postulación
+-- que el postulante ya había cancelado (RF3.8) y moverla a 'aceptada',
+-- reabriendo un proceso del que la persona se había bajado —y
+-- disparándole la notificación de RF6.2 por un cambio que no pidió.
+--
+-- 'aceptada', 'rechazada' y 'cancelada' son terminales: ninguno de los
+-- tres puede pasar a otro estado. La fila nunca se borra (RF3.8, deuda
+-- 7.3), solo deja de moverse.
+-- ============================================================
+
+create or replace function postulacion_transicion_valida()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  if old.estado in ('aceptada', 'rechazada', 'cancelada')
+     and new.estado is distinct from old.estado then
+    raise exception 'La postulacion % ya esta en un estado final (%) y no puede cambiar', old.id, old.estado;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger postulaciones_transicion_valida
+before update on postulaciones
+for each row execute function postulacion_transicion_valida();

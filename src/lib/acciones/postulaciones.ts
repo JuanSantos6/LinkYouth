@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { CLAVE_DUPLICADA, SIN_SESION, type EstadoAccion } from "./tipos";
+import {
+  CLAVE_DUPLICADA,
+  SIN_CONFIGURAR,
+  SIN_SESION,
+  type EstadoAccion,
+} from "./tipos";
 
 /** RF3.6 — Postularse a una vacante. */
 export async function postularse(
@@ -17,7 +22,7 @@ export async function postularse(
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_SESION;
+  if (!supabase) return SIN_CONFIGURAR;
 
   const {
     data: { user },
@@ -69,7 +74,7 @@ export async function cancelarPostulacion(
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_SESION;
+  if (!supabase) return SIN_CONFIGURAR;
 
   const {
     data: { user },
