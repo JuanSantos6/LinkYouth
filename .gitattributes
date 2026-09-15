@@ -1,0 +1,8 @@
+# Los scripts de shell se guardan y se descargan siempre con finales de línea
+# LF, sin importar el `core.autocrlf` de la máquina.
+#
+# Este repositorio se desarrolla en Windows con `core.autocrlf=true`, que
+# convierte a CRLF al hacer checkout. Un script de shell con CRLF no arranca en
+# Linux ni en macOS: el intérprete lee el shebang como `bash\r` y responde
+# `/usr/bin/env: 'bash\r': No such file or directory`.
+*.sh text eol=lf

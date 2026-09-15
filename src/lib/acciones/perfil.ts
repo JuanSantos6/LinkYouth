@@ -4,12 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
-import {
-  CLAVE_DUPLICADA,
-  SIN_CONFIGURAR,
-  SIN_SESION,
-  type EstadoAccion,
-} from "./tipos";
+import { mensajeDeError, sesionDePostulante } from "./sesion";
+import { CLAVE_DUPLICADA, type EstadoAccion } from "./tipos";
 
 type ClienteSupabase = NonNullable<Awaited<ReturnType<typeof createClient>>>;
 
@@ -53,20 +49,20 @@ export async function actualizarPerfil(
     };
   }
 
-  const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return SIN_SESION;
+  // El guardia acá hace algo que RLS no puede: un `update` sobre una fila que
+  // la política no deja ver no devuelve error, devuelve cero filas. Sin esto,
+  // una cuenta de empresa invocando esta acción recibía «Perfil actualizado.»
+  // sin haber tocado nada.
+  const guardia = await sesionDePostulante();
+  if (!guardia.ok) return guardia.error;
+  const { supabase, usuarioId } = guardia.sesion;
 
   const { error } = await supabase
     .from("perfiles")
     .update({ nombre, apellido, pais, bio: bio || null })
-    .eq("id", user.id);
+    .eq("id", usuarioId);
 
-  if (error) return { estado: "error", mensaje: error.message };
+  if (error) return { estado: "error", mensaje: mensajeDeError(error) };
 
   revalidatePath("/perfil");
 
@@ -103,22 +99,18 @@ async function cambiarVinculo(
     return { estado: "error", mensaje: "No se indicó qué agregar o quitar." };
   }
 
-  const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
+  const guardia = await sesionDePostulante();
+  if (!guardia.ok) return guardia.error;
+  const { supabase, usuarioId } = guardia.sesion;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return SIN_SESION;
-
-  const { error } = await consulta(supabase, user.id);
+  const { error } = await consulta(supabase, usuarioId);
 
   // Dos clics seguidos sobre la misma etiqueta mandan dos inserts iguales y el
   // segundo choca contra la clave primaria `(perfil_id, tag_id)`. La fila
   // quedó como quería quien hizo clic, así que es un éxito: devolver error
   // acá haría que la interfaz revirtiera una etiqueta que sí está guardada.
   if (error && error.code !== CLAVE_DUPLICADA) {
-    return { estado: "error", mensaje: error.message };
+    return { estado: "error", mensaje: mensajeDeError(error) };
   }
 
   revalidatePath("/perfil");

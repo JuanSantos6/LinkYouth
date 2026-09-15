@@ -2,14 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
-import { createClient } from "@/lib/supabase/server";
-
-import {
-  CLAVE_DUPLICADA,
-  SIN_CONFIGURAR,
-  SIN_SESION,
-  type EstadoAccion,
-} from "./tipos";
+import { mensajeDeError, sesionDePostulante } from "./sesion";
+import { CLAVE_DUPLICADA, type EstadoAccion } from "./tipos";
 
 /** RF4.5 — Inscribirse a un evento institucional. */
 export async function inscribirse(
@@ -21,17 +15,13 @@ export async function inscribirse(
     return { estado: "error", mensaje: "Falta identificar el evento." };
   }
 
-  const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return SIN_SESION;
+  const guardia = await sesionDePostulante();
+  if (!guardia.ok) return guardia.error;
+  const { supabase, usuarioId } = guardia.sesion;
 
   const { error } = await supabase
     .from("inscripciones_evento")
-    .insert({ evento_id: eventoId, perfil_id: user.id });
+    .insert({ evento_id: eventoId, perfil_id: usuarioId });
 
   if (error) {
     return {
@@ -39,7 +29,7 @@ export async function inscribirse(
       mensaje:
         error.code === CLAVE_DUPLICADA
           ? "Ya estabas inscripto a este evento."
-          : error.message,
+          : mensajeDeError(error),
     };
   }
 
@@ -64,21 +54,17 @@ export async function cancelarInscripcion(
     return { estado: "error", mensaje: "Falta identificar el evento." };
   }
 
-  const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return SIN_SESION;
+  const guardia = await sesionDePostulante();
+  if (!guardia.ok) return guardia.error;
+  const { supabase, usuarioId } = guardia.sesion;
 
   const { error } = await supabase
     .from("inscripciones_evento")
     .delete()
     .eq("evento_id", eventoId)
-    .eq("perfil_id", user.id);
+    .eq("perfil_id", usuarioId);
 
-  if (error) return { estado: "error", mensaje: error.message };
+  if (error) return { estado: "error", mensaje: mensajeDeError(error) };
 
   revalidatePath("/eventos");
   revalidatePath("/inicio");

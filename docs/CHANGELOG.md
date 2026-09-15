@@ -13,220 +13,63 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
-## 2026-09-15 — La migración del bucket se puede correr dos veces (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+## 2026-09-15
 
-- **`db/migraciones/002-bucket-avatars.sql` borra cada política antes de
-  crearla.** `create policy` no admite `if not exists`, así que la segunda
-  corrida moría en la primera política que ya estaba — y una migración que
-  falla a la mitad deja la base en un estado que hay que desarmar a mano.
+- **El tipo de cuenta se exige en RLS, no solo en el middleware.** Las
+  políticas de insert de `postulaciones`, `perfil_tags`, `perfil_habilidades`,
+  `formaciones` e `inscripciones_evento` ahora piden
+  `exists (select 1 from perfiles where id = auth.uid())`; las de `vacantes` y
+  `eventos`, la inversa contra `empresas`. Las siete pasan además a
+  `to authenticated`.
+  Motivo: dos auditorías independientes —la interna y Cyber Neo— encontraron lo
+  mismo. El middleware reparte por tipo de cuenta, pero eso protege la
+  navegación por URL y no el endpoint: los ids de las Server Actions viajan en
+  los chunks de `/_next/static`, que el `matcher` excluye, así que una cuenta
+  de empresa podía invocar `postularse()` por POST contra `/empresa`. Lo único
+  que lo frenaba era la clave foránea `perfil_id -> perfiles` —integridad
+  referencial, no control de acceso— y no cubría la dirección inversa, que es
+  la que va a importar en el Hito 6.
+  → [`decisiones.md`](./decisiones.md)
 
----
+- **Guardia de sesión compartido en `src/lib/acciones/sesion.ts`.**
+  `sesionDePostulante()` reemplaza el preámbulo —cliente, `SIN_CONFIGURAR`,
+  `getUser()`, `SIN_SESION`— que estaba repetido en las seis acciones de
+  escritura, y le suma el chequeo de tipo de cuenta.
+  Motivo: con el chequeo repetido serían seis lugares donde acordarse de
+  agregarlo. Además tapa un caso que RLS no puede informar: un `update` sobre
+  una fila que la política no deja ver no falla, devuelve cero filas, así que
+  `actualizarPerfil` invocada por una cuenta de empresa respondía «Perfil
+  actualizado.» sin haber tocado nada.
 
-## 2026-09-15 — Los menús de acceso se abren con el mouse y el carrusel dice cuándo no hay nada que desplazar (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+- **El `42501` de RLS deja de salir crudo a la pantalla.** `mensajeDeError()`
+  lo traduce a «No tenés permiso para hacer esto.».
+  Motivo: el mensaje de Postgres nombra la tabla y la política, que es
+  justamente el mapa que necesita quien está sondeando la base.
 
-- **«Ingresar» y «Crear cuenta» ya no pueden estar abiertos a la vez.** Eran
-  dos `<details>` independientes: con los dos abiertos, los paneles se pisaban.
-  Ahora comparten un `GrupoDeMenus` que sabe cuál está abierto, así abrir uno
-  cierra el otro sin que ninguno tenga que enterarse de que el otro existe.
+- **El cuerpo del verificador va por la entrada estándar, no por `argv`.** Con
+  `-d "$cuerpo"` el bloque de las acciones de empresa devolvía `PGRST102`
+  («Empty or invalid json») en lugar de `42501`.
+  Motivo: en Windows `curl` suele ser el binario nativo (`/mingw64/bin/curl`),
+  así que los argumentos cruzan una conversión de code page al pasar de bash al
+  proceso. El título de prueba llevaba tilde, el byte llegaba corrupto y
+  PostgREST rechazaba el cuerpo antes de evaluar la política — o sea que la
+  prueba nunca llegaba a la base y se leía como si el fix no funcionara. La
+  autoprueba suma un caso con tilde para que no vuelva en silencio.
 
-- **Se abren al pasar el mouse.** El panel cuelga de un envoltorio con relleno
-  superior en vez de margen: con margen quedaba un hueco de seis píxeles entre
-  el botón y el panel, y el menú se cerraba justo cuando el mouse lo estaba
-  cruzando para llegar.
+- **`db/verificar-politicas.sh`.** Comprueba contra la base que el rechazo
+  viene de la política (`42501`) y no de la clave foránea (`23503`).
+  Motivo: la diferencia entre el fix y el bug no se ve leyendo el SQL, se ve en
+  el código que devuelve Postgres, y hasta ahora no había forma de comprobarlo
+  sin armar las llamadas a mano. Va contra PostgREST y no contra la aplicación
+  porque el guardia de `sesion.ts` corta antes de llegar a la base. Trae
+  `AUTOPRUEBA=si`, que lo ejercita sin ninguna cuenta usando la clave anónima
+  como token, con un control negativo para probar que sabe dar rojo.
 
-- **El hover no alcanza, así que conviven tres caminos**, y los tres salieron
-  de probarlos en un navegador de verdad:
-  - Con mouse, el clic ya no cierra el panel que el hover acaba de abrir.
-  - En un teléfono el toque termina con un `pointerleave`, que cerraba el menú
-    en el mismo gesto que lo abría. Los manejadores de puntero filtran por tipo.
-  - Un toque también enfoca el botón, y entre ese `focus` y el `click` que
-    viene después el menú se abría y se cerraba solo. Ahora abre por foco
-    únicamente cuando es `:focus-visible`, que es el foco que llega por
-    tabulador.
-  - `Escape` devuelve el foco al botón, y ese foco de teclado lo reabría al
-    instante. Una bandera ignora ese foco puntual.
-
-- **Las flechas del carrusel aparecen solo si hay adónde ir.** No estaban
-  rotas: con cuatro organizaciones en una pantalla de escritorio la fila entra
-  entera —`scrollWidth` es idéntico a `clientWidth`— y `scrollBy` no tiene
-  margen para desplazar. Un botón que responde al clic sin que pase nada se lee
-  como un botón roto. Ahora la fila de flechas se esconde cuando no hay
-  desborde y cada flecha se apaga al llegar a su extremo.
-
-- **La barra de desplazamiento del carrusel se esconde** con la utilidad
-  `.sin-barra`. Va solo donde hay otra forma visible de moverse: sin las
-  flechas, esconderla le sacaría a la persona la única señal de que la fila
-  sigue hacia el costado.
-
----
-
-## 2026-09-15 — Registro con seguridad, ficha unificada y baja de inscripción (rama `claude/linkyouth-applicant-dashboard-eweeld`)
-
-- **`empresas` tiene columna `rut`, única y opcional.** Una empresa se
-  identifica por su RUT, no por su razón social, que se puede repetir entre
-  jurisdicciones. Es opcional porque las empresas dadas de alta antes de la
-  columna no lo tienen y no hay valor razonable que inventarles
-  (`db/migraciones/001-empresas-rut.sql`). El formato lo valida la aplicación y
-  no un `check`: doce dígitos es la forma uruguaya y la plataforma no descarta
-  abrirse a otros países.
-
-- **El registro mide la fuerza de la contraseña mientras se escribe.** Antes el
-  único requisito eran seis caracteres, y quien ponía `123456` se enteraba de
-  que era mala cuando ya era tarde. Ahora son ocho a sesenta y cuatro, con
-  mayúscula y número. El tope no es de seguridad: bcrypt trunca en 72 bytes, y
-  más allá de ahí los caracteres extra no cuentan — aceptarlos sería mentir.
-  El color del medidor está [argumentado en `decisiones.md`](./decisiones.md).
-
-- **La contraseña se pide dos veces y la privacidad se acepta a mano.** Un
-  error de tipeo en el único campo dejaba a alguien afuera de su propia cuenta
-  sin forma de saber qué había escrito. El checkbox nunca viene marcado: un
-  consentimiento que viene puesto no es un consentimiento.
-
-- **La mayoría de edad se rechaza antes de crear el usuario.** La regla la
-  sigue decidiendo el `check` `perfiles_mayor_de_edad`; lo que cambia es que el
-  campo de fecha no deja elegir un día posterior y la acción corta antes. Sin
-  eso quedaba una fila en `auth.users` que nunca iba a poder tener perfil.
-
-- **Al registrarse hay que elegir al menos cinco intereses (RF1.1.11).** Sin
-  ellos la compatibilidad de RF3.9 no tiene con qué comparar: el feed abría con
-  todas las vacantes en 0 % y parecía roto sin estarlo.
-
-- **La foto de perfil y el logo se suben a Supabase Storage.** Cierra a medias
-  la deuda 7.4: suben, pero un fallo de subida no corta el alta y queda solo en
-  el registro del servidor. Para cuando corre, la cuenta ya existe, y devolver
-  un error dejaría a la persona reintentando contra un correo ya registrado.
-
-- **`TarjetaUsuario` es un solo bloque.** Los respiros entre identidad, estudio,
-  números y habilidades eran tan grandes que en el teléfono parecían cuatro
-  tarjetas apiladas. Ahora comparten superficie y se separan con filetes.
-
-- **La institución educativa es un enlace a `/institucion/[id]`.** Es el dato
-  que alguien quiere seguir para ver quién más estudia ahí. No hay tabla de
-  instituciones: el identificador se deriva del nombre y la página dice en
-  pantalla qué le falta ([decisión](./decisiones.md), deuda 7.8).
-
-- **Los eventos tienen botón de cancelar inscripción (RF4.6).** La acción de
-  servidor existía desde el principio y el botón no, así que anotarse era
-  irreversible sin entrar a la base.
-
----
-
-## 2026-09-15 — Usuarios de prueba (rama `claude/linkyouth-applicant-dashboard-eweeld`)
-
-- **`db/seed-usuarios-prueba.sql` crea cinco postulantes y cinco empresas con
-  contraseña conocida.** Hasta ahora no había forma de probar el inicio de
-  sesión ni el feed a mano: había que registrarse cada vez, y un perfil recién
-  creado no tiene intereses, así que la compatibilidad de toda vacante daba
-  0 % y el listado se veía roto sin estarlo.
-  El script escribe directo en `auth.users` porque el pedido era pegarlo en el
-  SQL Editor de Supabase, donde no se puede usar la Admin API. Es el esquema
-  interno de GoTrue y puede cambiar entre versiones: queda anotado en la
-  cabecera del archivo.
-
-- **Las contraseñas van en claro en `docs/usuarios-prueba.md`**, que es para lo
-  que se pidieron. Ambos archivos advierten que esto sirve solo mientras la
-  base tenga datos inventados y que hay que borrar estas cuentas en cuanto se
-  registre una persona real.
-
-- **Los intereses y habilidades del seed se verifican contra el catálogo de
-  `db/seed.sql`.** Se asignan con un `join` por nombre, y un `join` que no
-  encuentra nada no falla: inserta cero filas en silencio. Once nombres no
-  existían en el catálogo, con lo que tres perfiles habrían quedado por debajo
-  del mínimo de cinco intereses de RF1.1.11 sin ningún error visible.
-
-- **`formaciones` se inserta con un guardia `where not exists`.** No tiene
-  restricción única, así que `on conflict do nothing` no la protegía y correr
-  el script dos veces duplicaba los estudios de cada perfil.
-
----
-
-## 2026-09-14 — Portada pública (rama `claude/linkyouth-applicant-dashboard-eweeld`)
-
-- **`/` deja de redirigir al feed y pasa a ser la portada.** Hasta ahora la
-  raíz mandaba a `/inicio` y el middleware cortaba en `/login`: alguien que
-  llegaba por primera vez no tenía forma de enterarse de qué era LinkYouth sin
-  crear una cuenta primero.
-  Contiene lo que faltaba: qué es el proyecto, cómo funciona en tres pasos, un
-  carrusel con las organizaciones que publican, preguntas frecuentes,
-  formulario de consultas y el pie con los enlaces y los derechos.
-
-- **La cabecera de la portada navega dentro de la misma página.** Son anclas,
-  no rutas: quien todavía no se registró no tiene secciones propias adónde ir.
-  Hasta 1024 px bajan a una segunda fila — compartiendo la primera con los dos
-  botones de acceso quedaban en 36 px de ancho en el teléfono y 104 px en una
-  tablet, o sea que el menú estaba pero no se podía usar.
-
-- **Ingresar y Crear cuenta ofrecen las dos puertas**, la del joven y la de la
-  organización. Son `<details>` y no menús con estado: el navegador ya sabe
-  abrirlos, enfocarlos con teclado y anunciarlos.
-  En el registro la distinción es real y ya existía (`?tipo=empresa`). En el
-  login es solo de texto: la contraseña se verifica igual y el tipo de cuenta
-  lo sabe la base, que es la que decide a qué mitad entrás.
-
-- **El carrusel no se mueve solo.** Avanza con las flechas, el dedo o la rueda.
-  Un carrusel con reproducción automática obliga a leer al ritmo de otro y es
-  de lo primero que molesta con movimiento reducido activado.
-
-- **El formulario de consultas valida pero todavía no entrega**, y lo dice
-  **antes** de que alguien escriba, no después de enviar.
-  Motivo: no hay tabla `consultas` en `db/schema.sql` ni servicio de correo, y
-  ninguna de las dos cosas se decide desde el front-end. Fingir un «gracias, te
-  respondemos pronto» sobre un mensaje que se descarta deja a alguien esperando
-  una respuesta que nadie va a leer.
-
-- **`/` entra en `INFORMATIVAS`** del middleware y `e2e/auth.spec.ts` cambia el
-  test que esperaba la redirección a `/login`: ahora verifica que la portada se
-  abra sin sesión y que no se cuele el feed.
-
----
-
-## 2026-09-14 (rama `claude/linkyouth-applicant-dashboard-eweeld`)
-
-- **El rediseño «ficha técnica» absorbe todo lo funcional de `main`.** La rama
-  traía la dirección visual y `main` había avanzado 28 commits con
-  autenticación, registro de empresa, selección de tags, la auditoría de
-  seguridad y los arreglos de accesibilidad. Se resolvieron 23 conflictos con
-  un criterio fijo: la lógica viene de `main`, el lenguaje visual de la rama.
-  Motivo: mantener las dos líneas separadas más tiempo significaba que cada
-  arreglo había que hacerlo dos veces.
-
-- **Paleta de cinco valores en todo lo que llegó de `main`.** Los componentes
-  de autenticación, el selector de tags, el panel de empresa y los campos
-  pasaron de la paleta azul a `tinta`/`papel`/`acento`/`senal`/`apagado`. El
-  ámbar sigue apareciendo en dos lugares de toda la aplicación.
-
-- **`BotonAccion` reemplaza a `BotonPostularse` y `BotonInscribirse`**, y usa
-  `MensajeDeAccion` para anunciar el resultado. Se conserva el `esEjemplo` de
-  `main`: sobre contenido de demostración el botón se deshabilita y lo dice,
-  en vez de ofrecer una postulación que no tiene dónde guardarse.
-
-- **`SelectorTags` reemplaza a `NubeTags`** (RF2.3, RF2.4.3). Se le quitó el
-  rótulo en versalitas espaciadas, que es uno de los patrones prohibidos de la
-  dirección.
-
-- **Cabecera y pie saben de qué cuenta se trata.** Una cuenta de empresa ya no
-  ve enlaces a las secciones del postulante: el middleware la rebotaría a su
-  panel. `obtenerTipoCuenta()` resuelve la pregunta en una consulta.
-
-- **Las tres pantallas públicas dejan de exigir sesión.** `/empresas`,
-  `/como-funciona` y `/legales` entran en la lista `INFORMATIVAS` del
-  middleware, separada de `ENTRADA`. Están enlazadas desde la cabecera y el
-  pie, que aparecen en todas partes: pedir credenciales para leer qué es
-  LinkYouth era un callejón sin salida.
-
-- **`(sitio)/layout.tsx` se declara dinámico.** Leía la sesión desde un layout
-  que Next prerenderizaba: la página quedaba congelada con el estado de quien
-  no tiene sesión y le mostraba «Entrar» a alguien que ya había entrado.
-
-- **Responsive verificado a 1440, 768 y 390 px.** En angosto: la cifra de
-  compatibilidad encabeza la fila en vez de esconderse —es el dato que ordena
-  el listado—, la fila de secciones se desplaza con anclaje, y el menú de sitio
-  y el cierre de sesión quedan al alcance en la cabecera.
-
-- **`e2e/auth.spec.ts` cubre la superficie nueva:** `/avisos` y `/ajustes`
-  entre las privadas, las tres informativas entre las públicas.
-
----
+- **`arquitectura.md` §2.2 corregida, deuda §7.5 cerrada.** La sección decía
+  «Ninguna regla de permisos está escrita en TypeScript», y dejó de ser cierto
+  cuando `ad8f55c` puso el reparto por tipo en el middleware. Se corrigió la
+  frase en vez de borrarla, con la formulación que sí se sostiene: la base
+  decide, el código explica.
 
 ## 2026-09-14
 

@@ -6,158 +6,57 @@ se eligió esa opción.
 
 ---
 
-## 2026-09-15 — El medidor de contraseña usa rojo, amarillo y verde
+## 2026-09-15 — El tipo de cuenta se exige por existencia de fila, no por `cuentas.tipo`
 
-**Decisión.** Agregar tres tokens —`--ly-fuerza-baja`, `--ly-fuerza-media`,
-`--ly-fuerza-alta`— fuera de la paleta de cinco valores, usados únicamente por
-el medidor de contraseña, y acompañados siempre de la palabra «Débil», «Media»
-o «Fuerte».
-
-**Alternativas consideradas.**
-
-- Pintar la barra con `acento` y variar cuánto se llena, sin cambiar de color.
-- Usar el ámbar de `senal` para el nivel intermedio.
-- Sustituir la barra por una lista de requisitos con marcas de verificación.
-
-**Motivo.** La primera es la más fiel al sistema y la peor para lo que el
-medidor tiene que comunicar: llenar más o menos una barra del mismo color dice
-«vas por la mitad», no «esto es riesgoso». El semáforo es una convención que la
-gente ya sabe leer sin que nadie se la explique, y esta es la única pantalla de
-la aplicación donde hace falta comunicar riesgo.
-
-La segunda queda descartada por la regla del ámbar: `senal` significa
-«acreditado» y aparece dos veces en toda la aplicación. Usarlo acá lo
-convertiría en decoración y le sacaría el significado en los dos lugares donde
-sí lo tiene.
-
-La tercera se hace igual —la lista de requisitos está debajo de la barra— pero
-sola no alcanza: leer tres renglones para saber si la contraseña sirve es más
-trabajo que mirar una barra.
-
-Los tokens quedan encerrados en el medidor por la misma razón que el ámbar: si
-aparecen en otro lado, dejan de significar. Y el color nunca va solo, porque
-quien no distingue el rojo del verde tiene que poder leer lo mismo
-(WCAG 1.4.1).
-
----
-
-## 2026-09-15 — La institución educativa se identifica por su nombre
-
-**Decisión.** Derivar el identificador de `/institucion/[id]` del nombre de la
-institución, y decir en la propia pantalla que la ficha está incompleta.
+**Decisión.** Las políticas de insert exigen el tipo de cuenta con
+`exists (select 1 from perfiles where id = auth.uid())` del lado individual, y
+la inversa contra `empresas` del lado empresa. No se consulta `cuentas.tipo` ni
+se agrega ninguna función a la base.
 
 **Alternativas consideradas.**
 
-- Agregar una tabla `instituciones` a `db/schema.sql`, con logo y clave
-  estable, y apuntar `formaciones` a ella.
-- No enlazar la institución: dejarla como texto, que es lo que era.
+- Consultar `cuentas.tipo` desde cada política.
+- Una función `es_individual()` / `es_empresa()` con `security definer`.
+- Dejarlo solo en el código, en un guardia por acción.
+- El tipo como claim del JWT, con un auth hook de Supabase.
 
-**Motivo.** La primera es la solución correcta y es una decisión de esquema. El
-equipo fijó que `db/schema.sql` es el esquema que se mantiene, y agregarle una
-tabla desde una tarea de interfaz lo convierte en algo que cada uno extiende
-cuando le hace falta — el mismo criterio que se aplicó a las columnas de
-salario y al formulario de consultas.
+**Motivo.** El disparador `validar_tipo_cuenta` de `db/schema.sql` ya garantiza
+que una cuenta tiene fila en `perfiles` **o** en `empresas`, nunca en las dos.
+Con esa garantía, «existe mi fila en `perfiles`» y «soy individual» son la
+misma proposición, así que preguntarle a `cuentas.tipo` es consultar una tabla
+de más para obtener un dato que la tabla de destino ya contiene.
 
-La segunda deja la pantalla más honesta pero menos útil: la institución es
-justamente el dato que alguien quiere seguir para ver quién más estudia ahí.
+Leer `cuentas` tiene además un problema propio: su RLS limita cada fila a su
+dueño, que es justamente lo que obligó a que `cuenta_activa()` fuera
+`security definer`. Preguntar por `perfiles` y `empresas` no necesita ese
+rodeo, porque las dos políticas de lectura involucradas dejan ver la fila
+propia y esa es la única que la subconsulta mira. Menos superficie
+`security definer` es menos superficie que auditar.
 
-El identificador derivado es lo que se puede hacer sin tocar el esquema, con
-dos límites que quedan escritos en la pantalla y en la deuda 7.8: dos grafías
-del mismo lugar son dos instituciones, y el enlace no es permanente.
+La función nueva se descartó por lo mismo: encapsular un `exists` de una línea
+que se usa en siete políticas no agrega ninguna garantía, y sí agrega un objeto
+más al esquema y un salto más al leerlo.
 
----
+Dejarlo solo en el código estaba descartado de entrada por `CLAUDE.md`: el
+control de acceso vive en la base. El guardia de `src/lib/acciones/sesion.ts`
+existe igual, pero no decide —traduce el rechazo a una frase y cubre el caso
+que RLS no puede informar, que es el `update` sobre cero filas—.
 
-## 2026-09-14 — El formulario de consultas se publica sin canal de entrega
+El claim en el JWT es la respuesta correcta si esto llega a pesar: resuelve el
+tipo sin tocar la base. Hoy no se justifica —es una consulta por escritura, y
+el middleware ya paga una por navegación— y agregarlo obliga a manejar la
+invalidación del token cuando el tipo cambia. Queda anotado como salida, igual
+que en `src/middleware.ts`.
 
-**Decisión.** Publicar el formulario de la portada con validación real, y
-avisar en pantalla —antes de escribir— que el mensaje todavía no llega a
-ninguna parte.
+**Consecuencia.** Las tablas hijas no repiten la condición: `evento_tags` y las
+tres de vacante ya exigen ser dueño del evento o de la vacante, y con estas
+políticas una vacante o un evento solo puede tener dueño empresa. `resenias`
+queda cubierta por la misma cadena, porque exige una postulación previa y
+`postulaciones.perfil_id` apunta a `perfiles`.
 
-**Alternativas consideradas.**
-
-- No publicar el formulario hasta que exista el canal.
-- Agregar una tabla `consultas` a `db/schema.sql` con inserción pública.
-- Publicarlo con un «gracias, te respondemos pronto» y descartar el mensaje.
-
-**Motivo.** La tercera es la peor y es la más común: deja a alguien esperando
-una respuesta que nadie va a leer. Entre las otras dos, agregar la tabla es la
-solución correcta, pero el esquema es del equipo y tocarlo desde una tarea de
-interfaz lo convierte en algo que cada uno extiende cuando le hace falta — el
-mismo criterio que se aplicó al no inventar columnas de salario o modalidad.
-
-Queda publicado con el aviso porque el formulario ya está escrito contra el
-contrato que va a usar cuando el canal exista, y porque la portada sin sección
-de contacto tampoco resuelve nada: la vía que sí funciona —el repositorio—
-queda enlazada al pie.
-
-**Qué falta decidir.** Una tabla `consultas` con su política de inserción, o un
-servicio de correo transaccional. Es del equipo.
-
----
-
-## 2026-09-14 — Menús de acceso con `<details>`, no con estado
-
-**Decisión.** Que los desplegables de «Ingresar» y «Crear cuenta» de la portada
-sean elementos `<details>`.
-
-**Alternativas consideradas.**
-
-- Un componente cliente con `useState` y manejo de clic afuera.
-- Dos botones separados por tipo de cuenta, sin desplegable.
-
-**Motivo.** El navegador ya sabe abrir y cerrar una divulgación, enfocarla con
-teclado y anunciarla a un lector de pantalla. Escribirlo con `useState`
-significa mandar JavaScript para reimplementar —peor— algo que viene resuelto,
-y es lo que suele terminar en un menú que no cierra con Escape ni se puede
-recorrer con Tab.
-
-Cuatro botones sueltos en la cabecera era la otra opción: más simple de
-programar, pero la cabecera de la portada ya compite con cinco anclas y dos
-acciones, y cuatro botones la vuelven ilegible en el teléfono.
-
----
-
-## 2026-09-14 — La lógica de `main`, el diseño de la rama
-
-**Decisión.** Al integrar las dos líneas de trabajo, resolver cada conflicto
-con un criterio fijo: la funcionalidad se toma de `main` y el lenguaje visual
-de la rama de rediseño. Después, un barrido de tokens lleva todo lo que vino
-de `main` a la paleta nueva.
-
-**Alternativas consideradas.**
-
-- Rehacer el rediseño encima de `main`, componente por componente.
-- Portar la funcionalidad a mano dentro de la rama, sin merge.
-
-**Motivo.** Las dos alternativas tiran trabajo: la primera pierde las
-decisiones de diseño que ya estaban tomadas y verificadas, la segunda pierde
-el historial de `main` y con él las razones de cada arreglo de seguridad y
-accesibilidad. El merge conserva los dos y deja el criterio explícito, que es
-lo que hace que un conflicto no se resuelva a ojo.
-
-El barrido de tokens fue mecánico a propósito —un mapa del sistema viejo al
-nuevo, aplicado con un script— y después se revisó a mano lo que el mapa no
-puede decidir: el botón primario, el borde de los campos y el rótulo en
-versalitas que traía el selector de tags.
-
----
-
-## 2026-09-14 — La cabecera y el pie preguntan de qué cuenta se trata
-
-**Decisión.** Que `CabeceraGlobal` y `PieDeSitio` reciban un `area` y cambien
-sus enlaces según sea público, postulante o empresa.
-
-**Alternativas consideradas.**
-
-- Una cabecera y un pie iguales para todos.
-- Un layout distinto para cada mitad, con su propia cabecera.
-
-**Motivo.** El middleware manda a una cuenta de empresa a su panel apenas pide
-una sección del postulante. Con la cabecera única, esa cuenta veía «Mi perfil»
-y «Avisos» y cada clic la devolvía al lugar donde estaba: un menú que promete
-lo que no puede cumplir. Duplicar el layout arreglaba eso y traía el problema
-de siempre —dos cabeceras que se van separando—, así que la diferencia queda
-en un parámetro y la estructura sigue siendo una sola.
+Las tres políticas del alta (`cuentas_creo_la_mia`, `perfiles_creo_el_mio`,
+`empresas_creo_la_mia`) quedan sin la condición a propósito: exigir una fila
+que el propio insert está creando dejaría a todo el mundo afuera del registro.
 
 ---
 
