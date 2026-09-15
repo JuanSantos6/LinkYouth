@@ -3,7 +3,10 @@ import Link from "next/link";
 
 import { FormularioRegistro } from "@/components/auth/FormularioRegistro";
 import { FormularioRegistroEmpresa } from "@/components/auth/FormularioRegistroEmpresa";
+import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import { obtenerCatalogos } from "@/lib/data/consultas";
+import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 
 export const metadata: Metadata = { title: "Crear cuenta" };
 
@@ -61,6 +64,15 @@ export default async function PaginaRegistro({
   const { tipo } = await searchParams;
   const activo: Tipo = tipo === "empresa" ? "empresa" : "individual";
 
+  // El catálogo de intereses lo lee el servidor: `tags_lectura_publica` no
+  // pide sesión, así que se puede leer antes de que la cuenta exista.
+  const catalogos = await obtenerCatalogos();
+
+  // La fecha límite se calcula acá, con el reloj del servidor, y viaja como
+  // dato. Si la calculara el formulario, el servidor y el navegador podrían
+  // estar en husos distintos y el atributo no coincidiría al hidratar.
+  const fechaMaxima = ReglasDeRegistro.fechaMaximaDeNacimiento(new Date());
+
   return (
     <>
       <div>
@@ -70,11 +82,17 @@ export default async function PaginaRegistro({
 
       <Selector activo={activo} />
 
+      {activo === "individual" && <AvisoOrigen resultado={catalogos} />}
+
       <Tarjeta className="p-6">
         {activo === "empresa" ? (
           <FormularioRegistroEmpresa />
         ) : (
-          <FormularioRegistro />
+          <FormularioRegistro
+            intereses={catalogos.datos.tags}
+            interesesDeEjemplo={catalogos.origen === "ejemplo"}
+            fechaMaximaDeNacimiento={fechaMaxima}
+          />
         )}
       </Tarjeta>
 

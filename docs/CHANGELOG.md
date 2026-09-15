@@ -13,6 +13,57 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-15 — Registro con seguridad, ficha unificada y baja de inscripción (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **`empresas` tiene columna `rut`, única y opcional.** Una empresa se
+  identifica por su RUT, no por su razón social, que se puede repetir entre
+  jurisdicciones. Es opcional porque las empresas dadas de alta antes de la
+  columna no lo tienen y no hay valor razonable que inventarles
+  (`db/migraciones/001-empresas-rut.sql`). El formato lo valida la aplicación y
+  no un `check`: doce dígitos es la forma uruguaya y la plataforma no descarta
+  abrirse a otros países.
+
+- **El registro mide la fuerza de la contraseña mientras se escribe.** Antes el
+  único requisito eran seis caracteres, y quien ponía `123456` se enteraba de
+  que era mala cuando ya era tarde. Ahora son ocho a sesenta y cuatro, con
+  mayúscula y número. El tope no es de seguridad: bcrypt trunca en 72 bytes, y
+  más allá de ahí los caracteres extra no cuentan — aceptarlos sería mentir.
+  El color del medidor está [argumentado en `decisiones.md`](./decisiones.md).
+
+- **La contraseña se pide dos veces y la privacidad se acepta a mano.** Un
+  error de tipeo en el único campo dejaba a alguien afuera de su propia cuenta
+  sin forma de saber qué había escrito. El checkbox nunca viene marcado: un
+  consentimiento que viene puesto no es un consentimiento.
+
+- **La mayoría de edad se rechaza antes de crear el usuario.** La regla la
+  sigue decidiendo el `check` `perfiles_mayor_de_edad`; lo que cambia es que el
+  campo de fecha no deja elegir un día posterior y la acción corta antes. Sin
+  eso quedaba una fila en `auth.users` que nunca iba a poder tener perfil.
+
+- **Al registrarse hay que elegir al menos cinco intereses (RF1.1.11).** Sin
+  ellos la compatibilidad de RF3.9 no tiene con qué comparar: el feed abría con
+  todas las vacantes en 0 % y parecía roto sin estarlo.
+
+- **La foto de perfil y el logo se suben a Supabase Storage.** Cierra a medias
+  la deuda 7.4: suben, pero un fallo de subida no corta el alta y queda solo en
+  el registro del servidor. Para cuando corre, la cuenta ya existe, y devolver
+  un error dejaría a la persona reintentando contra un correo ya registrado.
+
+- **`TarjetaUsuario` es un solo bloque.** Los respiros entre identidad, estudio,
+  números y habilidades eran tan grandes que en el teléfono parecían cuatro
+  tarjetas apiladas. Ahora comparten superficie y se separan con filetes.
+
+- **La institución educativa es un enlace a `/institucion/[id]`.** Es el dato
+  que alguien quiere seguir para ver quién más estudia ahí. No hay tabla de
+  instituciones: el identificador se deriva del nombre y la página dice en
+  pantalla qué le falta ([decisión](./decisiones.md), deuda 7.8).
+
+- **Los eventos tienen botón de cancelar inscripción (RF4.6).** La acción de
+  servidor existía desde el principio y el botón no, así que anotarse era
+  irreversible sin entrar a la base.
+
+---
+
 ## 2026-09-15 — Usuarios de prueba (rama `claude/linkyouth-applicant-dashboard-eweeld`)
 
 - **`db/seed-usuarios-prueba.sql` crea cinco postulantes y cinco empresas con

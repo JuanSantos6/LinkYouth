@@ -2,23 +2,28 @@
 
 import { useActionState, useState } from "react";
 
+import { Aceptacion } from "@/components/auth/FormularioRegistro";
+import { CampoContrasenia } from "@/components/auth/CampoContrasenia";
+import { CampoImagen } from "@/components/auth/CampoImagen";
 import { RegistroPendiente } from "@/components/auth/RegistroPendiente";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { registrarEmpresa } from "@/lib/acciones/auth";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
+import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 
 /**
  * Registro de una cuenta de empresa (RF1.2).
  *
- * Los campos son las columnas de `empresas` en `db/schema.sql`, más el correo y
- * la contraseña que van a `auth.users`. `descripcion` y `logo_url` son opcionales
- * porque el esquema las declara nullables.
+ * Los campos son las columnas de `empresas` en `db/schema.sql`, más el correo
+ * y la contraseña que van a `auth.users`. `descripcion` y `logo_url` son
+ * opcionales porque el esquema las declara nullables.
  *
- * El logo se pide como URL y no como archivo: la subida a Supabase Storage
- * entra en el Hito 2, junto con la foto de perfil. Pedirlo como archivo hoy
- * sería prometer algo que no guarda nada.
+ * El RUT se guarda en dígitos pelados y es único en la tabla: dos empresas no
+ * pueden registrar el mismo. El formato se comprueba acá y en la acción; el
+ * dígito verificador no se valida y no se consulta a DGI, porque eso es una
+ * integración y prometerla sin tenerla sería peor que no validar.
  */
 export function FormularioRegistroEmpresa() {
   const [estado, enviar, enCurso] = useActionState(
@@ -35,7 +40,7 @@ export function FormularioRegistroEmpresa() {
   }
 
   return (
-    <form action={enviar} className="space-y-4">
+    <form action={enviar} className="space-y-5">
       <Campo
         etiqueta="Razón social"
         ayuda="El nombre legal con el que la empresa aparece en la plataforma."
@@ -46,18 +51,36 @@ export function FormularioRegistroEmpresa() {
           spellCheck={false}
           required
           minLength={2}
+          maxLength={ReglasDeRegistro.LARGO_NOMBRE}
           className={`mt-1.5 ${CAMPO}`}
         />
       </Campo>
 
-      <Campo etiqueta="Rubro" ayuda="Por ejemplo: comercio electrónico, salud.">
-        <input
-          name="rubro"
-          required
-          minLength={2}
-          className={`mt-1.5 ${CAMPO}`}
-        />
-      </Campo>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Campo etiqueta="RUT" ayuda="Doce dígitos, con o sin puntos.">
+          <input
+            name="rut"
+            inputMode="numeric"
+            spellCheck={false}
+            placeholder="21 000 123 0011"
+            required
+            className={`mt-1.5 ${CAMPO}`}
+          />
+        </Campo>
+
+        <Campo
+          etiqueta="Rubro"
+          ayuda="Por ejemplo: comercio electrónico, salud."
+        >
+          <input
+            name="rubro"
+            required
+            minLength={2}
+            maxLength={ReglasDeRegistro.LARGO_NOMBRE}
+            className={`mt-1.5 ${CAMPO}`}
+          />
+        </Campo>
+      </div>
 
       <Campo
         etiqueta="Descripción"
@@ -71,19 +94,11 @@ export function FormularioRegistroEmpresa() {
         />
       </Campo>
 
-      <Campo
+      <CampoImagen
+        nombre="logo"
         etiqueta="Logo"
-        ayuda="Opcional. Por ahora se pega una dirección web; la subida de archivos llega con el módulo de almacenamiento."
-      >
-        <input
-          type="url"
-          name="logo_url"
-          inputMode="url"
-          spellCheck={false}
-          placeholder="https://…"
-          className={`mt-1.5 ${CAMPO}`}
-        />
-      </Campo>
+        ayuda="Opcional. JPG, PNG o WebP, hasta 2 MB."
+      />
 
       <Campo etiqueta="Correo electrónico">
         <input
@@ -97,16 +112,9 @@ export function FormularioRegistroEmpresa() {
         />
       </Campo>
 
-      <Campo etiqueta="Contraseña" ayuda="Mínimo 6 caracteres.">
-        <input
-          type="password"
-          name="password"
-          autoComplete="new-password"
-          required
-          minLength={6}
-          className={`mt-1.5 ${CAMPO}`}
-        />
-      </Campo>
+      <CampoContrasenia />
+
+      <Aceptacion />
 
       <MensajeDeAccion estado={estado} />
 

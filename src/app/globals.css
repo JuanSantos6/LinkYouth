@@ -48,6 +48,22 @@
   --ly-senal-tenue: color-mix(in oklab, var(--ly-senal) 22%, var(--ly-papel));
 
   /*
+   * Los tres valores del medidor de contraseña, y el único lugar de la
+   * aplicación donde el color significa algo por sí solo. La paleta de cinco
+   * no alcanza acá: una escala de riesgo necesita rojo, amarillo y verde,
+   * porque es la convención que la gente ya sabe leer sin que se la
+   * expliquen. Se quedan encerrados en el medidor: usarlos en cualquier otro
+   * lado los convierte en decoración y les saca el significado, igual que
+   * pasaría con el ámbar.
+   *
+   * El color nunca va solo: el medidor siempre escribe «Débil», «Media» o
+   * «Fuerte» al lado (WCAG 1.4.1).
+   */
+  --ly-fuerza-baja: #b3261e;
+  --ly-fuerza-media: #8a6116;
+  --ly-fuerza-alta: #1f6b45;
+
+  /*
    * Una sola sombra, y es real: se reserva para lo que de verdad está por
    * encima del plano —la vacante destacada, un menú—. Nada más la lleva.
    */
@@ -71,6 +87,11 @@
   --ly-acento-tenue: color-mix(in oklab, var(--ly-acento) 16%, var(--ly-papel));
   --ly-senal-tenue: color-mix(in oklab, var(--ly-senal) 20%, var(--ly-papel));
 
+  /* Aclarados para el fondo oscuro: los del tema claro quedaban en 2:1. */
+  --ly-fuerza-baja: #f2857c;
+  --ly-fuerza-media: #e0b44f;
+  --ly-fuerza-alta: #6fc79a;
+
   --ly-elevada: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 28px -12px rgb(0 0 0 / 0.7);
 }
 
@@ -88,6 +109,9 @@
   --color-sobre-acento: var(--ly-sobre-acento);
   --color-acento-tenue: var(--ly-acento-tenue);
   --color-senal-tenue: var(--ly-senal-tenue);
+  --color-fuerza-baja: var(--ly-fuerza-baja);
+  --color-fuerza-media: var(--ly-fuerza-media);
+  --color-fuerza-alta: var(--ly-fuerza-alta);
 
   --font-titulo: var(--fuente-titulo), ui-sans-serif, system-ui, sans-serif;
   --font-cuerpo: var(--fuente-cuerpo), ui-sans-serif, system-ui, sans-serif;

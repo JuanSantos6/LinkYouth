@@ -6,6 +6,67 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-15 — El medidor de contraseña usa rojo, amarillo y verde
+
+**Decisión.** Agregar tres tokens —`--ly-fuerza-baja`, `--ly-fuerza-media`,
+`--ly-fuerza-alta`— fuera de la paleta de cinco valores, usados únicamente por
+el medidor de contraseña, y acompañados siempre de la palabra «Débil», «Media»
+o «Fuerte».
+
+**Alternativas consideradas.**
+
+- Pintar la barra con `acento` y variar cuánto se llena, sin cambiar de color.
+- Usar el ámbar de `senal` para el nivel intermedio.
+- Sustituir la barra por una lista de requisitos con marcas de verificación.
+
+**Motivo.** La primera es la más fiel al sistema y la peor para lo que el
+medidor tiene que comunicar: llenar más o menos una barra del mismo color dice
+«vas por la mitad», no «esto es riesgoso». El semáforo es una convención que la
+gente ya sabe leer sin que nadie se la explique, y esta es la única pantalla de
+la aplicación donde hace falta comunicar riesgo.
+
+La segunda queda descartada por la regla del ámbar: `senal` significa
+«acreditado» y aparece dos veces en toda la aplicación. Usarlo acá lo
+convertiría en decoración y le sacaría el significado en los dos lugares donde
+sí lo tiene.
+
+La tercera se hace igual —la lista de requisitos está debajo de la barra— pero
+sola no alcanza: leer tres renglones para saber si la contraseña sirve es más
+trabajo que mirar una barra.
+
+Los tokens quedan encerrados en el medidor por la misma razón que el ámbar: si
+aparecen en otro lado, dejan de significar. Y el color nunca va solo, porque
+quien no distingue el rojo del verde tiene que poder leer lo mismo
+(WCAG 1.4.1).
+
+---
+
+## 2026-09-15 — La institución educativa se identifica por su nombre
+
+**Decisión.** Derivar el identificador de `/institucion/[id]` del nombre de la
+institución, y decir en la propia pantalla que la ficha está incompleta.
+
+**Alternativas consideradas.**
+
+- Agregar una tabla `instituciones` a `db/schema.sql`, con logo y clave
+  estable, y apuntar `formaciones` a ella.
+- No enlazar la institución: dejarla como texto, que es lo que era.
+
+**Motivo.** La primera es la solución correcta y es una decisión de esquema. El
+equipo fijó que `db/schema.sql` es el esquema que se mantiene, y agregarle una
+tabla desde una tarea de interfaz lo convierte en algo que cada uno extiende
+cuando le hace falta — el mismo criterio que se aplicó a las columnas de
+salario y al formulario de consultas.
+
+La segunda deja la pantalla más honesta pero menos útil: la institución es
+justamente el dato que alguien quiere seguir para ver quién más estudia ahí.
+
+El identificador derivado es lo que se puede hacer sin tocar el esquema, con
+dos límites que quedan escritos en la pantalla y en la deuda 7.8: dos grafías
+del mismo lugar son dos instituciones, y el enlace no es permanente.
+
+---
+
 ## 2026-09-14 — El formulario de consultas se publica sin canal de entrega
 
 **Decisión.** Publicar el formulario de la portada con validación real, y

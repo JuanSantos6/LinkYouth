@@ -421,6 +421,44 @@ postuló: `etiqueta`, `etapa`, `cancelable`, `cerradoSinPuesto`, `aceptada` y
 `alcanzo(etapa)`. Las tres etapas visibles no son los cinco estados de la base:
 `aceptada`, `rechazada` y `cancelada` caen todas en la última.
 
+#### `FuerzaDeContrasenia`
+
+`new FuerzaDeContrasenia(texto)` responde qué tan buena es y por qué:
+`requisitos`, `puntaje`, `nivel`, `segmentos`, `etiqueta`, `esAceptable` y
+`motivoDelRechazo`. La usan las dos capas —el medidor del formulario y
+`registrarse()`—, y que sea la misma clase es lo que impide que el navegador
+acepte una contraseña que el servidor rechaza.
+
+El puntaje no mide entropía: cuenta requisitos cumplidos. Una barra verde no
+promete que la contraseña sea buena, promete que cumple lo que la plataforma
+pide.
+
+#### `ReglasDeRegistro`
+
+Los límites del registro, como miembros estáticos: `EDAD_MINIMA`,
+`LARGO_NOMBRE`, `TAGS_MINIMOS`, `PESO_MAXIMO_IMAGEN`, `FORMATOS_IMAGEN`, más
+`fechaMaximaDeNacimiento(hoy)`, `tieneEdadSuficiente(fecha, hoy)`,
+`normalizarRut`, `rutValido` y `problemaDeImagen(archivo)`.
+
+Cada límite existe tres veces en el recorrido —atributo del `<input>`,
+comprobación en la acción, restricción de la base— y las tres tienen que decir
+el mismo número. La clase no reemplaza a ninguna de las tres capas: les da el
+número.
+
+`fechaMaximaDeNacimiento` recibe el día en vez de leer el reloj a propósito: el
+servidor y el navegador pueden estar en husos distintos, y una fecha calculada
+dos veces con dos relojes es una diferencia de hidratación.
+
+#### `Institucion`
+
+`new Institucion(nombre)` deriva el identificador de URL (`id`), las
+iniciales del recuadro y `correspondeA(id)`.
+
+**No hay tabla de instituciones.** `formaciones.institucion` es texto libre, así
+que el identificador se deriva del nombre. Dos grafías del mismo lugar son dos
+instituciones distintas, y el identificador cambia si alguien corrige el
+nombre: no se puede guardar ni compartir como enlace permanente (deuda 7.8).
+
 ### 5.8 `src/lib/diseno/`
 
 #### `tokens.ts`
@@ -676,10 +714,22 @@ recuperación de contraseña y la confirmación de correo como paso propio —ho
 si el proyecto de Supabase la tiene activada, el alta de `cuentas` y `perfiles`
 se completa recién en el primer inicio de sesión.
 
-### 7.4 La subida de archivos no existe
+### 7.4 La subida de archivos sube, pero falla en silencio
 
-`AvatarEditable` muestra la vista previa y avisa que la subida falta. Los
-logos de empresa e institución dependen de lo mismo.
+**Resuelta a medias el 2026-09-15.** `src/lib/supabase/almacenamiento.ts` sube
+la foto de perfil y el logo al bucket `avatars`
+(`db/migraciones/002-bucket-avatars.sql`), y los dos registros traen su
+`<input type="file">`.
+
+Lo que queda abierto es qué pasa cuando la subida falla. Para cuando corre, la
+cuenta ya existe: devolver un error dejaría el formulario diciendo que el
+registro no anduvo, y el segundo intento chocaría con un correo ya registrado.
+Así que el fallo se anota en el registro del servidor, la cuenta se crea igual
+y la persona no se entera hasta que entra a su perfil y no ve su foto.
+
+La salida es un aviso en la pantalla de destino, que hoy no existe: `/inicio` no
+tiene dónde recibirlo. `AvatarEditable` sigue siendo el camino para cargarla
+después.
 
 ### 7.5 La aplicación no distingue postulante de empresa
 
@@ -722,3 +772,21 @@ toda la aplicación, y el rediseño está pausado— pero es lo primero a correg
 cuando se retome. Con teclado y con puntero no hay problema: el
 `:focus-visible` global marca el foco y el objetivo es igual de grande que
 cualquier otra etiqueta de la aplicación.
+
+### 7.8 Las instituciones educativas no tienen tabla
+
+`formaciones.institucion` es texto libre. `/institucion/[id]` reconstruye la
+ficha agrupando las formaciones que nombran el mismo lugar, con un
+identificador derivado del nombre (`src/lib/dominio/Institucion.ts`).
+
+Tres consecuencias, todas visibles en la pantalla:
+
+1. «UTU» y «U.T.U.» son dos instituciones distintas.
+2. El identificador cambia si alguien corrige el nombre, así que el enlace no
+   es permanente.
+3. No hay logo, descripción ni contacto, porque no hay columnas donde
+   estuvieran. La página lo dice en pantalla en vez de rellenar con texto
+   inventado.
+
+La salida es una tabla `instituciones` con clave estable, y `formaciones`
+apuntando a ella. Es una decisión de esquema que el equipo todavía no tomó.

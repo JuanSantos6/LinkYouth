@@ -1,7 +1,7 @@
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-import { inscribirse } from "@/lib/acciones/eventos";
+import { cancelarInscripcion, inscribirse } from "@/lib/acciones/eventos";
 import type { Evento } from "@/lib/data/tipos";
 import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
 
@@ -18,6 +18,10 @@ import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
  *
  * Sin cupos ni conteo de inscriptos: el esquema no guarda cupo, y la política
  * de `inscripciones_evento` no deja contar las de los demás.
+ *
+ * Estar inscripto no es un estado final: el botón cambia a «Cancelar
+ * inscripción» (RF4.6). La acción ya existía desde el principio y el botón no,
+ * así que quedarse era irreversible sin pasar por la base.
  */
 export function TarjetaEvento({
   evento,
@@ -81,21 +85,54 @@ export function TarjetaEvento({
             </ul>
           )}
 
-          <div className="mt-4 flex justify-start sm:justify-end">
-            <BotonAccion
-              accion={inscribirse}
-              campo="eventoId"
-              valor={evento.id}
-              variante="secundario"
-              hecho={yaInscripto}
-              esEjemplo={esEjemplo}
-              textos={{
-                inicial: "Inscribirme",
-                enCurso: "Inscribiendo…",
-                hecho: "Ya te inscribiste",
-                ejemplo: "Disponible con eventos reales",
-              }}
-            />
+          <div className="mt-4 flex flex-wrap items-center justify-start gap-x-4 gap-y-2 sm:justify-end">
+            {yaInscripto && (
+              <p className="text-[13px] font-medium text-tinta">
+                <span aria-hidden className="mr-1.5">
+                  ✓
+                </span>
+                Estás inscripto
+              </p>
+            )}
+
+            {/*
+             * Un botón u otro, nunca los dos: lo que se puede hacer con este
+             * evento depende de si ya estás anotado. `key` los separa a
+             * propósito —cada uno tiene su propio `useActionState`, y sin la
+             * clave React reutilizaría el estado de uno en el otro, dejando el
+             * mensaje de la inscripción colgado debajo del botón de cancelar.
+             */}
+            {yaInscripto ? (
+              <BotonAccion
+                key="cancelar"
+                accion={cancelarInscripcion}
+                campo="eventoId"
+                valor={evento.id}
+                variante="fantasma"
+                esEjemplo={esEjemplo}
+                textos={{
+                  inicial: "Cancelar inscripción",
+                  enCurso: "Cancelando…",
+                  hecho: "Cancelaste tu inscripción",
+                  ejemplo: "Disponible con eventos reales",
+                }}
+              />
+            ) : (
+              <BotonAccion
+                key="inscribir"
+                accion={inscribirse}
+                campo="eventoId"
+                valor={evento.id}
+                variante="secundario"
+                esEjemplo={esEjemplo}
+                textos={{
+                  inicial: "Inscribirme",
+                  enCurso: "Inscribiendo…",
+                  hecho: "Ya te inscribiste",
+                  ejemplo: "Disponible con eventos reales",
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

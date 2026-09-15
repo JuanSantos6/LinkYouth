@@ -1,7 +1,8 @@
 -- ============================================================
 -- LinkYouth — Usuarios de prueba
 -- Ejecutar en: Supabase Dashboard > SQL Editor, después de
--- schema.sql, politicas.sql y seed.sql.
+-- schema.sql, politicas.sql y seed.sql. Si la base es anterior a la
+-- columna `empresas.rut`, corré antes db/migraciones/001-empresas-rut.sql.
 --
 -- Crea 5 cuentas de postulante y 5 de empresa, con contraseña conocida,
 -- para poder probar el inicio de sesión a mano.
@@ -127,16 +128,16 @@ on conflict (id) do nothing;
 -- 5. Empresas
 -- ============================================================
 
-insert into empresas (id, razon_social, rubro, descripcion) values
-  ('22222222-2222-4222-8222-000000000001', 'Nube UY', 'Tecnología',
+insert into empresas (id, razon_social, rut, rubro, descripcion) values
+  ('22222222-2222-4222-8222-000000000001', 'Nube UY', '210001230011', 'Tecnología',
    'Fábrica de software uruguaya. Tomamos perfiles junior con acompañamiento de un referente técnico.'),
-  ('22222222-2222-4222-8222-000000000002', 'Sur Logística', 'Logística y transporte',
+  ('22222222-2222-4222-8222-000000000002', 'Sur Logística', '210002340012', 'Logística y transporte',
    'Operador logístico con depósitos en Montevideo y Canelones.'),
-  ('22222222-2222-4222-8222-000000000003', 'Clínica Omega', 'Salud',
+  ('22222222-2222-4222-8222-000000000003', 'Clínica Omega', '210003450013', 'Salud',
    'Centro de salud privado. Buscamos perfiles administrativos y de atención al paciente.'),
-  ('22222222-2222-4222-8222-000000000004', 'Granja La Flor', 'Agroindustria',
+  ('22222222-2222-4222-8222-000000000004', 'Granja La Flor', '210004560014', 'Agroindustria',
    'Producción y distribución de alimentos frescos. Primera experiencia laboral formal.'),
-  ('22222222-2222-4222-8222-000000000005', 'Estudio Brecha', 'Diseño y comunicación',
+  ('22222222-2222-4222-8222-000000000005', 'Estudio Brecha', '210005670015', 'Diseño y comunicación',
    'Estudio de diseño gráfico y comunicación institucional.')
 on conflict (id) do nothing;
 

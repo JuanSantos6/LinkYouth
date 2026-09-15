@@ -2,6 +2,7 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
+import { Institucion } from "@/lib/dominio/Institucion";
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -23,6 +24,7 @@ import {
   comoTipoOportunidad,
   type Aviso,
   type EmpresaResumen,
+  type FichaDeInstitucion,
   type TipoCuenta,
   type Evento,
   type PerfilCompleto,
@@ -487,4 +489,52 @@ export async function obtenerAvisos(
   if (error) return ejemplo(AVISOS_EJEMPLO, error.message);
 
   return { datos: data ?? [], origen: "supabase" };
+}
+
+// --- Instituciones ----------------------------------------------------------
+
+/**
+ * Ficha de una institución educativa, armada desde `formaciones`.
+ *
+ * No hay tabla de instituciones: el nombre es texto libre en la formación de
+ * cada perfil (ver `src/lib/dominio/Institucion.ts`). Así que la ficha se
+ * reconstruye agrupando por nombre, y el identificador de la URL se compara
+ * contra el derivado de cada uno.
+ *
+ * Se trae la columna entera y se agrupa en memoria en vez de filtrar en la
+ * base: el identificador es una transformación del nombre que Postgres no
+ * conoce, así que no hay `where` que escribir. Con el tamaño de `formaciones`
+ * hoy es barato; cuando deje de serlo, la salida es la tabla de instituciones,
+ * no una consulta más astuta.
+ *
+ * Devuelve `null` cuando ningún nombre corresponde a ese identificador. Quien
+ * llama decide si eso es un 404.
+ */
+export async function obtenerInstitucion(
+  id: string,
+): Promise<Resultado<FichaDeInstitucion | null>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(null, SIN_CREDENCIALES);
+
+  const { data, error } = await supabase
+    .from("formaciones")
+    .select("institucion, titulo");
+
+  if (error) return ejemplo(null, error.message);
+
+  const suyas = (data ?? []).filter((formacion) =>
+    new Institucion(formacion.institucion).correspondeA(id),
+  );
+
+  if (suyas.length === 0) return { datos: null, origen: "supabase" };
+
+  return {
+    datos: {
+      id,
+      nombre: suyas[0].institucion,
+      estudiantes: suyas.length,
+      titulos: [...new Set(suyas.map((formacion) => formacion.titulo))].sort(),
+    },
+    origen: "supabase",
+  };
 }
