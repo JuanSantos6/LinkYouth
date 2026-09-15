@@ -13,6 +13,15 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-15 — La migración del bucket se puede correr dos veces (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **`db/migraciones/002-bucket-avatars.sql` borra cada política antes de
+  crearla.** `create policy` no admite `if not exists`, así que la segunda
+  corrida moría en la primera política que ya estaba — y una migración que
+  falla a la mitad deja la base en un estado que hay que desarmar a mano.
+
+---
+
 ## 2026-09-15 — Los menús de acceso se abren con el mouse y el carrusel dice cuándo no hay nada que desplazar (rama `claude/linkyouth-applicant-dashboard-eweeld`)
 
 - **«Ingresar» y «Crear cuenta» ya no pueden estar abiertos a la vez.** Eran

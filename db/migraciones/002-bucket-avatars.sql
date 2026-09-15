@@ -16,15 +16,22 @@ insert into storage.buckets (id, name, public)
 values ('avatars', 'avatars', true)
 on conflict (id) do nothing;
 
+-- Cada `drop policy if exists` antes de su `create policy` es lo que hace que
+-- este archivo se pueda correr dos veces: `create policy` no admite
+-- `if not exists`, así que sin esto la segunda corrida muere en la primera
+-- política que ya estaba.
+--
 -- Cada quien escribe únicamente dentro de su propia carpeta, que se llama
 -- como su id de usuario. `storage.foldername(name)` devuelve el camino en
 -- partes: la primera es la carpeta, y tiene que coincidir con `auth.uid()`.
 -- Sin esto, cualquier persona autenticada podría pisar el avatar de otra.
 
+drop policy if exists "avatars_lectura_publica" on storage.objects;
 create policy "avatars_lectura_publica"
 on storage.objects for select
 using (bucket_id = 'avatars');
 
+drop policy if exists "avatars_subo_los_mios" on storage.objects;
 create policy "avatars_subo_los_mios"
 on storage.objects for insert
 to authenticated
@@ -33,6 +40,7 @@ with check (
   and (storage.foldername(name))[1] = auth.uid()::text
 );
 
+drop policy if exists "avatars_reemplazo_los_mios" on storage.objects;
 create policy "avatars_reemplazo_los_mios"
 on storage.objects for update
 to authenticated
@@ -41,6 +49,7 @@ using (
   and (storage.foldername(name))[1] = auth.uid()::text
 );
 
+drop policy if exists "avatars_borro_los_mios" on storage.objects;
 create policy "avatars_borro_los_mios"
 on storage.objects for delete
 to authenticated
