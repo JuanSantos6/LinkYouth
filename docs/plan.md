@@ -300,6 +300,11 @@ términos de uso, y revisar el encuadre contra la ley 18.331. Está en
    aplica a mano en el SQL Editor de Supabase. Ojo: `create policy` falla con
    `already exists` sobre una base ya migrada; hace falta `drop policy` o
    `alter policy` antes.
+   Si el cambio toca una política, `bash db/verificar-politicas.sh` comprueba
+   contra la base que rechaza a quien tiene que rechazar, y sobre todo que el
+   rechazo venga de la política (`42501`) y no de una clave foránea (`23503`),
+   que es rechazar por casualidad. `AUTOPRUEBA=si` lo corre sin necesidad de
+   ninguna cuenta.
 3. Los tipos se regeneran después de aplicar el cambio:
    `npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts`
 4. Antes de dar algo por terminado: `npm run lint && npm run typecheck && npm

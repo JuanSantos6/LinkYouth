@@ -46,6 +46,15 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   Motivo: el mensaje de Postgres nombra la tabla y la política, que es
   justamente el mapa que necesita quien está sondeando la base.
 
+- **`db/verificar-politicas.sh`.** Comprueba contra la base que el rechazo
+  viene de la política (`42501`) y no de la clave foránea (`23503`).
+  Motivo: la diferencia entre el fix y el bug no se ve leyendo el SQL, se ve en
+  el código que devuelve Postgres, y hasta ahora no había forma de comprobarlo
+  sin armar las llamadas a mano. Va contra PostgREST y no contra la aplicación
+  porque el guardia de `sesion.ts` corta antes de llegar a la base. Trae
+  `AUTOPRUEBA=si`, que lo ejercita sin ninguna cuenta usando la clave anónima
+  como token, con un control negativo para probar que sabe dar rojo.
+
 - **`arquitectura.md` §2.2 corregida, deuda §7.5 cerrada.** La sección decía
   «Ninguna regla de permisos está escrita en TypeScript», y dejó de ser cierto
   cuando `ad8f55c` puso el reparto por tipo en el middleware. Se corrigió la
