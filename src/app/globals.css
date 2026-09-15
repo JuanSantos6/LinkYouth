@@ -194,6 +194,21 @@
     transition-property:
       color, background-color, border-color, text-decoration-color, fill, stroke;
   }
+
+  /*
+   * Esconde la barra de desplazamiento sin apagar el desplazamiento.
+   *
+   * Solo va donde hay otra forma visible de moverse —el carrusel de la portada
+   * tiene sus flechas—. Sin ese reemplazo, esconder la barra le saca a la
+   * persona la única señal de que la fila sigue hacia el costado.
+   */
+  .sin-barra {
+    scrollbar-width: none;
+  }
+
+  .sin-barra::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer components {

@@ -1,6 +1,6 @@
 import { Marca } from "@/components/layout/Marca";
 
-import { MenuDeAcceso } from "./MenuDeAcceso";
+import { GrupoDeMenus, MenuDeAcceso } from "./MenuDeAcceso";
 
 /**
  * Cabecera de la portada.
@@ -55,14 +55,18 @@ export function CabeceraLanding() {
       <div className="mx-auto flex max-w-[1320px] flex-wrap items-center gap-x-3 px-4 py-2 sm:px-6 lg:h-14 lg:flex-nowrap lg:gap-6 lg:py-0">
         <Marca href="#que-es" />
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 lg:order-3 lg:ml-0">
+        {/*
+         * Los dos menús comparten grupo para que no puedan estar abiertos a la
+         * vez: abiertos los dos, sus paneles se pisaban uno al otro.
+         */}
+        <GrupoDeMenus className="ml-auto flex shrink-0 items-center gap-2 lg:order-3 lg:ml-0">
           <MenuDeAcceso etiqueta="Ingresar" opciones={ENTRAR} />
           <MenuDeAcceso
             etiqueta="Crear cuenta"
             opciones={CREAR_CUENTA}
             destacado
           />
-        </div>
+        </GrupoDeMenus>
 
         <nav
           aria-label="Secciones de esta página"

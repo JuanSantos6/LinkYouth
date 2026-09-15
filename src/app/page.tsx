@@ -8,7 +8,7 @@ import {
 } from "@/components/landing/CabeceraLanding";
 import { CarruselEmpresas } from "@/components/landing/CarruselEmpresas";
 import { FormularioConsulta } from "@/components/landing/FormularioConsulta";
-import { MenuDeAcceso } from "@/components/landing/MenuDeAcceso";
+import { GrupoDeMenus, MenuDeAcceso } from "@/components/landing/MenuDeAcceso";
 import { PreguntasFrecuentes } from "@/components/landing/PreguntasFrecuentes";
 import { PieDeSitio } from "@/components/layout/PieDeSitio";
 import { obtenerEmpresas } from "@/lib/data/consultas";
@@ -102,7 +102,7 @@ export default async function Portada() {
             catálogo común que hace comparables dos perfiles junior.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <GrupoDeMenus className="mt-8 flex flex-wrap items-center gap-3">
             <MenuDeAcceso
               etiqueta="Crear mi cuenta"
               opciones={CREAR_CUENTA}
@@ -115,7 +115,7 @@ export default async function Portada() {
             >
               Ver el detalle
             </Link>
-          </div>
+          </GrupoDeMenus>
         </section>
 
         <Seccion

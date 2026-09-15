@@ -13,6 +13,44 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-15 — Los menús de acceso se abren con el mouse y el carrusel dice cuándo no hay nada que desplazar (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **«Ingresar» y «Crear cuenta» ya no pueden estar abiertos a la vez.** Eran
+  dos `<details>` independientes: con los dos abiertos, los paneles se pisaban.
+  Ahora comparten un `GrupoDeMenus` que sabe cuál está abierto, así abrir uno
+  cierra el otro sin que ninguno tenga que enterarse de que el otro existe.
+
+- **Se abren al pasar el mouse.** El panel cuelga de un envoltorio con relleno
+  superior en vez de margen: con margen quedaba un hueco de seis píxeles entre
+  el botón y el panel, y el menú se cerraba justo cuando el mouse lo estaba
+  cruzando para llegar.
+
+- **El hover no alcanza, así que conviven tres caminos**, y los tres salieron
+  de probarlos en un navegador de verdad:
+  - Con mouse, el clic ya no cierra el panel que el hover acaba de abrir.
+  - En un teléfono el toque termina con un `pointerleave`, que cerraba el menú
+    en el mismo gesto que lo abría. Los manejadores de puntero filtran por tipo.
+  - Un toque también enfoca el botón, y entre ese `focus` y el `click` que
+    viene después el menú se abría y se cerraba solo. Ahora abre por foco
+    únicamente cuando es `:focus-visible`, que es el foco que llega por
+    tabulador.
+  - `Escape` devuelve el foco al botón, y ese foco de teclado lo reabría al
+    instante. Una bandera ignora ese foco puntual.
+
+- **Las flechas del carrusel aparecen solo si hay adónde ir.** No estaban
+  rotas: con cuatro organizaciones en una pantalla de escritorio la fila entra
+  entera —`scrollWidth` es idéntico a `clientWidth`— y `scrollBy` no tiene
+  margen para desplazar. Un botón que responde al clic sin que pase nada se lee
+  como un botón roto. Ahora la fila de flechas se esconde cuando no hay
+  desborde y cada flecha se apaga al llegar a su extremo.
+
+- **La barra de desplazamiento del carrusel se esconde** con la utilidad
+  `.sin-barra`. Va solo donde hay otra forma visible de moverse: sin las
+  flechas, esconderla le sacaría a la persona la única señal de que la fila
+  sigue hacia el costado.
+
+---
+
 ## 2026-09-15 — Registro con seguridad, ficha unificada y baja de inscripción (rama `claude/linkyouth-applicant-dashboard-eweeld`)
 
 - **`empresas` tiene columna `rut`, única y opcional.** Una empresa se
