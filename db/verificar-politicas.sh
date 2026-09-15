@@ -79,11 +79,21 @@ intentar() {
   local desc="$1" esperado="$2" tabla="$3" cuerpo="$4" tok="$5"
   local resp code veredicto
 
-  resp=$(curl -s "$URL/rest/v1/$tabla" \
+  # El cuerpo va por la entrada estándar y no como argumento de `-d`.
+  #
+  # En Windows, `curl` suele ser el binario nativo (`/mingw64/bin/curl`), así
+  # que los argumentos pasan por una conversión de code page al cruzar de bash
+  # al proceso. Un carácter no ASCII —una tilde, por ejemplo— llega corrupto,
+  # el cuerpo deja de ser UTF-8 válido y PostgREST contesta PGRST102 («Empty or
+  # invalid json») sin llegar nunca a evaluar la política. Eso se lee como si
+  # la política no funcionara, cuando en realidad la petición ni llegó.
+  #
+  # Por la entrada estándar los bytes no tocan argv y llegan intactos.
+  resp=$(printf '%s' "$cuerpo" | curl -s "$URL/rest/v1/$tabla" \
           -H "apikey: $ANON" -H "Authorization: Bearer $tok" \
           -H "Content-Type: application/json" \
           -H "Prefer: return=representation" \
-          -d "$cuerpo")
+          --data-binary @-)
   code=$(codigo_de "$resp")
 
   if [ "$esperado" = "PASA" ]; then
@@ -129,11 +139,15 @@ if [ "${AUTOPRUEBA:-}" = "si" ]; then
     '{"vacante_id":"00000000-0000-0000-0000-000000000000","perfil_id":"00000000-0000-0000-0000-000000000000"}' "$ANON"
   intentar "anon -> vacantes" 42501 vacantes \
     '{"empresa_id":"00000000-0000-0000-0000-000000000000","titulo":"x","descripcion":"x","tipo":"empleo","posiciones":1}' "$ANON"
+  # Con tilde a propósito: si el cuerpo volviera a pasar por argv, este caso
+  # daría PGRST102 en vez de 42501 y la autoprueba se pondría en rojo.
+  intentar "anon -> vacantes (titulo con tilde)" 42501 vacantes \
+    '{"empresa_id":"00000000-0000-0000-0000-000000000000","titulo":"auditoría","descripcion":"x","tipo":"empleo","posiciones":1}' "$ANON"
   echo "  Control negativo: la misma llamada esperando 23503 tiene que dar FALLA."
   intentar "anon -> postulaciones (esperando el codigo equivocado)" 23503 postulaciones \
     '{"vacante_id":"00000000-0000-0000-0000-000000000000","perfil_id":"00000000-0000-0000-0000-000000000000"}' "$ANON"
   echo
-  echo "  Con 2 en verde y 1 en rojo, el arnés distingue los dos códigos."
+  echo "  Con 3 en verde y 1 en rojo, el arnés distingue los dos códigos."
   exit 0
 fi
 
