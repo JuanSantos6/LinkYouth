@@ -46,6 +46,16 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   Motivo: el mensaje de Postgres nombra la tabla y la política, que es
   justamente el mapa que necesita quien está sondeando la base.
 
+- **El cuerpo del verificador va por la entrada estándar, no por `argv`.** Con
+  `-d "$cuerpo"` el bloque de las acciones de empresa devolvía `PGRST102`
+  («Empty or invalid json») en lugar de `42501`.
+  Motivo: en Windows `curl` suele ser el binario nativo (`/mingw64/bin/curl`),
+  así que los argumentos cruzan una conversión de code page al pasar de bash al
+  proceso. El título de prueba llevaba tilde, el byte llegaba corrupto y
+  PostgREST rechazaba el cuerpo antes de evaluar la política — o sea que la
+  prueba nunca llegaba a la base y se leía como si el fix no funcionara. La
+  autoprueba suma un caso con tilde para que no vuelva en silencio.
+
 - **`db/verificar-politicas.sh`.** Comprueba contra la base que el rechazo
   viene de la política (`42501`) y no de la clave foránea (`23503`).
   Motivo: la diferencia entre el fix y el bug no se ve leyendo el SQL, se ve en
