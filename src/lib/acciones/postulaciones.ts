@@ -68,13 +68,25 @@ export async function cancelarPostulacion(
   if (!guardia.ok) return guardia.error;
   const { supabase, usuarioId } = guardia.sesion;
 
-  const { error } = await supabase
+  // El `.select("id")` es lo que permite distinguir «no se tocó ninguna fila»
+  // de «salió bien». Sin él, cancelar la postulación de otro no devuelve error
+  // —RLS y el `.eq` no encuentran la fila, y la respuesta es un éxito vacío— y
+  // la pantalla mostraba «Postulación cancelada.» sobre algo que no cambió.
+  const { data, error } = await supabase
     .from("postulaciones")
     .update({ estado: "cancelada" })
     .eq("id", postulacionId)
-    .eq("perfil_id", usuarioId);
+    .eq("perfil_id", usuarioId)
+    .select("id");
 
   if (error) return { estado: "error", mensaje: mensajeDeError(error) };
+
+  if (!data || data.length === 0) {
+    return {
+      estado: "error",
+      mensaje: "Esa postulación no es tuya, o ya no se puede cancelar.",
+    };
+  }
 
   revalidatePath("/postulaciones");
 

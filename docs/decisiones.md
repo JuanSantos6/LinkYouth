@@ -6,6 +6,40 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-15 — Cero filas es error al editar, y éxito al prender o apagar una etiqueta
+
+**Decisión.** Toda escritura termina en `.select(…)`. `actualizarPerfil` y
+`cancelarPostulacion` devuelven error cuando no se tocó ninguna fila. Las
+cuatro acciones de etiquetas, no: ahí cero filas es un éxito.
+
+**Alternativas consideradas.**
+
+- Tratar cero filas como error en las seis, por simetría.
+- Dejar las etiquetas como estaban, sin `.select(…)`.
+
+**Motivo.** La asimetría no es un descuido. Editar el perfil o cancelar una
+postulación son operaciones sobre una fila concreta: si no se tocó ninguna, la
+operación no ocurrió y decir «Perfil actualizado.» es mentir. Prender o apagar
+una etiqueta es otra cosa: la operación describe un estado final, no un cambio.
+Sacar una etiqueta que ya no estaba deja el perfil exactamente como lo pidió el
+clic.
+
+Tratarlo como error ahí rompe algo concreto. `SelectorTags` mantiene estado
+optimista, y revierte la etiqueta si la acción falla. Con cero filas como
+error, un doble clic haría que la interfaz apagara una etiqueta que en la base
+quedó bien — que es exactamente el problema que ya evita la absorción del
+`23505` del lado del insert. La simetría bonita rompería la pantalla.
+
+Dejarlas sin `.select(…)` se descartó porque la idempotencia pasaba de
+casualidad: nadie miraba las filas, y funcionaba porque `error` venía en
+`null`. Ahora está escrita y comentada.
+
+**Consecuencia.** Las consultas de etiquetas seleccionan `perfil_id` y no `id`:
+`perfil_tags` y `perfil_habilidades` tienen clave compuesta y no tienen columna
+`id`. Un `.select("id")` copiado de las acciones de formación fallaría.
+
+---
+
 ## 2026-09-15 — El tipo de cuenta se exige por existencia de fila, no por `cuentas.tipo`
 
 **Decisión.** Las políticas de insert exigen el tipo de cuenta con
