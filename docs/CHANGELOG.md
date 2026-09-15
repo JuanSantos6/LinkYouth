@@ -13,6 +13,35 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-15 — Usuarios de prueba (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **`db/seed-usuarios-prueba.sql` crea cinco postulantes y cinco empresas con
+  contraseña conocida.** Hasta ahora no había forma de probar el inicio de
+  sesión ni el feed a mano: había que registrarse cada vez, y un perfil recién
+  creado no tiene intereses, así que la compatibilidad de toda vacante daba
+  0 % y el listado se veía roto sin estarlo.
+  El script escribe directo en `auth.users` porque el pedido era pegarlo en el
+  SQL Editor de Supabase, donde no se puede usar la Admin API. Es el esquema
+  interno de GoTrue y puede cambiar entre versiones: queda anotado en la
+  cabecera del archivo.
+
+- **Las contraseñas van en claro en `docs/usuarios-prueba.md`**, que es para lo
+  que se pidieron. Ambos archivos advierten que esto sirve solo mientras la
+  base tenga datos inventados y que hay que borrar estas cuentas en cuanto se
+  registre una persona real.
+
+- **Los intereses y habilidades del seed se verifican contra el catálogo de
+  `db/seed.sql`.** Se asignan con un `join` por nombre, y un `join` que no
+  encuentra nada no falla: inserta cero filas en silencio. Once nombres no
+  existían en el catálogo, con lo que tres perfiles habrían quedado por debajo
+  del mínimo de cinco intereses de RF1.1.11 sin ningún error visible.
+
+- **`formaciones` se inserta con un guardia `where not exists`.** No tiene
+  restricción única, así que `on conflict do nothing` no la protegía y correr
+  el script dos veces duplicaba los estudios de cada perfil.
+
+---
+
 ## 2026-09-14 — Portada pública (rama `claude/linkyouth-applicant-dashboard-eweeld`)
 
 - **`/` deja de redirigir al feed y pasa a ser la portada.** Hasta ahora la
