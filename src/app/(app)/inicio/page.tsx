@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { TarjetaVacante } from "@/components/empleos/TarjetaVacante";
+import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
 import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { TarjetaUsuario } from "@/components/perfil/TarjetaUsuario";
@@ -15,6 +15,7 @@ import {
   obtenerVacantes,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
+import { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
 
 export const dynamic = "force-dynamic";
 
@@ -23,32 +24,28 @@ type Vista = "empleos" | "eventos";
 /**
  * Las dos pestañas son enlaces, no estado del cliente: cada vista tiene su
  * URL, se puede compartir y el navegador la recuerda al volver atrás.
- *
- * Por eso tampoco llevan `role="tab"`: el patrón ARIA de pestañas promete un
- * `tabpanel` asociado y navegación con las flechas, y acá no hay ni una cosa
- * ni la otra. Son enlaces de navegación y se anuncian como tales; el activo
- * se marca con `aria-current="page"`, igual que en la barra lateral.
  */
 function Pestanas({ activa }: { activa: Vista }) {
   const pestanas: { vista: Vista; etiqueta: string }[] = [
-    { vista: "empleos", etiqueta: "Oportunidades laborales" },
-    { vista: "eventos", etiqueta: "Eventos de networking" },
+    { vista: "empleos", etiqueta: "Oportunidades" },
+    { vista: "eventos", etiqueta: "Eventos" },
   ];
 
   return (
-    <div className="flex gap-1 border-b border-borde">
+    <div role="tablist" className="flex gap-6 border-b border-borde">
       {pestanas.map(({ vista, etiqueta }) => {
         const seleccionada = vista === activa;
 
         return (
           <Link
             key={vista}
-            aria-current={seleccionada ? "page" : undefined}
+            role="tab"
+            aria-selected={seleccionada}
             href={vista === "empleos" ? "/inicio" : "/inicio?vista=eventos"}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm transition-[color,border-color] ${
+            className={`-mb-px border-b-2 pb-2.5 text-[15px] transition-colors duration-150 ${
               seleccionada
-                ? "border-primario font-semibold text-primario"
-                : "border-transparent font-medium text-tinta-suave hover:text-tinta"
+                ? "border-acento font-medium text-tinta"
+                : "border-transparent text-apagado hover:text-tinta"
             }`}
           >
             {etiqueta}
@@ -67,10 +64,9 @@ export default async function PaginaInicio({
   const { vista } = await searchParams;
   const activa: Vista = vista === "eventos" ? "eventos" : "empleos";
 
-  // La sesión se valida una sola vez para toda la pantalla. Antes, cuatro de
-  // estas seis lecturas llamaban a `auth.getUser()` por su cuenta: cinco
-  // validaciones de la misma sesión —contando la del middleware— para una sola
-  // navegación, a un viaje de red cada una.
+  // La sesión se valida una sola vez para toda la pantalla. Si cada lectura
+  // llamara a `auth.getUser()` por su cuenta, una sola navegación pagaría seis
+  // viajes de red para validar siempre la misma sesión.
   const usuarioId = (await obtenerUsuarioId()) ?? undefined;
 
   const [vacantes, eventos, perfil, postulaciones, yaPostuladas, yaInscriptos] =
@@ -83,14 +79,15 @@ export default async function PaginaInicio({
       obtenerEventosInscriptos(usuarioId),
     ]);
 
+  const feed = FeedDeVacantes.armar(vacantes.datos, perfil.datos);
   const resultado = activa === "empleos" ? vacantes : eventos;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
-      <div className="min-w-0 space-y-5">
+    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_286px]">
+      <div className="min-w-0 space-y-6">
         <Encabezado
           titulo={`Hola, ${perfil.datos.nombre}`}
-          descripcion="Estas son las oportunidades y los eventos que mejor coinciden con las habilidades de tu perfil."
+          descripcion="Las oportunidades y los eventos que mejor coinciden con lo que ya acreditaste."
         />
 
         <AvisoOrigen resultado={resultado} />
@@ -98,23 +95,18 @@ export default async function PaginaInicio({
         <Pestanas activa={activa} />
 
         {activa === "empleos" ? (
-          <section className="space-y-4" aria-label="Oportunidades laborales">
-            {vacantes.datos.length === 0 ? (
+          <section aria-label="Oportunidades laborales">
+            {feed.vacio ? (
               <EstadoVacio
                 titulo="Todavía no hay vacantes publicadas"
-                descripcion="Cuando una empresa publique una búsqueda que coincida con tus habilidades, va a aparecer acá."
+                descripcion="Cuando una empresa publique una búsqueda que coincida con tus habilidades, la vas a ver acá."
               />
             ) : (
-              vacantes.datos.map((vacante) => (
-                <TarjetaVacante
-                  key={vacante.id}
-                  vacante={vacante}
-                  tagsPerfil={perfil.datos.tags}
-                  habilidadesPerfil={perfil.datos.habilidades}
-                  yaPostulado={yaPostuladas.has(vacante.id)}
-                  esEjemplo={vacantes.origen === "ejemplo"}
-                />
-              ))
+              <ListadoDeVacantes
+                feed={feed}
+                yaPostuladas={yaPostuladas}
+                esEjemplo={vacantes.origen === "ejemplo"}
+              />
             )}
           </section>
         ) : (
@@ -138,7 +130,7 @@ export default async function PaginaInicio({
         )}
       </div>
 
-      <aside className="xl:sticky xl:top-8 xl:self-start">
+      <aside className="xl:sticky xl:top-20 xl:self-start">
         <TarjetaUsuario
           perfil={perfil.datos}
           postulaciones={postulaciones.datos.length}

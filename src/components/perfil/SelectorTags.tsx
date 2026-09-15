@@ -125,10 +125,8 @@ function Grupo({
 
   return (
     <section>
-      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-tinta-suave">
-        {titulo}
-      </h3>
-      <p className="mt-0.5 text-xs text-tinta-suave">
+      <h3 className="text-[14px] font-medium text-tinta">{titulo}</h3>
+      <p className="mt-1 text-[13px] text-apagado">
         {ayuda} Tocá una etiqueta para sumarla o sacarla.
       </p>
 
@@ -145,9 +143,7 @@ function Grupo({
                 disabled={esEjemplo}
                 className="rounded-control transition-opacity duration-150 hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Etiqueta tono={elegida ? "coincide" : "neutra"}>
-                  {opcion.nombre}
-                </Etiqueta>
+                <Etiqueta coincide={elegida}>{opcion.nombre}</Etiqueta>
               </button>
             </li>
           );
@@ -156,7 +152,7 @@ function Grupo({
 
       <p
         aria-live="polite"
-        className={`mt-2 text-xs ${error ? "text-alerta" : "text-tinta-suave"}`}
+        className={`mt-2 text-[13px] ${error ? "text-tinta" : "text-apagado"}`}
       >
         {error ||
           (esEjemplo

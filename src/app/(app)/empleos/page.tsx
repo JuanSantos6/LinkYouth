@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { TarjetaVacante } from "@/components/empleos/TarjetaVacante";
+import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
 import { BuscadorVacantes } from "@/components/layout/BuscadorVacantes";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
@@ -13,6 +13,7 @@ import {
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
 import { TIPOS_OPORTUNIDAD, type TipoOportunidad } from "@/lib/data/tipos";
+import { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
 
 export const metadata: Metadata = { title: "Empleos" };
 export const dynamic = "force-dynamic";
@@ -36,7 +37,6 @@ export default async function PaginaEmpleos({
     ? (tipo as TipoOportunidad)
     : undefined;
 
-  // Una sola validación de sesión para las dos lecturas que la necesitan.
   const usuarioId = (await obtenerUsuarioId()) ?? undefined;
 
   const [vacantes, perfil, yaPostuladas] = await Promise.all([
@@ -45,21 +45,23 @@ export default async function PaginaEmpleos({
     obtenerVacantesPostuladas(usuarioId),
   ]);
 
+  const feed = FeedDeVacantes.armar(vacantes.datos, perfil.datos);
+
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <div className="mx-auto max-w-3xl space-y-6">
       <Encabezado
         titulo="Empleos y pasantías"
-        descripcion="Búsquedas abiertas para primera experiencia laboral. La compatibilidad se calcula contra las habilidades de tu perfil."
+        descripcion="Búsquedas abiertas para primera experiencia laboral, ordenadas por lo que ya acreditaste."
       />
 
       <AvisoOrigen resultado={vacantes} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="sm:max-w-md sm:flex-1">
+        <div className="sm:max-w-sm sm:flex-1">
           <BuscadorVacantes accion="/empleos" valor={q} />
         </div>
 
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           {FILTROS.map(({ valor, etiqueta }) => {
             const activo = valor === tipoValido;
             const destino = valor ? `/empleos?tipo=${valor}` : "/empleos";
@@ -69,10 +71,10 @@ export default async function PaginaEmpleos({
                 key={etiqueta}
                 href={destino}
                 aria-current={activo ? "page" : undefined}
-                className={`rounded-control border px-3 py-1.5 text-xs font-semibold transition-[color,background-color,border-color] ${
+                className={`rounded-control border px-3 py-1.5 text-[13px] transition-colors duration-150 ${
                   activo
-                    ? "border-primario-borde bg-primario-suave text-primario-fuerte"
-                    : "border-borde bg-superficie text-tinta-media hover:border-borde-fuerte"
+                    ? "border-tinta text-tinta"
+                    : "border-borde-control text-apagado hover:text-tinta"
                 }`}
               >
                 {etiqueta}
@@ -82,38 +84,33 @@ export default async function PaginaEmpleos({
         </div>
       </div>
 
-      <p className="text-sm text-tinta-suave">
-        {vacantes.datos.length === 1
+      <p className="text-[14px] text-apagado">
+        {feed.cantidad === 1
           ? "1 búsqueda abierta"
-          : `${vacantes.datos.length} búsquedas abiertas`}
+          : `${feed.cantidad} búsquedas abiertas`}
         {q ? ` para «${q}»` : ""}
       </p>
 
-      <section className="space-y-4">
-        {vacantes.datos.length === 0 ? (
+      <section>
+        {feed.vacio ? (
           <EstadoVacio
             titulo="No encontramos vacantes con ese criterio"
-            descripcion="Probá con menos palabras o mirá todas las búsquedas abiertas."
+            descripcion="Probá con menos palabras, o mirá todas las búsquedas abiertas."
             accion={
               <Link
                 href="/empleos"
-                className="text-sm font-semibold text-primario hover:underline"
+                className="text-[14px] font-medium text-acento hover:underline"
               >
                 Ver todas las vacantes
               </Link>
             }
           />
         ) : (
-          vacantes.datos.map((vacante) => (
-            <TarjetaVacante
-              key={vacante.id}
-              vacante={vacante}
-              tagsPerfil={perfil.datos.tags}
-              habilidadesPerfil={perfil.datos.habilidades}
-              yaPostulado={yaPostuladas.has(vacante.id)}
-              esEjemplo={vacantes.origen === "ejemplo"}
-            />
-          ))
+          <ListadoDeVacantes
+            feed={feed}
+            yaPostuladas={yaPostuladas}
+            esEjemplo={vacantes.origen === "ejemplo"}
+          />
         )}
       </section>
     </div>

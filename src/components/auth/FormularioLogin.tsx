@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
+import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { iniciarSesion } from "@/lib/acciones/auth";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 
@@ -36,9 +37,7 @@ export function FormularioLogin() {
         />
       </Campo>
 
-      <p aria-live="polite" className="text-sm text-alerta">
-        {estado.mensaje}
-      </p>
+      <MensajeDeAccion estado={estado} />
 
       <Boton type="submit" disabled={enCurso} className="w-full">
         {enCurso ? "Entrando…" : "Entrar"}

@@ -9,8 +9,8 @@ type AvatarProps = {
 };
 
 const TAMANOS = {
-  sm: "h-9 w-9 text-xs",
-  md: "h-12 w-12 text-sm",
+  sm: "h-9 w-9 text-[13px]",
+  md: "h-12 w-12 text-[14px]",
   lg: "h-20 w-20 text-xl",
 } as const;
 
@@ -32,7 +32,7 @@ export function Avatar({
   forma = "redondo",
 }: AvatarProps) {
   const radio = forma === "redondo" ? "rounded-full" : "rounded-control";
-  const clases = `${TAMANOS[tamano]} ${radio} shrink-0 border border-borde bg-superficie-suave object-cover`;
+  const clases = `${TAMANOS[tamano]} ${radio} shrink-0 border border-borde bg-realce object-cover`;
 
   if (url) {
     // Los logos y las fotos viven en Supabase Storage, con dominios variables:
@@ -52,7 +52,7 @@ export function Avatar({
 
   return (
     <span
-      className={`${clases} flex items-center justify-center font-semibold text-tinta-suave`}
+      className={`${clases} flex items-center justify-center font-semibold text-apagado`}
       aria-hidden="true"
     >
       {iniciales(nombre)}

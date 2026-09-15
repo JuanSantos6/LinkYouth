@@ -23,10 +23,10 @@ function Seccion({
 }) {
   return (
     <Tarjeta como="section" className="p-6">
-      <div className="mb-5 border-b border-borde pb-4">
-        <h2 className="text-base font-bold text-tinta">{titulo}</h2>
+      <div className="mb-5 border-b border-filete pb-4">
+        <h2 className="text-[18px] text-tinta">{titulo}</h2>
         {descripcion && (
-          <p className="mt-1 text-sm text-tinta-suave">{descripcion}</p>
+          <p className="mt-1 text-[14px] text-apagado">{descripcion}</p>
         )}
       </div>
       {children}
@@ -35,7 +35,7 @@ function Seccion({
 }
 
 /**
- * Vista de perfil.
+ * Tu ficha.
  *
  * A diferencia del feed, esta pantalla ocupa el ancho completo: no hay columna
  * derecha que repita los datos que se están editando acá.
@@ -50,10 +50,10 @@ export default async function PaginaPerfil() {
   const nombreCompleto = `${datos.nombre} ${datos.apellido}`;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-3xl space-y-6">
       <Encabezado
         titulo="Mi perfil"
-        descripcion="Esto es lo que ve una empresa cuando entra a tu perfil. LinkYouth no usa currículum: lo que cuenta son tus habilidades y tu formación."
+        descripcion="Esto es lo que ve una empresa cuando entra a tu ficha. LinkYouth no usa currículum: lo que cuenta son tus habilidades y tu formación."
       />
 
       <AvisoOrigen resultado={perfil} />

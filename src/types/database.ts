@@ -43,6 +43,7 @@ export type Database = {
           logo_url: string | null
           razon_social: string
           rubro: string
+          rut: string | null
         }
         Insert: {
           creada_en?: string
@@ -51,6 +52,7 @@ export type Database = {
           logo_url?: string | null
           razon_social: string
           rubro: string
+          rut?: string | null
         }
         Update: {
           creada_en?: string
@@ -59,6 +61,7 @@ export type Database = {
           logo_url?: string | null
           razon_social?: string
           rubro?: string
+          rut?: string | null
         }
         Relationships: [
           {

@@ -42,7 +42,7 @@ export function AvatarEditable({
         <button
           type="button"
           onClick={() => campo.current?.click()}
-          className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border border-borde bg-superficie text-tinta-media shadow-elevada transition-colors hover:border-primario hover:text-primario"
+          className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border border-borde bg-superficie text-apagado shadow-elevada transition-colors hover:border-acento hover:text-acento"
         >
           <IconoCamara className="h-4 w-4" />
           <span className="sr-only">Cambiar foto de perfil</span>
@@ -57,9 +57,9 @@ export function AvatarEditable({
         />
       </div>
 
-      <div className="text-sm">
+      <div className="text-[14px]">
         <p className="font-semibold text-tinta">Foto de perfil</p>
-        <p className="mt-0.5 text-xs text-tinta-suave">
+        <p className="mt-0.5 text-[13px] text-apagado">
           JPG, PNG o WebP. Una foto donde se te vea la cara ayuda a que te
           reconozcan en una entrevista.
         </p>

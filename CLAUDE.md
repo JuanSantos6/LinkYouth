@@ -37,6 +37,9 @@ src/components/        ui/ primitivas · layout/ estructura · empleos/ eventos/
                        perfil/ por dominio.
 src/lib/data/          Lectura: tipos.ts, ejemplos.ts, consultas.ts.
 src/lib/acciones/      Escritura: acciones de servidor.
+src/lib/dominio/       Reglas de negocio: Compatibilidad, FeedDeVacantes,
+                       ProcesoDePostulacion.
+src/lib/diseno/        Tokens de color y preferencias de apariencia.
 src/lib/supabase/      Clientes de navegador y de servidor.
 src/types/database.ts  Tipos del esquema.
 ```
@@ -48,6 +51,9 @@ src/types/database.ts  Tipos del esquema.
 - **Los tags ocultos de una vacante no llegan nunca al postulante** (RF3.1.6,
   RNF5).
 - **El control de acceso vive en la base**, como política de RLS.
+- **La lógica de negocio no vive en el componente.** Si estás por escribir un
+  `if` sobre una regla de negocio dentro de un `.tsx`, va en una clase de
+  `src/lib/dominio/`.
 - **Los datos de ejemplo se anuncian en pantalla** con `AvisoOrigen`. Nunca se
   muestran como si fueran reales.
 - **Español rioplatense** en la interfaz, en los comentarios y en los nombres

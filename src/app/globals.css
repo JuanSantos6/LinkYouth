@@ -1,86 +1,169 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Sistema de diseño de LinkYouth
+   Sistema de diseño de LinkYouth — dirección «ficha técnica»
    ---------------------------------------------------------------------------
-   Paleta sobria y de alto contraste, pensada para una plataforma de empleo:
-   el contenido manda y el color se reserva para la acción y el estado.
-   Los tokens se nombran en español, igual que el resto del código, y Tailwind
-   genera las utilidades a partir de ellos (`bg-lienzo`, `text-tinta-suave`,
-   `border-borde`, `rounded-tarjeta`, `shadow-tarjeta`...).
+   LinkYouth acredita habilidades en vez de leer un currículum. El vocabulario
+   visual es el del registro sellado: una ficha que se acredita, no un feed
+   que se scrollea.
+
+   Cinco valores base, definidos en `src/lib/diseno/tokens.ts`. Todo lo demás
+   —superficies, filetes, bordes— se deriva de ellos con `color-mix`, para que
+   la paleta no se llene de grises inventados.
+
+   Los nombres van en español, como el resto del proyecto:
+   tinta = ink · papel = paper · acento = accent · señal = signal ·
+   apagado = muted.
+
+   En tema oscuro los roles no cambian de nombre: `tinta` sigue siendo el
+   color del texto y `papel` el del fondo. Lo que cambia es su valor.
 --------------------------------------------------------------------------- */
 
-@theme {
-  /* Superficies */
-  --color-lienzo: #f6f7f9;
-  --color-superficie: #ffffff;
-  --color-superficie-suave: #f9fafb;
-  /* El borde delimita controles y tarjetas, así que no puede ser decorativo:
-     WCAG 1.4.11 pide 3:1 para el contorno de un elemento de interfaz. Este
-     tono da 3.64:1 contra la superficie blanca y 3.39:1 contra el lienzo.
-     `borde-fuerte` queda por debajo en luminancia para que el hover siga
-     oscureciendo el borde y no al revés. */
-  --color-borde: #7d8795;
-  --color-borde-fuerte: #667085;
+/*
+ * Los valores viven en `:root` con el prefijo `--ly-`, y `@theme inline` los
+ * expone como utilidades de Tailwind. Es un rodeo con motivo: Tailwind 4 solo
+ * emite las variables de `@theme` que alguna utilidad usa, así que un
+ * `var(--color-acento)` escrito a mano —el anillo de foco, por ejemplo— se
+ * quedaba sin valor y caía en `currentColor`. Declaradas acá existen siempre.
+ */
+:root {
+  --ly-tinta: #14231d;
+  --ly-papel: #edf0eb;
+  --ly-apagado: #5c6b63;
 
-  /* Texto */
-  --color-tinta: #101828;
-  --color-tinta-media: #475467;
-  --color-tinta-suave: #667085;
-  --color-tinta-tenue: #98a2b3;
+  /* El ámbar de lo acreditado. No cambia nunca: ni con el tema ni con el acento. */
+  --ly-senal: #ffb627;
 
-  /* Acción */
-  --color-primario: #1d4ed8;
-  --color-primario-fuerte: #1e40af;
-  --color-primario-suave: #eff4ff;
-  --color-primario-borde: #c7d7fe;
+  /* Lo pisa `reglasDeAcento()` según el color elegido en Ajustes. */
+  --ly-acento: #1f5c4a;
 
-  /* Estado */
-  --color-exito: #067647;
-  --color-exito-suave: #ecfdf3;
-  --color-exito-borde: #abefc6;
-  --color-aviso: #b54708;
-  --color-aviso-suave: #fffaeb;
-  --color-aviso-borde: #fedf89;
-  --color-alerta: #b42318;
-  --color-alerta-suave: #fef3f2;
-  --color-alerta-borde: #fecdca;
+  /* Derivados. Ninguno es un color nuevo: todos salen de los de arriba. */
+  --ly-superficie: color-mix(in oklab, var(--ly-papel) 45%, white);
+  --ly-realce: color-mix(in oklab, var(--ly-papel) 70%, white);
+  --ly-borde: color-mix(in oklab, var(--ly-tinta) 16%, var(--ly-papel));
+  --ly-borde-control: color-mix(in oklab, var(--ly-tinta) 52%, var(--ly-papel));
+  --ly-filete: color-mix(in oklab, var(--ly-tinta) 9%, var(--ly-papel));
+  --ly-sobre-acento: color-mix(in oklab, var(--ly-papel) 92%, white);
+  --ly-acento-tenue: color-mix(in oklab, var(--ly-acento) 10%, var(--ly-papel));
+  --ly-senal-tenue: color-mix(in oklab, var(--ly-senal) 22%, var(--ly-papel));
 
-  /* Tipografía */
-  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  /*
+   * Los tres valores del medidor de contraseña, y el único lugar de la
+   * aplicación donde el color significa algo por sí solo. La paleta de cinco
+   * no alcanza acá: una escala de riesgo necesita rojo, amarillo y verde,
+   * porque es la convención que la gente ya sabe leer sin que se la
+   * expliquen. Se quedan encerrados en el medidor: usarlos en cualquier otro
+   * lado los convierte en decoración y les saca el significado, igual que
+   * pasaría con el ámbar.
+   *
+   * El color nunca va solo: el medidor siempre escribe «Débil», «Media» o
+   * «Fuerte» al lado (WCAG 1.4.1).
+   */
+  --ly-fuerza-baja: #b3261e;
+  --ly-fuerza-media: #8a6116;
+  --ly-fuerza-alta: #1f6b45;
 
-  /* Radios */
-  --radius-control: 0.5rem;
-  --radius-tarjeta: 0.875rem;
+  /*
+   * Una sola sombra, y es real: se reserva para lo que de verdad está por
+   * encima del plano —la vacante destacada, un menú—. Nada más la lleva.
+   */
+  --ly-elevada:
+    0 1px 2px color-mix(in oklab, var(--ly-tinta) 10%, transparent),
+    0 12px 28px -12px color-mix(in oklab, var(--ly-tinta) 32%, transparent);
+}
 
-  /* Elevación: sombras cortas y de baja opacidad, nunca difusas */
-  --shadow-tarjeta:
-    0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
-  --shadow-elevada:
-    0 2px 4px -2px rgb(16 24 40 / 0.06), 0 4px 12px -2px rgb(16 24 40 / 0.08);
-  --shadow-flotante: 0 8px 24px -4px rgb(16 24 40 / 0.12);
+:root[data-tema="oscuro"] {
+  --ly-papel: #101a16;
+  --ly-tinta: #e7ece6;
+  --ly-apagado: #93a39a;
+  --ly-acento: #6fbfa2;
+
+  --ly-superficie: color-mix(in oklab, var(--ly-papel) 92%, white);
+  --ly-realce: color-mix(in oklab, var(--ly-papel) 86%, white);
+  --ly-borde: color-mix(in oklab, var(--ly-tinta) 20%, var(--ly-papel));
+  --ly-borde-control: color-mix(in oklab, var(--ly-tinta) 55%, var(--ly-papel));
+  --ly-filete: color-mix(in oklab, var(--ly-tinta) 12%, var(--ly-papel));
+  --ly-sobre-acento: #0c1512;
+  --ly-acento-tenue: color-mix(in oklab, var(--ly-acento) 16%, var(--ly-papel));
+  --ly-senal-tenue: color-mix(in oklab, var(--ly-senal) 20%, var(--ly-papel));
+
+  /* Aclarados para el fondo oscuro: los del tema claro quedaban en 2:1. */
+  --ly-fuerza-baja: #f2857c;
+  --ly-fuerza-media: #e0b44f;
+  --ly-fuerza-alta: #6fc79a;
+
+  --ly-elevada: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 28px -12px rgb(0 0 0 / 0.7);
+}
+
+@theme inline {
+  --color-tinta: var(--ly-tinta);
+  --color-papel: var(--ly-papel);
+  --color-apagado: var(--ly-apagado);
+  --color-senal: var(--ly-senal);
+  --color-acento: var(--ly-acento);
+  --color-superficie: var(--ly-superficie);
+  --color-realce: var(--ly-realce);
+  --color-borde: var(--ly-borde);
+  --color-borde-control: var(--ly-borde-control);
+  --color-filete: var(--ly-filete);
+  --color-sobre-acento: var(--ly-sobre-acento);
+  --color-acento-tenue: var(--ly-acento-tenue);
+  --color-senal-tenue: var(--ly-senal-tenue);
+  --color-fuerza-baja: var(--ly-fuerza-baja);
+  --color-fuerza-media: var(--ly-fuerza-media);
+  --color-fuerza-alta: var(--ly-fuerza-alta);
+
+  --font-titulo: var(--fuente-titulo), ui-sans-serif, system-ui, sans-serif;
+  --font-cuerpo: var(--fuente-cuerpo), ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * El radio dice la jerarquía, no la decoración: los controles son casi
+   * rectos, la tarjeta de evento sí se redondea porque lleva imagen.
+   */
+  --radius-control: 3px;
+  --radius-ficha: 4px;
+  --radius-tarjeta: 10px;
+
+  --shadow-elevada: var(--ly-elevada);
 }
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    color-scheme: light;
+  }
+
+  html[data-tema="oscuro"] {
+    color-scheme: dark;
+  }
+
+  /*
+   * El cambio de tema es la única transición que atraviesa toda la pantalla,
+   * y existe porque el corte seco entre claro y oscuro encandila.
+   */
+  html,
+  body {
+    transition:
+      background-color 220ms ease,
+      color 220ms ease;
   }
 
   body {
-    background-color: var(--color-lienzo);
-    color: var(--color-tinta);
-    font-family: var(--font-sans);
-    /* Un poco de tracking negativo asienta la tipografía en textos densos. */
-    letter-spacing: -0.011em;
-    -webkit-font-smoothing: antialiased;
+    background-color: var(--ly-papel);
+    color: var(--ly-tinta);
+    font-family: var(--font-cuerpo);
+    font-size: 15px;
+    line-height: 1.55;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    letter-spacing: -0.021em;
+    font-family: var(--font-titulo);
+    /* Bricolage Grotesque trae eje óptico: que el navegador lo use. */
+    font-optical-sizing: auto;
+    font-weight: 600;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
 
@@ -88,44 +171,65 @@
     text-wrap: pretty;
   }
 
-  /* Foco visible y consistente en todo lo que se pueda enfocar con teclado. */
+  /* Foco visible en todo lo enfocable, con la forma del control. */
   :focus-visible {
-    outline: 2px solid var(--color-primario);
+    outline: 2px solid var(--ly-acento);
     outline-offset: 2px;
-    border-radius: 4px;
   }
 
   ::selection {
-    background-color: var(--color-primario-suave);
-    color: var(--color-primario-fuerte);
+    background-color: var(--ly-senal);
+    color: #14231d;
+  }
+}
+
+@layer utilities {
+  /*
+   * `transition-colors` de Tailwind incluye `outline-color`, así que el anillo
+   * de foco entraba desvaneciéndose desde el color del texto. Para quien
+   * navega con teclado, un foco que tarda 150 ms en tomar su color es un foco
+   * que llega tarde: acá se lo saca de la transición.
+   */
+  .transition-colors {
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill, stroke;
+  }
+
+  /*
+   * Esconde la barra de desplazamiento sin apagar el desplazamiento.
+   *
+   * Solo va donde hay otra forma visible de moverse —el carrusel de la portada
+   * tiene sus flechas—. Sin ese reemplazo, esconder la barra le saca a la
+   * persona la única señal de que la fila sigue hacia el costado.
+   */
+  .sin-barra {
+    scrollbar-width: none;
+  }
+
+  .sin-barra::-webkit-scrollbar {
+    display: none;
   }
 }
 
 @layer components {
-  /* Superficie base de toda tarjeta de la aplicación. */
-  .tarjeta {
-    background-color: var(--color-superficie);
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radius-tarjeta);
-    box-shadow: var(--shadow-tarjeta);
-  }
-
-  /* Reacción al puntero: mínima y rápida, sin desplazamientos bruscos. */
-  .tarjeta-interactiva {
-    transition:
-      border-color 160ms ease,
-      box-shadow 160ms ease,
-      transform 160ms ease;
-  }
-
-  .tarjeta-interactiva:hover {
-    border-color: var(--color-borde-fuerte);
-    box-shadow: var(--shadow-elevada);
-    transform: translateY(-1px);
+  /*
+   * El número grande —compatibilidad, día del evento— es un elemento
+   * gráfico, no un texto suelto: va en la tipografía de título, apretado.
+   */
+  .cifra {
+    font-family: var(--font-titulo);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
   }
 }
 
-/* Quien pide menos movimiento, no recibe ninguno. */
+/*
+ * Movimiento: solo el que responde a una acción de la persona. Y para quien
+ * pide menos movimiento, ninguno.
+ */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

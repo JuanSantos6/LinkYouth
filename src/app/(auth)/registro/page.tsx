@@ -3,7 +3,10 @@ import Link from "next/link";
 
 import { FormularioRegistro } from "@/components/auth/FormularioRegistro";
 import { FormularioRegistroEmpresa } from "@/components/auth/FormularioRegistroEmpresa";
+import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import { obtenerCatalogos } from "@/lib/data/consultas";
+import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 
 export const metadata: Metadata = { title: "Crear cuenta" };
 
@@ -39,10 +42,10 @@ function Selector({ activo }: { activo: Tipo }) {
             key={tipo}
             href={destino}
             aria-current={seleccionado ? "page" : undefined}
-            className={`flex-1 rounded-control border px-3 py-2 text-center text-sm font-semibold transition-colors duration-150 ${
+            className={`flex-1 rounded-control border px-3 py-2 text-center text-[14px] font-semibold transition-colors duration-150 ${
               seleccionado
-                ? "border-primario-borde bg-primario-suave text-primario-fuerte"
-                : "border-borde bg-superficie text-tinta-media hover:border-borde-fuerte"
+                ? "border-acento bg-acento-tenue text-acento"
+                : "border-borde bg-superficie text-apagado hover:border-borde-control"
             }`}
           >
             {etiqueta}
@@ -61,26 +64,41 @@ export default async function PaginaRegistro({
   const { tipo } = await searchParams;
   const activo: Tipo = tipo === "empresa" ? "empresa" : "individual";
 
+  // El catálogo de intereses lo lee el servidor: `tags_lectura_publica` no
+  // pide sesión, así que se puede leer antes de que la cuenta exista.
+  const catalogos = await obtenerCatalogos();
+
+  // La fecha límite se calcula acá, con el reloj del servidor, y viaja como
+  // dato. Si la calculara el formulario, el servidor y el navegador podrían
+  // estar en husos distintos y el atributo no coincidiría al hidratar.
+  const fechaMaxima = ReglasDeRegistro.fechaMaximaDeNacimiento(new Date());
+
   return (
     <>
       <div>
-        <h1 className="text-2xl font-bold text-tinta">Creá tu cuenta</h1>
-        <p className="mt-1 text-sm text-tinta-suave">{BAJADA[activo]}</p>
+        <h1 className="text-[26px] text-tinta">Creá tu cuenta</h1>
+        <p className="mt-1 text-[14px] text-apagado">{BAJADA[activo]}</p>
       </div>
 
       <Selector activo={activo} />
+
+      {activo === "individual" && <AvisoOrigen resultado={catalogos} />}
 
       <Tarjeta className="p-6">
         {activo === "empresa" ? (
           <FormularioRegistroEmpresa />
         ) : (
-          <FormularioRegistro />
+          <FormularioRegistro
+            intereses={catalogos.datos.tags}
+            interesesDeEjemplo={catalogos.origen === "ejemplo"}
+            fechaMaximaDeNacimiento={fechaMaxima}
+          />
         )}
       </Tarjeta>
 
-      <p className="text-center text-sm text-tinta-suave">
+      <p className="text-center text-[14px] text-apagado">
         ¿Ya tenés cuenta?{" "}
-        <Link href="/login" className="font-semibold text-primario">
+        <Link href="/login" className="font-semibold text-acento">
           Iniciá sesión
         </Link>
       </p>

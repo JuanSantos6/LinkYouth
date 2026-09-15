@@ -131,6 +131,23 @@ export type Formacion = {
   estado: EstadoFormacion;
 };
 
+/**
+ * Una institución educativa reconstruida desde `formaciones`.
+ *
+ * No sale de una tabla: `db/schema.sql` guarda la institución como texto libre
+ * dentro de la formación de cada perfil, así que la ficha se arma agrupando
+ * las formaciones que nombran el mismo lugar. Ver `src/lib/dominio/Institucion.ts`.
+ */
+export type FichaDeInstitucion = {
+  /** El identificador derivado del nombre, el que va en la URL. */
+  id: string;
+  nombre: string;
+  /** Cuántos perfiles la declaran. */
+  estudiantes: number;
+  /** Las carreras que se cursan ahí, sin repetir. */
+  titulos: string[];
+};
+
 /** Una opción de un catálogo cerrado: la fila de `tags` o de `habilidades`. */
 export type OpcionCatalogo = { id: string; nombre: string };
 
@@ -151,6 +168,16 @@ export type PerfilCompleto = Tabla<"perfiles"> & {
   tags: string[];
   habilidades: string[];
   formaciones: Formacion[];
+};
+
+/** Una notificación de la bandeja (RF6.1). */
+export type Aviso = {
+  id: string;
+  tipo: string;
+  mensaje: string;
+  enlace: string | null;
+  leida: boolean;
+  creada_en: string;
 };
 
 export type PostulacionResumen = {

@@ -64,7 +64,7 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
             value={`@${perfil.nombre_usuario}`}
             readOnly
             disabled
-            className={`mt-1.5 ${CAMPO} bg-superficie-suave text-tinta-suave`}
+            className={`mt-1.5 ${CAMPO} border-borde bg-realce text-apagado`}
           />
         </Campo>
       </div>
@@ -82,8 +82,8 @@ export function FormularioPerfil({ perfil }: { perfil: PerfilCompleto }) {
       <div className="flex flex-wrap items-center justify-end gap-3">
         <p
           aria-live="polite"
-          className={`text-sm ${
-            estado.estado === "error" ? "text-alerta" : "text-exito"
+          className={`text-[14px] ${
+            estado.estado === "error" ? "text-tinta" : "text-acento"
           }`}
         >
           {estado.mensaje}

@@ -20,11 +20,15 @@ import { expect, test } from "@playwright/test";
  */
 
 /**
- * Las cinco pantallas de `(app)/` más el panel de empresa. Todas exigen sesión.
+ * Las siete pantallas de `(app)/` más el panel de empresa. Todas exigen sesión.
  *
  * Que una cuenta individual no pueda entrar a `/empresa` y viceversa (RF1.2) no
  * se prueba acá: hace falta una sesión de cada tipo, y eso significa escribir
  * en la base. Queda con el resto del flujo de registro, en `plan.md`.
+ *
+ * `/avisos` y `/ajustes` se suman con el rediseño. Como `/eventos` y
+ * `/postulaciones`, dependen solo del middleware: no llaman a
+ * `obtenerPerfilActual()`, que es la segunda barrera de las otras.
  */
 const RUTAS_PRIVADAS = [
   "/inicio",
@@ -32,11 +36,27 @@ const RUTAS_PRIVADAS = [
   "/eventos",
   "/postulaciones",
   "/perfil",
+  "/avisos",
+  "/ajustes",
   "/empresa",
 ];
 
-/** Lo que `PUBLICAS` de `src/middleware.ts` deja pasar sin sesión. */
-const RUTAS_PUBLICAS = ["/login", "/registro"];
+/**
+ * Lo que `ENTRADA` e `INFORMATIVAS` de `src/middleware.ts` dejan pasar sin
+ * sesión.
+ *
+ * La portada y las tres informativas están enlazadas desde la cabecera y el
+ * pie, que aparecen en todas las pantallas: si el guard se las come, el sitio
+ * le pide credenciales a alguien que solo quería leer qué es LinkYouth.
+ */
+const RUTAS_PUBLICAS = [
+  "/",
+  "/login",
+  "/registro",
+  "/empresas",
+  "/como-funciona",
+  "/legales",
+];
 
 test.describe("guard de rutas sin sesión", () => {
   /**
@@ -60,11 +80,16 @@ test.describe("guard de rutas sin sesión", () => {
     });
   }
 
-  test("/ redirige a /login y no al feed", async ({ page }) => {
-    // `src/app/page.tsx` manda a /inicio; el middleware corta después.
+  test("/ muestra la portada y no el feed", async ({ page }) => {
+    // Antes `/` redirigía a `/inicio` y el middleware cortaba en `/login`.
+    // Desde que existe la portada, `/` es la puerta de entrada pública: tiene
+    // que abrirse sin sesión, y no puede colarse el feed de nadie.
     await page.goto("/");
 
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /habilidades/i }),
+    ).toBeVisible();
   });
 });
 
@@ -88,6 +113,8 @@ test.describe("cabeceras de seguridad (CN-002)", () => {
 
     expect(cabeceras["x-frame-options"]).toBe("DENY");
     expect(cabeceras["x-content-type-options"]).toBe("nosniff");
-    expect(cabeceras["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+    expect(cabeceras["referrer-policy"]).toBe(
+      "strict-origin-when-cross-origin",
+    );
   });
 });

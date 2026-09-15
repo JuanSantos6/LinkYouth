@@ -5,14 +5,16 @@ import { redirect } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { comoTipoCuenta } from "@/lib/data/tipos";
+import { FuerzaDeContrasenia } from "@/lib/dominio/FuerzaDeContrasenia";
+import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
+import {
+  leerArchivo,
+  subirImagenDePerfil,
+} from "@/lib/supabase/almacenamiento";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
-import {
-  CLAVE_DUPLICADA,
-  SIN_CONFIGURAR,
-  type EstadoAccion,
-} from "./tipos";
+import { CLAVE_DUPLICADA, SIN_CONFIGURAR, type EstadoAccion } from "./tipos";
 
 /** Código de Postgres para violación de una restricción `check`. */
 const CHECK_VIOLADO = "23514";
@@ -36,6 +38,15 @@ const RAZON_SOCIAL_OCUPADA: EstadoAccion = {
 };
 
 /**
+ * Un solo texto para el RUT repetido: la verificación previa y el índice
+ * único de `empresas`.
+ */
+const RUT_OCUPADO: EstadoAccion = {
+  estado: "error",
+  mensaje: "Ya hay una empresa registrada con ese RUT.",
+};
+
+/**
  * Datos del formulario de registro que no van a `auth.users` sino a
  * `perfiles`. Viajan en `options.data` del `signUp` para que sigan
  * disponibles cuando el alta se complete recién en el primer inicio de
@@ -47,11 +58,14 @@ type DatosDePerfil = {
   fecha_nacimiento: string;
   pais: string;
   nombre_usuario: string;
+  /** Ids de `tags`, no nombres: es lo que guarda `perfil_tags` (RF1.1.11). */
+  tags: string[];
 };
 
 /** Lo mismo que `DatosDePerfil`, para una cuenta de empresa (RF1.2). */
 type DatosDeEmpresa = {
   razon_social: string;
+  rut: string;
   rubro: string;
   descripcion: string;
   logo_url: string;
@@ -64,12 +78,17 @@ function leerDatosDePerfil(datos: FormData): DatosDePerfil {
     fecha_nacimiento: String(datos.get("fecha_nacimiento") ?? "").trim(),
     pais: String(datos.get("pais") ?? "").trim(),
     nombre_usuario: String(datos.get("nombre_usuario") ?? "").trim(),
+    // `getAll` y no `get`: el selector manda un campo oculto por interés.
+    tags: datos.getAll("tags").map(String).filter(Boolean),
   };
 }
 
 function leerDatosDeEmpresa(datos: FormData): DatosDeEmpresa {
   return {
     razon_social: String(datos.get("razon_social") ?? "").trim(),
+    // Se guarda en dígitos pelados: `21.000.123-0011` y `210001230011` son el
+    // mismo contribuyente, y el índice único tiene que verlos iguales.
+    rut: ReglasDeRegistro.normalizarRut(String(datos.get("rut") ?? "")),
     rubro: String(datos.get("rubro") ?? "").trim(),
     descripcion: String(datos.get("descripcion") ?? "").trim(),
     logo_url: String(datos.get("logo_url") ?? "").trim(),
@@ -95,6 +114,8 @@ function leerDatosDeMetadata(user: User): DatosDePerfil | null {
     fecha_nacimiento: meta.fecha_nacimiento,
     pais: meta.pais,
     nombre_usuario: meta.nombre_usuario,
+    // Los intereses pueden faltar en una cuenta creada antes de RF1.1.11.
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
   };
 }
 
@@ -105,6 +126,7 @@ function leerEmpresaDeMetadata(user: User): DatosDeEmpresa | null {
 
   return {
     razon_social: meta.razon_social,
+    rut: meta.rut ?? "",
     rubro: meta.rubro,
     descripcion: meta.descripcion ?? "",
     logo_url: meta.logo_url ?? "",
@@ -170,6 +192,80 @@ async function completarAlta(
 }
 
 /**
+ * Guarda los intereses elegidos al registrarse (RF1.1.11).
+ *
+ * Va después de `perfiles` y no junto con ella: `perfil_tags.perfil_id`
+ * referencia al perfil, así que sin la fila la inserción no tiene a qué
+ * apuntar.
+ *
+ * Ignora el conflicto porque la clave primaria es `(perfil_id, tag_id)`: si el
+ * alta se reintenta —lo que pasa cada vez que se inicia sesión con el alta a
+ * medio terminar— los intereses ya guardados no vuelven a insertarse.
+ */
+async function guardarIntereses(
+  supabase: SupabaseClient<Database>,
+  usuarioId: string,
+  tags: string[],
+): Promise<EstadoAccion | null> {
+  if (tags.length === 0) return null;
+
+  const { error } = await supabase.from("perfil_tags").upsert(
+    tags.map((tagId) => ({ perfil_id: usuarioId, tag_id: tagId })),
+    { onConflict: "perfil_id,tag_id", ignoreDuplicates: true },
+  );
+
+  return error ? { estado: "error", mensaje: error.message } : null;
+}
+
+/**
+ * Sube la foto de perfil o el logo y la deja apuntada en la fila.
+ *
+ * **No corta el alta si falla.** Para cuando esta función corre, la cuenta ya
+ * existe: devolver un error dejaría el formulario diciendo que el registro no
+ * anduvo, y el segundo intento chocaría con un correo ya registrado. La foto
+ * se puede cargar después desde el perfil; la cuenta no se puede crear dos
+ * veces. El motivo queda en el registro del servidor.
+ */
+async function guardarImagen(
+  supabase: SupabaseClient<Database>,
+  tabla: "perfiles" | "empresas",
+  usuarioId: string,
+  archivo: File,
+): Promise<void> {
+  const { url, problema } = await subirImagenDePerfil(
+    supabase,
+    usuarioId,
+    archivo,
+  );
+
+  if (!url) {
+    console.warn(`No se pudo subir la imagen de ${usuarioId}: ${problema}`);
+    return;
+  }
+
+  // Las dos ramas escritas enteras, en vez de una columna calculada: los tipos
+  // generados de Supabase son literales por tabla, y un `{ [columna]: url }`
+  // los deja en `never`. Escribirlas por separado es lo que hace que un
+  // cambio de nombre de columna lo marque el compilador.
+  const { error } =
+    tabla === "perfiles"
+      ? await supabase
+          .from("perfiles")
+          .update({ foto_url: url })
+          .eq("id", usuarioId)
+      : await supabase
+          .from("empresas")
+          .update({ logo_url: url })
+          .eq("id", usuarioId);
+
+  if (error) {
+    console.warn(
+      `No se pudo guardar la imagen de ${usuarioId}: ${error.message}`,
+    );
+  }
+}
+
+/**
  * El equivalente de `completarAlta` para una cuenta de empresa (RF1.2).
  *
  * Mismo contrato: idempotente, requiere sesión activa, devuelve `null` si salió
@@ -197,6 +293,7 @@ async function completarAltaEmpresa(
     {
       id: user.id,
       razon_social: datos.razon_social,
+      rut: datos.rut || null,
       rubro: datos.rubro,
       descripcion: datos.descripcion || null,
       logo_url: datos.logo_url || null,
@@ -207,10 +304,75 @@ async function completarAltaEmpresa(
   if (!error) return null;
 
   // El conflicto por `id` ya está ignorado arriba, así que una clave duplicada
-  // acá solo puede venir del índice único de `razon_social`.
-  if (error.code === CLAVE_DUPLICADA) return RAZON_SOCIAL_OCUPADA;
+  // acá solo puede venir de uno de los dos índices únicos de `empresas`. Cuál
+  // de los dos lo dice el nombre de la restricción, que Postgres pone en el
+  // mensaje: sin mirarlo, quien repitió el RUT leería que le rechazaron la
+  // razón social y no encontraría nunca el campo que tiene mal.
+  if (error.code === CLAVE_DUPLICADA) {
+    return /rut/i.test(error.message) ? RUT_OCUPADO : RAZON_SOCIAL_OCUPADA;
+  }
 
   return { estado: "error", mensaje: error.message };
+}
+
+/**
+ * Las comprobaciones que comparten los dos registros: correo, contraseña,
+ * confirmación y fuerza.
+ *
+ * Es la segunda de las tres capas. El navegador ya hizo estas mismas
+ * comprobaciones, y eso no las vuelve redundantes: un formulario se puede
+ * mandar sin pasar por el navegador, así que lo que el cliente valida es
+ * comodidad y lo que se valida acá es lo que de verdad decide.
+ *
+ * Lo que **no** se comprueba es si el correo ya está registrado. Responder
+ * «ese correo ya existe» convierte al formulario en un buscador de cuentas:
+ * cualquiera podría averiguar quién está en la plataforma probando
+ * direcciones. La respuesta la da Supabase, que trata todos los correos igual.
+ *
+ * Devuelve `null` si está todo bien.
+ */
+function validarAcceso(datos: FormData): EstadoAccion | null {
+  const email = String(datos.get("email") ?? "").trim();
+  const password = String(datos.get("password") ?? "");
+  const confirmacion = String(datos.get("password_confirmacion") ?? "");
+
+  if (!email || !password) {
+    return {
+      estado: "error",
+      mensaje: "El correo y la contraseña son obligatorios.",
+    };
+  }
+
+  if (confirmacion !== password) {
+    return {
+      estado: "error",
+      mensaje: "Las dos contraseñas no coinciden.",
+    };
+  }
+
+  const motivo = new FuerzaDeContrasenia(password).motivoDelRechazo;
+  if (motivo) return { estado: "error", mensaje: motivo };
+
+  // El checkbox es `required` en el formulario; acá se comprueba de nuevo
+  // porque un `required` de HTML no llega al servidor.
+  if (!datos.get("privacidad")) {
+    return {
+      estado: "error",
+      mensaje: "Tenés que aceptar la política de privacidad para registrarte.",
+    };
+  }
+
+  return null;
+}
+
+/** Que un texto no pase del largo que la ficha puede mostrar sin cortarlo. */
+function validarLargo(valor: string, campo: string): EstadoAccion | null {
+  if (valor.length <= ReglasDeRegistro.LARGO_NOMBRE) return null;
+
+  return {
+    estado: "error",
+    mensaje: `${campo} no puede pasar de ${ReglasDeRegistro.LARGO_NOMBRE} caracteres.`,
+  };
 }
 
 /**
@@ -234,7 +396,9 @@ async function destinoSegunTipo(
     .eq("id", userId)
     .maybeSingle();
 
-  return comoTipoCuenta(data?.tipo ?? "") === "empresa" ? "/empresa" : "/inicio";
+  return comoTipoCuenta(data?.tipo ?? "") === "empresa"
+    ? "/empresa"
+    : "/inicio";
 }
 
 /**
@@ -252,18 +416,25 @@ export async function registrarEmpresa(
   const email = String(datos.get("email") ?? "").trim();
   const password = String(datos.get("password") ?? "");
   const empresa = leerDatosDeEmpresa(datos);
+  const logo = leerArchivo(datos, "logo");
 
-  if (!email || !password) {
-    return {
-      estado: "error",
-      mensaje: "El correo y la contraseña son obligatorios.",
-    };
-  }
+  const problemaDeAcceso = validarAcceso(datos);
+  if (problemaDeAcceso) return problemaDeAcceso;
 
   if (!empresa.razon_social || !empresa.rubro) {
     return {
       estado: "error",
       mensaje: "La razón social y el rubro son obligatorios.",
+    };
+  }
+
+  const problemaDeLargo = validarLargo(empresa.razon_social, "La razón social");
+  if (problemaDeLargo) return problemaDeLargo;
+
+  if (!ReglasDeRegistro.rutValido(empresa.rut)) {
+    return {
+      estado: "error",
+      mensaje: "El RUT tiene que tener doce dígitos.",
     };
   }
 
@@ -286,6 +457,19 @@ export async function registrarEmpresa(
 
   if (yaExiste) return RAZON_SOCIAL_OCUPADA;
 
+  // Mismo criterio y misma limitación que el chequeo de arriba: corta el caso
+  // común antes de crear nada, no elimina la carrera, y el índice único sigue
+  // siendo la defensa final. No abre ninguna filtración nueva: `empresas` ya
+  // es legible por cualquiera, y el RUT es un dato registral público —a
+  // diferencia del correo, que por eso no se pre-verifica.
+  const { data: rutTomado } = await supabase
+    .from("empresas")
+    .select("id")
+    .eq("rut", empresa.rut)
+    .maybeSingle();
+
+  if (rutTomado) return RUT_OCUPADO;
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -307,12 +491,16 @@ export async function registrarEmpresa(
     return {
       estado: "ok",
       mensaje:
-        "Te enviamos un correo para confirmar la cuenta. Al iniciar sesión por primera vez terminamos de crear el perfil de la empresa.",
+        "Te enviamos un correo para confirmar la cuenta. Al iniciar sesión por primera vez terminamos de crear el perfil de la empresa. El logo lo vas a poder cargar desde el panel.",
     };
   }
 
   const fallo = await completarAltaEmpresa(supabase, data.user, empresa);
   if (fallo) return fallo;
+
+  if (logo) {
+    await guardarImagen(supabase, "empresas", data.user.id, logo);
+  }
 
   revalidatePath("/", "layout");
   redirect("/empresa");
@@ -337,13 +525,10 @@ export async function registrarse(
   const email = String(datos.get("email") ?? "").trim();
   const password = String(datos.get("password") ?? "");
   const perfil = leerDatosDePerfil(datos);
+  const avatar = leerArchivo(datos, "avatar");
 
-  if (!email || !password) {
-    return {
-      estado: "error",
-      mensaje: "El correo y la contraseña son obligatorios.",
-    };
-  }
+  const problemaDeAcceso = validarAcceso(datos);
+  if (problemaDeAcceso) return problemaDeAcceso;
 
   if (
     !perfil.nombre ||
@@ -353,6 +538,31 @@ export async function registrarse(
     !perfil.nombre_usuario
   ) {
     return { estado: "error", mensaje: "Faltan datos del perfil." };
+  }
+
+  const problemaDeLargo =
+    validarLargo(perfil.nombre, "El nombre") ??
+    validarLargo(perfil.apellido, "El apellido");
+  if (problemaDeLargo) return problemaDeLargo;
+
+  // La edad la decide el `check` `perfiles_mayor_de_edad` de la base; acá se
+  // adelanta el rechazo para no crear un usuario en `auth.users` que después
+  // no va a poder tener perfil. Las dos cuentas usan la misma regla, que vive
+  // en `ReglasDeRegistro`.
+  if (
+    !ReglasDeRegistro.tieneEdadSuficiente(perfil.fecha_nacimiento, new Date())
+  ) {
+    return {
+      estado: "error",
+      mensaje: `Tenés que tener al menos ${ReglasDeRegistro.EDAD_MINIMA} años para registrarte.`,
+    };
+  }
+
+  if (perfil.tags.length < ReglasDeRegistro.TAGS_MINIMOS) {
+    return {
+      estado: "error",
+      mensaje: `Elegí al menos ${ReglasDeRegistro.TAGS_MINIMOS} áreas de interés.`,
+    };
   }
 
   const supabase = await createClient();
@@ -400,12 +610,23 @@ export async function registrarse(
     return {
       estado: "ok",
       mensaje:
-        "Te enviamos un correo para confirmar la cuenta. Al iniciar sesión por primera vez terminamos de crear tu perfil.",
+        "Te enviamos un correo para confirmar la cuenta. Al iniciar sesión por primera vez terminamos de crear tu perfil con los intereses que elegiste. La foto la vas a poder cargar desde tu perfil.",
     };
   }
 
   const fallo = await completarAlta(supabase, data.user, perfil);
   if (fallo) return fallo;
+
+  const falloIntereses = await guardarIntereses(
+    supabase,
+    data.user.id,
+    perfil.tags,
+  );
+  if (falloIntereses) return falloIntereses;
+
+  if (avatar) {
+    await guardarImagen(supabase, "perfiles", data.user.id, avatar);
+  }
 
   revalidatePath("/", "layout");
   redirect("/inicio");
@@ -457,6 +678,15 @@ export async function iniciarSesion(
   if (perfil) {
     const fallo = await completarAlta(supabase, data.user, perfil);
     if (fallo) return fallo;
+
+    // Los intereses también quedaron pendientes: sin sesión, la política
+    // `perfil_tags_agrego_los_mios` no los dejaba entrar al registrarse.
+    const falloIntereses = await guardarIntereses(
+      supabase,
+      data.user.id,
+      perfil.tags,
+    );
+    if (falloIntereses) return falloIntereses;
   }
 
   const empresa = leerEmpresaDeMetadata(data.user);

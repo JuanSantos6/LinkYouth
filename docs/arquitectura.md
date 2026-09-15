@@ -43,7 +43,7 @@ nunca es la barrera; es la comodidad.
 
 ---
 
-## 2. Las tres reglas estructurales
+## 2. Las cuatro reglas estructurales
 
 Estas decisiones explican casi todo lo demás. Cada una tiene su entrada larga
 en [`decisiones.md`](./decisiones.md).
@@ -156,17 +156,22 @@ docs/                     SRS, decisiones, plan, changelog, este documento
 
 src/app/
   layout.tsx              Layout raíz (lang="es", fuentes)
-  page.tsx                Redirige al feed
-  (app)/layout.tsx        Estructura con barra lateral
-  (app)/inicio|empleos|eventos|
-        postulaciones|perfil/page.tsx   Las cinco pantallas
-  (auth)/layout.tsx       Columna centrada, sin barra lateral
+  page.tsx                Portada pública: qué es, cómo funciona, empresas,
+                          preguntas frecuentes y consultas
+  (app)/layout.tsx        Cabecera, barra lateral y pie
+  (app)/inicio|empleos|eventos|postulaciones|
+        perfil|avisos|ajustes/page.tsx  Las siete pantallas de la cuenta
+  (sitio)/layout.tsx      Cabecera y pie, sin barra lateral
+  (sitio)/empresas|como-funciona|
+          legales/page.tsx                Las tres pantallas públicas
+  (auth)/layout.tsx       Columna centrada, con la marca
   (auth)/login|registro/page.tsx        Inicio de sesión y alta (RF1.1, RF1.3)
+  empresa/                Panel de empresa (placeholder del Hito 6)
 
 src/components/
   ui/                     Primitivas sin dominio
   layout/                 Estructura y navegación
-  auth/ empleos/ eventos/ perfil/   Por dominio
+  auth/ empleos/ eventos/ landing/ perfil/   Por dominio
 
 src/lib/
   supabase/               Cliente de servidor y credenciales
@@ -222,6 +227,15 @@ request intentaría refrescar un token ya descartado.
 Si no hay credenciales, deja pasar el request intacto en vez de romper toda la
 navegación: sin Supabase no hay sesión posible y la aplicación tiene que poder
 recorrerse igual con los datos de ejemplo (§2.3).
+
+#### `ENTRADA` · `INFORMATIVAS`
+
+Dos listas, no una. `ENTRADA` (`/login`, `/registro`) es pública sin sesión y
+deja de tener sentido con ella. `INFORMATIVAS` (`/empresas`,
+`/como-funciona`, `/legales`) se lee siempre y por los dos tipos de cuenta:
+están enlazadas desde la cabecera y el pie, que aparecen en todas las
+pantallas, y mandar a `/login` a alguien que toca «Cómo funciona» sería
+pedirle credenciales para leer un folleto.
 
 #### `config`
 
@@ -323,6 +337,8 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
 | `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
+| `obtenerAvisos(usuarioId?, limite?)` | `Resultado<Aviso[]>` | RF6.1. Las filas las crea el disparador de la base: `notificaciones` no tiene política de insert, así que ningún navegador puede fabricar un aviso. |
+| `obtenerTipoCuenta(usuarioId?)` | `TipoCuenta \| null` | En qué mitad de la aplicación está la sesión. La cabecera y el pie lo necesitan para no ofrecerle a una cuenta de empresa enlaces que el middleware le va a rebotar. |
 | `obtenerCatalogos()` | `Resultado<Catalogos>` | RF2.3, RF2.4.3. Los dos catálogos cerrados enteros, sin filtro ni paginado: 36 tags y 20 habilidades. |
 
 Las tres consultas grandes traen sus relaciones en un solo `select` anidado
@@ -392,6 +408,7 @@ no tendría llamador (§7.5). Del lado empresa la regla ya está en RLS.
 | `cancelarPostulacion` | **Actualiza** el estado a `cancelada`. No borra la fila. | RF3.8 |
 | `inscribirse` | Inserta en `inscripciones_evento`. | RF4.5 |
 | `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. Hoy **sin consumidor**: no hay UI de cancelación de eventos. | RF4.6 |
+| `enviarConsulta` | Valida la consulta de la portada. **No la entrega**: no hay tabla ni casilla. Devuelve `error` con la explicación en vez de un «gracias» falso. | — |
 | `actualizarPerfil` | Actualiza nombre, apellido, país y biografía. | RF1.5, RF2.2 |
 | `agregarTag` / `quitarTag` | Insertan o borran una fila de `perfil_tags`. | RF2.3 |
 | `agregarHabilidad` / `quitarHabilidad` | Insertan o borran una fila de `perfil_habilidades`. | RF2.4.3 |
@@ -412,7 +429,94 @@ El límite de 600 caracteres de la biografía vive solo en `actualizarPerfil`:
 `db/schema.sql` declara `bio` como `text` sin restricción, así que es una
 decisión de producto, no del esquema.
 
-### 5.7 Componentes
+### 5.7 `src/lib/dominio/`
+
+Las reglas de negocio, fuera de los componentes (§2.3). Ninguna clase hereda
+de otra: entre comparar etiquetas, ordenar un listado e interpretar un estado
+no hay comportamiento compartido, y una jerarquía ahí sería decorativa.
+
+#### `Compatibilidad`
+
+`Compatibilidad.entre(vacante, perfil)` compara lo que pide la vacante —sus
+tags públicos y sus habilidades— con lo que el perfil declara. Expone
+`medible`, `porcentaje`, `alta` y `cubre(requisito)`.
+
+Es una clase y no una función porque la pantalla necesita tres cosas del mismo
+cálculo: el número, si una etiqueta puntual coincide y si el total alcanza para
+destacar la vacante. Devolver solo el porcentaje obligaba a cada componente a
+rehacer la comparación.
+
+Solo mira datos públicos. El puntaje de RF3.9 usa los tags ocultos, se calcula
+en la base y lo ve únicamente la empresa.
+
+#### `FeedDeVacantes`
+
+`FeedDeVacantes.armar(vacantes, perfil)` ordena por compatibilidad y, a
+igualdad, por fecha. Marca **una sola** entrada como destacada, y solo si su
+compatibilidad es alta: encabezar un listado flojo no es un logro.
+
+#### `ProcesoDePostulacion`
+
+`new ProcesoDePostulacion(estado)` responde qué significa ese estado para quien
+postuló: `etiqueta`, `etapa`, `cancelable`, `cerradoSinPuesto`, `aceptada` y
+`alcanzo(etapa)`. Las tres etapas visibles no son los cinco estados de la base:
+`aceptada`, `rechazada` y `cancelada` caen todas en la última.
+
+#### `FuerzaDeContrasenia`
+
+`new FuerzaDeContrasenia(texto)` responde qué tan buena es y por qué:
+`requisitos`, `puntaje`, `nivel`, `segmentos`, `etiqueta`, `esAceptable` y
+`motivoDelRechazo`. La usan las dos capas —el medidor del formulario y
+`registrarse()`—, y que sea la misma clase es lo que impide que el navegador
+acepte una contraseña que el servidor rechaza.
+
+El puntaje no mide entropía: cuenta requisitos cumplidos. Una barra verde no
+promete que la contraseña sea buena, promete que cumple lo que la plataforma
+pide.
+
+#### `ReglasDeRegistro`
+
+Los límites del registro, como miembros estáticos: `EDAD_MINIMA`,
+`LARGO_NOMBRE`, `TAGS_MINIMOS`, `PESO_MAXIMO_IMAGEN`, `FORMATOS_IMAGEN`, más
+`fechaMaximaDeNacimiento(hoy)`, `tieneEdadSuficiente(fecha, hoy)`,
+`normalizarRut`, `rutValido` y `problemaDeImagen(archivo)`.
+
+Cada límite existe tres veces en el recorrido —atributo del `<input>`,
+comprobación en la acción, restricción de la base— y las tres tienen que decir
+el mismo número. La clase no reemplaza a ninguna de las tres capas: les da el
+número.
+
+`fechaMaximaDeNacimiento` recibe el día en vez de leer el reloj a propósito: el
+servidor y el navegador pueden estar en husos distintos, y una fecha calculada
+dos veces con dos relojes es una diferencia de hidratación.
+
+#### `Institucion`
+
+`new Institucion(nombre)` deriva el identificador de URL (`id`), las
+iniciales del recuadro y `correspondeA(id)`.
+
+**No hay tabla de instituciones.** `formaciones.institucion` es texto libre, así
+que el identificador se deriva del nombre. Dos grafías del mismo lugar son dos
+instituciones distintas, y el identificador cambia si alguien corrige el
+nombre: no se puede guardar ni compartir como enlace permanente (deuda 7.8).
+
+### 5.8 `src/lib/diseno/`
+
+#### `tokens.ts`
+
+Fuente de verdad del color: los cinco valores base, los cinco acentos con su
+versión clara y oscura, las claves de `localStorage` y `reglasDeAcento()`, que
+genera el CSS de los acentos para inyectar una vez en el `<head>`. Agregar un
+color es tocar solo `ACENTOS`.
+
+#### `PreferenciasDeApariencia`
+
+Lee y escribe `data-tema` y `data-acento` en el elemento raíz y los persiste.
+`delDocumento()` la construye; `alternarTema()` y `cambiarAcento()` la
+modifican. No lanza nunca: con el almacenamiento bloqueado, la elección vale
+para la sesión en curso.
+
+### 5.9 Componentes
 
 Reconectados contra `db/schema.sql`. Lo que la interfaz mostraba y el esquema
 no guarda —salario, modalidad, ubicación, cupos, nivel de dominio de una
@@ -430,26 +534,30 @@ para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `Tarjeta` | `como?`, `interactiva?`, + props del elemento | Superficie base. Borde, radio y sombra salen de un solo lugar. Polimórfica: `como="article"` cambia la etiqueta sin duplicar estilos. |
-| `Boton` | `variante?`, + props de `<button>` | Botón de acción. |
+| `Tarjeta` | `como?`, `elevada?`, + props del elemento | Superficie con borde. Ya no envuelve todo: las vacantes son filas con filetes. `elevada` solo para lo que está realmente por encima del plano. |
+| `Boton` | `variante?`, + props de `<button>` | Botón de acción. La transición enumera sus propiedades: `transition-colors` incluye `outline-color` y hacía que el anillo de foco tardara 150 ms en tomar color. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
 | `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
-| `Etiqueta` | `children`, `tono?` | Un tag o una habilidad. Con `tono="coincide"` marca lo que el perfil ya declara, con un ✓ además del color. |
-| `Insignia` | `children`, `tono?` | Estado: tipo de oportunidad, estado de una postulación o de un estudio. |
+| `Etiqueta` | `children`, `coincide?` | Un tag o una habilidad. Lo que el perfil ya declara se marca con ✓ y más peso, nunca con relleno de color: seis etiquetas pintadas son un fondo, no una señal. |
+| `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es el único que usa ámbar, y solo para una postulación aceptada. |
 | `Campo` | `etiqueta`, `ayuda?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
 | `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Sale de fusionar `BotonPostularse` e `BotonInscribirse`, que diferían solo en el nombre del campo oculto y en la variante. No conoce vacantes ni eventos; de `src/lib/` solo importa `EstadoAccion`, no `src/lib/data/`. |
 | `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
-| `Aviso` | `children` | Caja de aviso: ícono, borde y color del tono «atención». Todo lo que la aplicación aclara sobre sí misma se ve igual. La usan `AvisoOrigen` y `AvatarEditable`. |
+| `Aviso` | `titulo?`, `children` | Caja de aviso: filete a la izquierda y fondo de realce. Todo lo que la aplicación aclara sobre sí misma se ve igual. El filete hace el trabajo que en otra paleta haría un amarillo: acá el ámbar significa «acreditado» y no se presta para otra cosa. |
+| `MensajeDeAccion` | `estado`, `className?` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
 
 #### `layout/` — estructura
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `BarraLateral` | — | Navegación de las cinco secciones. `"use client"` solo para leer `usePathname()` y marcar la activa. Columna fija de 240 px en escritorio; fila que se desplaza en pantallas chicas, sin menú desplegable: con cinco secciones, esconderlas cuesta más de lo que ahorra. |
+| `CabeceraGlobal` | `area?` | Barra superior fija en todas las pantallas: marca, navegación de sitio y los accesos de la cuenta. `area` decide qué ofrece: entrar si no hay sesión, avisos y perfil para un postulante, solo salir para una empresa —a la que el middleware rebotaría de las secciones del postulante—. |
+| `PieDeSitio` | `area?` | Cuatro columnas, copyright y el repositorio, que es la única red que existe. La columna «Plataforma» cambia según el tipo de cuenta, por el mismo motivo. |
+| `Marca` | `href?` | El sello con las iniciales. Sin ámbar: un logo no acredita nada. |
+| `BarraLateral` | — | Las seis secciones de la cuenta. `"use client"` solo para leer `usePathname()`. La activa lleva filete vertical, no píldora rellena. El `min-w-0` no es decorativo: sin él la fila de secciones empuja la página entera a 574 px dentro de un viewport de 390. |
 | `Encabezado` | `titulo`, `descripcion?` | Encabezado de sección. |
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
-| `Iconos` | `className?` | Ocho íconos SVG inline (`IconoInicio`, `IconoEmpleos`, `IconoEventos`, `IconoPostulaciones`, `IconoPerfil`, `IconoBusqueda`, `IconoUbicacion`, `IconoCamara`). Inline y no una librería: son ocho, y una dependencia entera para eso no se paga sola. |
+| `Iconos` | `className?` | Doce íconos SVG en línea, todos sobre grilla de 24 y trazo 1.75. Inline y no una librería: una dependencia entera para doce trazos no se paga sola. |
 
 #### `auth/` · `empleos/` · `eventos/` · `perfil/` — por dominio
 
@@ -458,20 +566,27 @@ para que no se lea como permiso general.
 | `FormularioLogin` | — | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
 | `FormularioRegistro` | — | Alta de cuenta individual (RF1.1). Los campos son exactamente las columnas obligatorias de `perfiles`, más el correo y la contraseña que van a `auth.users`. La mayoría de edad la exige la base: acá el campo es un `type="date"` común y el mensaje llega desde la acción. |
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
-| `TarjetaVacante` | `vacante`, `tagsPerfil?`, `habilidadesPerfil?`, `yaPostulado?`, `esEjemplo?` | Una vacante en el feed. Separa habilidades de áreas de interés, igual que el esquema. Muestra el porcentaje de compatibilidad solo si la vacante pide algo, y siempre junto al detalle de qué coincide: un número suelto no se puede verificar. |
-| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?` | Deliberadamente distinta de la de vacante: cabecera con franja de color y bloque de fecha destacado. Hay que distinguir de un vistazo una oferta de una actividad. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo, y la política de `inscripciones_evento` no deja contar las de los demás. |
+| `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?` | La destacada suelta arriba y elevada; el resto, filas separadas por filetes. |
+| `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?` | Una vacante. No es tarjeta. El porcentaje va en `.cifra` y nunca solo: al lado están las etiquetas que lo explican. En pantalla angosta encabeza la fila en vez de esconderse, porque es el dato que ordena el listado. |
+| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?` | Sí es tarjeta: tiene imagen y fecha propias, y esa diferencia de forma con la vacante es intencional. Sin imagen no se inventa una banda de color; el bloque de fecha pasa a ser el ancla. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo y la RLS no deja contar las ajenas. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
+| `landing/CabeceraLanding` | — | Cabecera de la portada: anclas a la misma página y los dos menús de acceso. Hasta 1024 px las anclas bajan a su propia fila, porque compartiendo la primera quedaban en 36 px. |
+| `landing/GrupoDeMenus` | `children`, `className?` | Envuelve a dos `MenuDeAcceso` vecinos y garantiza que solo uno esté abierto. Sin él, los dos paneles abiertos se pisaban. |
+| `landing/MenuDeAcceso` | `etiqueta`, `opciones`, `destacado?` | Las dos puertas de entrada, joven y organización. Se abre al pasar el mouse, al tocarlo y al llegar con el tabulador —los tres caminos, porque cada uno tapa un agujero del anterior—. Dejó de ser un `<details>` para poder abrirse con hover. |
+| `landing/CarruselEmpresas` | `empresas` | Las organizaciones que publican. No se mueve solo: avanza con las flechas, el dedo o la rueda. Las flechas aparecen solo si la fila desborda y cada una se apaga en su extremo: con cuatro organizaciones en escritorio no hay nada que desplazar, y una flecha que no hace nada se lee como una flecha rota. |
+| `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `<details>`. |
+| `landing/FormularioConsulta` | — | Consultas de la portada. El aviso de que todavía no entrega va **antes** del formulario, no después de enviarlo. |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 
 #### Páginas
 
 | Ruta | Función | Qué hace |
 | --- | --- | --- |
-| `/` | `Home` | Redirige a `/inicio`. |
+| `/` | `Portada` | Portada pública. Cabecera con anclas a la misma página, carrusel de organizaciones, preguntas frecuentes y formulario de consultas. |
 | `/login` | `PaginaLogin` | Inicio de sesión. Layout propio de `(auth)/`: una columna centrada, sin barra lateral. |
 | `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
@@ -479,12 +594,16 @@ para que no se lea como permiso general.
 | `/eventos` | `PaginaEventos` | Agenda de eventos próximos. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
+| `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |
+| `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
+| `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, en `(sitio)/`. Se leen con o sin sesión. |
+| `/empresa` | `PaginaEmpresa` | Panel de empresa: hoy, el cartel de que llega en el Hito 6. |
 
 Las cinco pantallas de `(app)/` declaran
 `export const dynamic = "force-dynamic"`: leen datos por sesión, y cachearlas
 mostraría el perfil de otro.
 
-### 5.8 Funciones en la base
+### 5.10 Funciones en la base
 
 Definidas en `db/schema.sql`. Las seis fijan `set search_path = public,
 pg_temp`: una función `security definer` sin `search_path` fijo es explotable
@@ -637,10 +756,22 @@ recuperación de contraseña y la confirmación de correo como paso propio —ho
 si el proyecto de Supabase la tiene activada, el alta de `cuentas` y `perfiles`
 se completa recién en el primer inicio de sesión.
 
-### 7.4 La subida de archivos no existe
+### 7.4 La subida de archivos sube, pero falla en silencio
 
-`AvatarEditable` muestra la vista previa y avisa que la subida falta. Los
-logos de empresa e institución dependen de lo mismo.
+**Resuelta a medias el 2026-09-15.** `src/lib/supabase/almacenamiento.ts` sube
+la foto de perfil y el logo al bucket `avatars`
+(`db/migraciones/002-bucket-avatars.sql`), y los dos registros traen su
+`<input type="file">`.
+
+Lo que queda abierto es qué pasa cuando la subida falla. Para cuando corre, la
+cuenta ya existe: devolver un error dejaría el formulario diciendo que el
+registro no anduvo, y el segundo intento chocaría con un correo ya registrado.
+Así que el fallo se anota en el registro del servidor, la cuenta se crea igual
+y la persona no se entera hasta que entra a su perfil y no ve su foto.
+
+La salida es un aviso en la pantalla de destino, que hoy no existe: `/inicio` no
+tiene dónde recibirlo. `AvatarEditable` sigue siendo el camino para cargarla
+después.
 
 ### 7.5 La aplicación no distingue postulante de empresa — resuelta
 
@@ -698,3 +829,21 @@ toda la aplicación, y el rediseño está pausado— pero es lo primero a correg
 cuando se retome. Con teclado y con puntero no hay problema: el
 `:focus-visible` global marca el foco y el objetivo es igual de grande que
 cualquier otra etiqueta de la aplicación.
+
+### 7.8 Las instituciones educativas no tienen tabla
+
+`formaciones.institucion` es texto libre. `/institucion/[id]` reconstruye la
+ficha agrupando las formaciones que nombran el mismo lugar, con un
+identificador derivado del nombre (`src/lib/dominio/Institucion.ts`).
+
+Tres consecuencias, todas visibles en la pantalla:
+
+1. «UTU» y «U.T.U.» son dos instituciones distintas.
+2. El identificador cambia si alguien corrige el nombre, así que el enlace no
+   es permanente.
+3. No hay logo, descripción ni contacto, porque no hay columnas donde
+   estuvieran. La página lo dice en pantalla en vez de rellenar con texto
+   inventado.
+
+La salida es una tabla `instituciones` con clave estable, y `formaciones`
+apuntando a ella. Es una decisión de esquema que el equipo todavía no tomó.

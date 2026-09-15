@@ -2,9 +2,12 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
+import { Institucion } from "@/lib/dominio/Institucion";
 import { createClient } from "@/lib/supabase/server";
 
 import {
+  AVISOS_EJEMPLO,
+  EMPRESAS_EJEMPLO,
   CATALOGOS_EJEMPLO,
   EVENTOS_EJEMPLO,
   PERFIL_EJEMPLO,
@@ -17,7 +20,12 @@ import {
   comoEstadoFormacion,
   comoEstadoPostulacion,
   comoEstadoVacante,
+  comoTipoCuenta,
   comoTipoOportunidad,
+  type Aviso,
+  type EmpresaResumen,
+  type FichaDeInstitucion,
+  type TipoCuenta,
   type Evento,
   type PerfilCompleto,
   type PostulacionResumen,
@@ -102,6 +110,58 @@ async function resolverUsuarioId(
   } = await supabase.auth.getUser();
 
   return user?.id ?? null;
+}
+
+/**
+ * En qué mitad de la aplicación vive la sesión, o `null` si no hay ninguna.
+ *
+ * La cabecera y el pie aparecen en todas las pantallas, incluidas las
+ * públicas, así que necesitan saberlo para no ofrecerle a una cuenta de
+ * empresa enlaces a secciones del postulante que el middleware le va a
+ * rebotar.
+ */
+export async function obtenerTipoCuenta(
+  usuarioId?: string,
+): Promise<TipoCuenta | null> {
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return null;
+
+  const { data } = await supabase
+    .from("cuentas")
+    .select("tipo")
+    .eq("id", id)
+    .maybeSingle();
+
+  return data ? comoTipoCuenta(data.tipo) : null;
+}
+
+/**
+ * Las organizaciones que ya publican en LinkYouth, para la portada.
+ *
+ * Lectura pública: `empresas_lectura_publica` habilita el select a cualquiera
+ * y `cuenta_activa` deja fuera a las dadas de baja. No hace falta sesión, que
+ * es justamente el punto: esta consulta la hace alguien que todavía no se
+ * registró.
+ */
+export async function obtenerEmpresas(
+  limite = 12,
+): Promise<Resultado<EmpresaResumen[]>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(EMPRESAS_EJEMPLO, SIN_CREDENCIALES);
+
+  const { data, error } = await supabase
+    .from("empresas")
+    .select("id, razon_social, rubro, logo_url")
+    .order("razon_social")
+    .limit(limite);
+
+  if (error) return ejemplo(EMPRESAS_EJEMPLO, error.message);
+  if (!data || data.length === 0) return ejemplo(EMPRESAS_EJEMPLO, TABLA_VACIA);
+
+  return { datos: data, origen: "supabase" };
 }
 
 const EMPRESA = "empresas ( id, razon_social, rubro, logo_url )";
@@ -398,4 +458,83 @@ export async function obtenerEventosInscriptos(
     .eq("perfil_id", id);
 
   return new Set((data ?? []).map((fila) => fila.evento_id));
+}
+
+// --- Avisos -----------------------------------------------------------------
+
+/**
+ * RF6.1 — Bandeja de notificaciones de la sesión activa.
+ *
+ * Las filas las crea el disparador `postulaciones_notificar_cambio` de
+ * `db/schema.sql`, nunca el cliente: `notificaciones` no tiene política de
+ * insert, así que ningún navegador puede fabricar un aviso.
+ */
+export async function obtenerAvisos(
+  usuarioId?: string,
+  limite = 30,
+): Promise<Resultado<Aviso[]>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(AVISOS_EJEMPLO, SIN_CREDENCIALES);
+
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return ejemplo(AVISOS_EJEMPLO, SIN_SESION);
+
+  const { data, error } = await supabase
+    .from("notificaciones")
+    .select("id, tipo, mensaje, enlace, leida, creada_en")
+    .eq("cuenta_id", id)
+    .order("creada_en", { ascending: false })
+    .limit(limite);
+
+  if (error) return ejemplo(AVISOS_EJEMPLO, error.message);
+
+  return { datos: data ?? [], origen: "supabase" };
+}
+
+// --- Instituciones ----------------------------------------------------------
+
+/**
+ * Ficha de una institución educativa, armada desde `formaciones`.
+ *
+ * No hay tabla de instituciones: el nombre es texto libre en la formación de
+ * cada perfil (ver `src/lib/dominio/Institucion.ts`). Así que la ficha se
+ * reconstruye agrupando por nombre, y el identificador de la URL se compara
+ * contra el derivado de cada uno.
+ *
+ * Se trae la columna entera y se agrupa en memoria en vez de filtrar en la
+ * base: el identificador es una transformación del nombre que Postgres no
+ * conoce, así que no hay `where` que escribir. Con el tamaño de `formaciones`
+ * hoy es barato; cuando deje de serlo, la salida es la tabla de instituciones,
+ * no una consulta más astuta.
+ *
+ * Devuelve `null` cuando ningún nombre corresponde a ese identificador. Quien
+ * llama decide si eso es un 404.
+ */
+export async function obtenerInstitucion(
+  id: string,
+): Promise<Resultado<FichaDeInstitucion | null>> {
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(null, SIN_CREDENCIALES);
+
+  const { data, error } = await supabase
+    .from("formaciones")
+    .select("institucion, titulo");
+
+  if (error) return ejemplo(null, error.message);
+
+  const suyas = (data ?? []).filter((formacion) =>
+    new Institucion(formacion.institucion).correspondeA(id),
+  );
+
+  if (suyas.length === 0) return { datos: null, origen: "supabase" };
+
+  return {
+    datos: {
+      id,
+      nombre: suyas[0].institucion,
+      estudiantes: suyas.length,
+      titulos: [...new Set(suyas.map((formacion) => formacion.titulo))].sort(),
+    },
+    origen: "supabase",
+  };
 }

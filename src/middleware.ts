@@ -6,8 +6,20 @@ import { comoTipoCuenta } from "@/lib/data/tipos";
 import { leerCredenciales } from "@/lib/supabase/config";
 import type { Database } from "@/types/database";
 
-/** Rutas que se pueden abrir sin sesión iniciada. */
-const PUBLICAS = ["/login", "/registro"];
+/** Rutas de entrada. Sin sesión son públicas; con sesión ya no tienen sentido. */
+const ENTRADA = ["/login", "/registro"];
+
+/**
+ * La portada y las pantallas que cuentan qué es LinkYouth.
+ *
+ * Se leen con o sin sesión, y por los dos tipos de cuenta: son la cara pública
+ * del sitio y están enlazadas desde la cabecera y el pie, que aparecen en
+ * todas partes. Mandar a `/login` a alguien que toca «Cómo funciona» sería
+ * pedirle credenciales para leer un folleto, y `/` es literalmente la puerta
+ * de entrada: si pidiera sesión, nadie sin cuenta podría enterarse de qué es
+ * esto.
+ */
+const INFORMATIVAS = ["/", "/empresas", "/como-funciona", "/legales"];
 
 /** Prefijo del panel de empresa. Todo lo demás es territorio del postulante. */
 const AREA_EMPRESA = "/empresa";
@@ -47,7 +59,8 @@ async function areaDe(
  * Refresca la sesión de Supabase en cada request, reescribe las cookies y
  * resuelve quién puede estar dónde:
  *
- * - Sin sesión, solo `PUBLICAS` (RF1.3). El resto va a `/login`.
+ * - Sin sesión, solo `ENTRADA` e `INFORMATIVAS` (RF1.3). El resto va a
+ *   `/login`.
  * - Con sesión, cada tipo de cuenta se queda en su mitad: una cuenta
  *   individual que pida `/empresa` cae en `/inicio`, y una de empresa que pida
  *   cualquier pantalla del postulante cae en `/empresa` (RF1.2).
@@ -110,13 +123,17 @@ export async function middleware(request: NextRequest) {
   };
 
   if (!user) {
-    return PUBLICAS.includes(ruta) ? response : redirigirA("/login");
+    const abierta = ENTRADA.includes(ruta) || INFORMATIVAS.includes(ruta);
+    return abierta ? response : redirigirA("/login");
   }
 
   // Con sesión, `/login` y `/registro` ya no tienen sentido.
-  if (PUBLICAS.includes(ruta)) {
+  if (ENTRADA.includes(ruta)) {
     return redirigirA(await areaDe(supabase, user.id));
   }
+
+  // Las informativas no pertenecen a ninguna de las dos mitades.
+  if (INFORMATIVAS.includes(ruta)) return response;
 
   const area = await areaDe(supabase, user.id);
   const pideEmpresa =

@@ -27,21 +27,21 @@ export function RegistroPendiente({
     <div className="py-2 text-center">
       <span
         aria-hidden="true"
-        className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primario-suave text-primario"
+        className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-acento-tenue text-acento"
       >
         <IconoCorreo className="h-6 w-6" />
       </span>
 
-      <h2 className="mt-4 text-base font-bold text-tinta">Revisá tu correo</h2>
+      <h2 className="mt-4 text-[18px] text-tinta">Revisá tu correo</h2>
 
       {email && (
-        <p className="mt-2 text-sm text-tinta-media">
+        <p className="mt-2 text-[14px] text-apagado">
           Te lo enviamos a{" "}
           <span className="font-semibold text-tinta">{email}</span>.
         </p>
       )}
 
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-tinta-suave">
+      <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-apagado">
         {mensaje}
       </p>
     </div>

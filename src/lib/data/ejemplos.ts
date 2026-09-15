@@ -1,4 +1,6 @@
 import type {
+  Aviso,
+  EmpresaResumen,
   Catalogos,
   Evento,
   Formacion,
@@ -277,4 +279,34 @@ export const POSTULACIONES_EJEMPLO: PostulacionResumen[] = [
       empresa_logo_url: null,
     },
   },
+];
+
+export const AVISOS_EJEMPLO: Aviso[] = [
+  {
+    id: "ejemplo-aviso-1",
+    tipo: "postulacion",
+    mensaje: "El estado de tu postulación cambió a: en_revision",
+    enlace: "/postulaciones",
+    leida: false,
+    creada_en: haceHoras(5),
+  },
+  {
+    id: "ejemplo-aviso-2",
+    tipo: "postulacion",
+    mensaje: "El estado de tu postulación cambió a: aceptada",
+    enlace: "/postulaciones",
+    leida: true,
+    creada_en: haceHoras(72),
+  },
+];
+
+/**
+ * Las mismas organizaciones que publican las vacantes de ejemplo. La portada
+ * las muestra en el carrusel cuando no hay base cargada, y lo aclara.
+ */
+export const EMPRESAS_EJEMPLO: EmpresaResumen[] = [
+  MERCADO_LIBRE,
+  PEDIDOSYA,
+  DLOCAL,
+  UDELAR,
 ];

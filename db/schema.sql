@@ -40,6 +40,12 @@ alter table perfiles
 create table empresas (
   id             uuid primary key references cuentas(id) on delete cascade,
   razon_social   text not null unique,
+  -- RUT del contribuyente. `unique` y no `not null`: las empresas dadas de
+  -- alta antes de que existiera la columna no lo tienen, y no hay ningún
+  -- valor razonable que inventarles. El formato lo valida la aplicación,
+  -- no un `check`: doce dígitos es la forma uruguaya y la plataforma no
+  -- descarta abrirse a otros países.
+  rut            text unique,
   rubro          text not null,
   descripcion    text,
   logo_url       text,

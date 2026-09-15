@@ -1,40 +1,27 @@
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import { cancelarInscripcion, inscribirse } from "@/lib/acciones/eventos";
 import type { Evento } from "@/lib/data/tipos";
-import { inscribirse } from "@/lib/acciones/eventos";
 import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
-
-/**
- * Franjas de color de la cabecera cuando el evento no trae imagen.
- *
- * Se elige de forma determinística a partir del id, así el mismo evento se ve
- * siempre igual. Es preferible a una foto de archivo: no promete algo que el
- * evento no es y no agrega peso a la página.
- */
-const FRANJAS = [
-  "from-[#1d4ed8] to-[#3b82f6]",
-  "from-[#0f766e] to-[#14b8a6]",
-  "from-[#4338ca] to-[#6366f1]",
-  "from-[#b45309] to-[#f59e0b]",
-] as const;
-
-function franjaDe(id: string): string {
-  const suma = [...id].reduce((total, letra) => total + letra.charCodeAt(0), 0);
-  return FRANJAS[suma % FRANJAS.length];
-}
 
 /**
  * Tarjeta de evento institucional.
  *
- * Deliberadamente distinta de la de una vacante: cabecera propia y bloque de
- * fecha destacado. Quien recorre el feed tiene que poder distinguir de un
- * vistazo una oferta de trabajo de una actividad.
+ * Los eventos sí son tarjetas —tienen imagen y fecha propias— y las vacantes
+ * no. Esa diferencia de forma es intencional: hay que distinguir de un vistazo
+ * una oferta de trabajo de una actividad.
  *
- * No muestra cupos ni cantidad de inscriptos: `db/schema.sql` no guarda cupo,
- * y la política de `inscripciones_evento` solo deja ver las propias y las de
- * la empresa organizadora, así que un postulante no puede contar las de los
- * demás.
+ * Cuando el evento no trae imagen no se inventa una banda de color de relleno:
+ * el bloque de fecha pasa a ser el ancla visual, que es lo que de verdad
+ * distingue a un evento del resto del feed.
+ *
+ * Sin cupos ni conteo de inscriptos: el esquema no guarda cupo, y la política
+ * de `inscripciones_evento` no deja contar las de los demás.
+ *
+ * Estar inscripto no es un estado final: el botón cambia a «Cancelar
+ * inscripción» (RF4.6). La acción ya existía desde el principio y el botón no,
+ * así que quedarse era irreversible sin pasar por la base.
  */
 export function TarjetaEvento({
   evento,
@@ -43,60 +30,49 @@ export function TarjetaEvento({
 }: {
   evento: Evento;
   yaInscripto?: boolean;
-  /** El evento salió de `ejemplos.ts`, no de la base: no se puede inscribir. */
+  /** El evento salió de `ejemplos.ts`: no hay nada a lo que inscribirse. */
   esEjemplo?: boolean;
 }) {
   const { dia, mes } = fechaBloque(evento.fecha_hora);
 
   return (
-    <Tarjeta como="article" interactiva className="overflow-hidden">
-      <div
-        className={`h-28 overflow-hidden bg-gradient-to-br ${franjaDe(evento.id)}`}
-        aria-hidden="true"
-      >
-        {/* La imagen del evento vive en Supabase Storage, fuera del optimizador. */}
-        {evento.imagen_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={evento.imagen_url}
-            alt=""
-            width={896}
-            height={112}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        )}
-      </div>
+    <Tarjeta como="article" className="overflow-hidden">
+      {evento.imagen_url && (
+        // La imagen del evento vive en Supabase Storage, fuera del optimizador.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={evento.imagen_url}
+          alt=""
+          className="h-36 w-full border-b border-borde object-cover"
+        />
+      )}
 
-      {/* `relative` mantiene el bloque de fecha por encima de la cabecera. */}
-      <div className="relative flex gap-4 p-5">
-        <div className="-mt-12 flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-tarjeta border border-borde bg-superficie shadow-elevada">
-          <span className="text-xl font-bold leading-none text-primario">
-            {dia}
-          </span>
-          <span className="mt-1 text-[10px] font-bold tracking-widest text-tinta-suave">
+      <div className="flex gap-4 p-4 sm:gap-5 sm:p-5">
+        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-ficha border border-borde bg-realce">
+          <span className="cifra text-[26px] text-tinta">{dia}</span>
+          <span className="mt-1 text-[11px] font-medium text-apagado">
             {mes}
           </span>
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-tinta-media">
+          <p className="text-[13px] font-medium text-tinta">
             {evento.empresa.razon_social}
           </p>
 
-          <h3 className="mt-0.5 text-base font-bold text-tinta">
+          <h3 className="mt-0.5 text-[18px] text-tinta sm:text-[19px]">
             {evento.titulo}
           </h3>
 
-          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-tinta-media">
+          <p className="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-apagado">
             {evento.descripcion}
           </p>
 
-          <p className="mt-3 text-xs text-tinta-suave">
+          <p className="mt-3 text-[13px] text-apagado">
             <time dateTime={evento.fecha_hora}>
               {fechaLarga(evento.fecha_hora)}
-            </time>{" "}
-            · {hora(evento.fecha_hora)}
+            </time>
+            <span className="ml-4">{hora(evento.fecha_hora)}</span>
           </p>
 
           {evento.tags.length > 0 && (
@@ -109,21 +85,54 @@ export function TarjetaEvento({
             </ul>
           )}
 
-          <div className="mt-4 flex justify-end border-t border-borde pt-4">
-            <BotonAccion
-              accion={inscribirse}
-              campo="eventoId"
-              valor={evento.id}
-              variante="secundario"
-              hecho={yaInscripto}
-              esEjemplo={esEjemplo}
-              textos={{
-                inicial: "Inscribirme",
-                enCurso: "Confirmando…",
-                hecho: "Inscripto",
-                ejemplo: "Disponible cuando haya eventos reales",
-              }}
-            />
+          <div className="mt-4 flex flex-wrap items-center justify-start gap-x-4 gap-y-2 sm:justify-end">
+            {yaInscripto && (
+              <p className="text-[13px] font-medium text-tinta">
+                <span aria-hidden className="mr-1.5">
+                  ✓
+                </span>
+                Estás inscripto
+              </p>
+            )}
+
+            {/*
+             * Un botón u otro, nunca los dos: lo que se puede hacer con este
+             * evento depende de si ya estás anotado. `key` los separa a
+             * propósito —cada uno tiene su propio `useActionState`, y sin la
+             * clave React reutilizaría el estado de uno en el otro, dejando el
+             * mensaje de la inscripción colgado debajo del botón de cancelar.
+             */}
+            {yaInscripto ? (
+              <BotonAccion
+                key="cancelar"
+                accion={cancelarInscripcion}
+                campo="eventoId"
+                valor={evento.id}
+                variante="fantasma"
+                esEjemplo={esEjemplo}
+                textos={{
+                  inicial: "Cancelar inscripción",
+                  enCurso: "Cancelando…",
+                  hecho: "Cancelaste tu inscripción",
+                  ejemplo: "Disponible con eventos reales",
+                }}
+              />
+            ) : (
+              <BotonAccion
+                key="inscribir"
+                accion={inscribirse}
+                campo="eventoId"
+                valor={evento.id}
+                variante="secundario"
+                esEjemplo={esEjemplo}
+                textos={{
+                  inicial: "Inscribirme",
+                  enCurso: "Inscribiendo…",
+                  hecho: "Ya te inscribiste",
+                  ejemplo: "Disponible con eventos reales",
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
