@@ -6,6 +6,60 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-15 — El tipo de cuenta se exige por existencia de fila, no por `cuentas.tipo`
+
+**Decisión.** Las políticas de insert exigen el tipo de cuenta con
+`exists (select 1 from perfiles where id = auth.uid())` del lado individual, y
+la inversa contra `empresas` del lado empresa. No se consulta `cuentas.tipo` ni
+se agrega ninguna función a la base.
+
+**Alternativas consideradas.**
+
+- Consultar `cuentas.tipo` desde cada política.
+- Una función `es_individual()` / `es_empresa()` con `security definer`.
+- Dejarlo solo en el código, en un guardia por acción.
+- El tipo como claim del JWT, con un auth hook de Supabase.
+
+**Motivo.** El disparador `validar_tipo_cuenta` de `db/schema.sql` ya garantiza
+que una cuenta tiene fila en `perfiles` **o** en `empresas`, nunca en las dos.
+Con esa garantía, «existe mi fila en `perfiles`» y «soy individual» son la
+misma proposición, así que preguntarle a `cuentas.tipo` es consultar una tabla
+de más para obtener un dato que la tabla de destino ya contiene.
+
+Leer `cuentas` tiene además un problema propio: su RLS limita cada fila a su
+dueño, que es justamente lo que obligó a que `cuenta_activa()` fuera
+`security definer`. Preguntar por `perfiles` y `empresas` no necesita ese
+rodeo, porque las dos políticas de lectura involucradas dejan ver la fila
+propia y esa es la única que la subconsulta mira. Menos superficie
+`security definer` es menos superficie que auditar.
+
+La función nueva se descartó por lo mismo: encapsular un `exists` de una línea
+que se usa en siete políticas no agrega ninguna garantía, y sí agrega un objeto
+más al esquema y un salto más al leerlo.
+
+Dejarlo solo en el código estaba descartado de entrada por `CLAUDE.md`: el
+control de acceso vive en la base. El guardia de `src/lib/acciones/sesion.ts`
+existe igual, pero no decide —traduce el rechazo a una frase y cubre el caso
+que RLS no puede informar, que es el `update` sobre cero filas—.
+
+El claim en el JWT es la respuesta correcta si esto llega a pesar: resuelve el
+tipo sin tocar la base. Hoy no se justifica —es una consulta por escritura, y
+el middleware ya paga una por navegación— y agregarlo obliga a manejar la
+invalidación del token cuando el tipo cambia. Queda anotado como salida, igual
+que en `src/middleware.ts`.
+
+**Consecuencia.** Las tablas hijas no repiten la condición: `evento_tags` y las
+tres de vacante ya exigen ser dueño del evento o de la vacante, y con estas
+políticas una vacante o un evento solo puede tener dueño empresa. `resenias`
+queda cubierta por la misma cadena, porque exige una postulación previa y
+`postulaciones.perfil_id` apunta a `perfiles`.
+
+Las tres políticas del alta (`cuentas_creo_la_mia`, `perfiles_creo_el_mio`,
+`empresas_creo_la_mia`) quedan sin la condición a propósito: exigir una fila
+que el propio insert está creando dejaría a todo el mundo afuera del registro.
+
+---
+
 ## 2026-09-14 — El catálogo lleva `id`; `PerfilCompleto` sigue llevando nombres
 
 **Decisión.** `obtenerCatalogos()` devuelve `{ id, nombre }` porque las

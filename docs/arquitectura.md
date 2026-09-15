@@ -63,15 +63,44 @@ navegador. Consecuencias prácticas:
 
 ### 2.2 El control de acceso vive en la base
 
-Ninguna regla de permisos está escrita en TypeScript. Están todas en
-`db/politicas.sql` como políticas de RLS. El caso testigo son los tags ocultos
-de una vacante (RF3.1.6, RNF5): viven en su propia tabla
-`vacante_tags_ocultos`, cuya política de lectura habilita solo a la empresa
-dueña de la vacante. No existe consulta del postulante que los alcance, ni por
-descuido ni a propósito.
+Toda regla de permisos se decide en `db/politicas.sql`, como política de RLS.
+El caso testigo son los tags ocultos de una vacante (RF3.1.6, RNF5): viven en
+su propia tabla `vacante_tags_ocultos`, cuya política de lectura habilita solo
+a la empresa dueña de la vacante. No existe consulta del postulante que los
+alcance, ni por descuido ni a propósito.
 
 Las 49 políticas cubren las 18 tablas del esquema. Toda tabla tiene
 `enable row level security`.
+
+**Corrección del 2026-09-15.** Hasta esta fecha esta sección decía *«Ninguna
+regla de permisos está escrita en TypeScript»*. Dejó de ser cierto y conviene
+decir por qué, porque la frase se leía como permiso para no mirar el código al
+auditar permisos.
+
+Hay dos lugares en TypeScript que participan del control de acceso, y ninguno
+de los dos **decide**:
+
+- `src/middleware.ts` reparte por `cuentas.tipo` y manda a cada cuenta a su
+  mitad de la aplicación. Es navegación, no autorización de datos: protege qué
+  URL se abre, no qué escritura se acepta. Una Server Action no vive en una
+  ruta propia —se invoca por POST contra cualquier ruta, con un id que viaja
+  en los chunks de `/_next/static`, que el `matcher` excluye—, así que el
+  middleware no la cubre.
+- `src/lib/acciones/sesion.ts` comprueba que quien invoca una acción de
+  postulante tenga fila en `perfiles`. Existe por dos motivos, y ninguno es
+  decidir el permiso: traducir el rechazo a una frase en vez de un error crudo
+  de Postgres, y tapar el caso que RLS no puede informar —un `update` sobre
+  una fila que la política no deja ver no falla, devuelve cero filas, y eso se
+  leía en pantalla como éxito—.
+
+La regla misma está en las políticas de insert de `postulaciones`,
+`perfil_tags`, `perfil_habilidades`, `formaciones`, `inscripciones_evento`
+(`exists (select 1 from perfiles where id = auth.uid())`) y de `vacantes` y
+`eventos` (la inversa, contra `empresas`). Si se borrara todo el TypeScript de
+arriba, el permiso seguiría siendo el mismo; lo que se perdería es el mensaje.
+
+La formulación correcta de la regla, entonces: **la base decide, el código
+explica**. Ver [`decisiones.md`](./decisiones.md).
 
 ### 2.3 La aplicación tiene que poder arrancar sin base
 
@@ -322,14 +351,37 @@ Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
   componente ya tiene en la mano.
 
 `tipos.ts` exporta además `ACCION_INICIAL`, `CLAVE_DUPLICADA` (el `23505` de
-Postgres) y las dos respuestas de «no se puede seguir», que son **distintas a
-propósito**:
+Postgres), `POLITICA_RLS` (el `42501`) y las tres respuestas de «no se puede
+seguir», que son **distintas a propósito**:
 
 - `SIN_CONFIGURAR` para el `if (!supabase)`: faltan las credenciales de
   Supabase. Quien no cargó `.env.local` no tiene ningún inicio de sesión que
   hacer, y mandarlo a iniciarlo lo hace buscar el problema donde no está.
 - `SIN_SESION` para el `if (!user)`: el cliente se creó bien y no hay nadie
   autenticado.
+- `SIN_PERFIL` para el guardia de tipo de cuenta: hay sesión, pero no es una
+  cuenta de postulante con perfil creado. Decirle «iniciá sesión» a alguien
+  que ya la tiene lo manda a buscar el problema al lugar equivocado.
+
+#### `sesion.ts`
+
+El preámbulo compartido de las acciones de postulante. No lleva `"use server"`:
+no es una acción, la usan las acciones.
+
+| Función | Devuelve | Qué resuelve |
+| --- | --- | --- |
+| `sesionDePostulante()` | `{ ok: true, sesion } \| { ok: false, error }` | Cliente, sesión y tipo de cuenta en un solo lugar. Las seis acciones de escritura repetían las mismas cuatro líneas de preámbulo; con el chequeo de tipo hubieran sido seis lugares donde acordarse de agregarlo. |
+| `mensajeDeError(error)` | `string` | Traduce el `42501` a «No tenés permiso para hacer esto.». El resto de los códigos los traduce cada acción, que es la que sabe qué significa un `23505` en su contexto. |
+
+Que exista fila en `perfiles` equivale a ser cuenta individual: el disparador
+`validar_tipo_cuenta` garantiza que una cuenta tiene fila en `perfiles` o en
+`empresas`, nunca en las dos. Por eso el guardia no consulta `cuentas.tipo` ni
+hace falta una función nueva en la base. Cuesta una consulta por escritura;
+si pesa, el tipo va como claim del JWT con un auth hook (misma nota que en
+`src/middleware.ts`).
+
+No existe `sesionDeEmpresa()`: las acciones de empresa llegan en el Hito 6 y
+no tendría llamador (§7.5). Del lado empresa la regla ya está en RLS.
 
 | Función | Qué hace | Requisito |
 | --- | --- | --- |
@@ -590,12 +642,27 @@ se completa recién en el primer inicio de sesión.
 `AvatarEditable` muestra la vista previa y avisa que la subida falta. Los
 logos de empresa e institución dependen de lo mismo.
 
-### 7.5 La aplicación no distingue postulante de empresa
+### 7.5 La aplicación no distingue postulante de empresa — resuelta
 
-El esquema los separa con `cuentas.tipo`, pero la interfaz no lo mira en
-ningún lado: ni en la navegación, ni en las rutas, ni en el layout. Definirlo
-temprano sale barato; hacerlo cuando llegue el panel de empresa obliga a
-rehacer la navegación.
+Resuelta en dos tiempos, las dos partes ya cerradas.
+
+La navegación la cerró `ad8f55c`: registro de empresa, área `/empresa` con
+layout propio y reparto del middleware según `cuentas.tipo`.
+
+El endpoint lo cerró el 2026-09-15. Lo que faltaba no se veía desde la
+interfaz: el middleware protege la navegación por URL, no la invocación de una
+Server Action, cuyos ids son públicos en `/_next/static` —ruta que el
+`matcher` excluye—. Una cuenta de empresa podía invocar `postularse()` por
+POST contra `/empresa`. Lo frenaba la clave foránea `perfil_id -> perfiles`,
+que es integridad referencial y no control de acceso, y que no cubría la
+dirección inversa. Ahora la exigencia está en las políticas de insert (§2.2) y
+hay un guardia en `src/lib/acciones/sesion.ts` para el mensaje.
+
+Queda una consecuencia anotada, no un pendiente: las acciones del lado
+empresa del Hito 6 todavía no existen, así que la política de `vacantes` y
+`eventos` hoy no tiene ningún llamador que la ejercite. Cuando lleguen, el
+guardia equivalente —`sesionDeEmpresa()`— hay que escribirlo; no se agregó
+ahora para no dejar código sin consumidor.
 
 ### 7.6 Quedan hallazgos de la auditoría de interfaz sin cerrar
 

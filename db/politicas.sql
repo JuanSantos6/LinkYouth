@@ -5,6 +5,50 @@
 -- ============================================================
 
 -- ============================================================
+-- EL TIPO DE CUENTA SE EXIGE ACÁ, NO EN EL MIDDLEWARE
+--
+-- Dos auditorías independientes (la interna y Cyber Neo, 2026-09-15)
+-- encontraron lo mismo: ninguna acción de servidor verificaba el tipo de
+-- cuenta de quien la invoca, y el middleware no la cubre.
+--
+-- El middleware reparte por `cuentas.tipo` y manda a cada uno a su mitad de
+-- la aplicación, pero eso protege la navegación por URL, no el endpoint. Una
+-- Server Action no vive en una ruta propia: se invoca por POST contra
+-- cualquier ruta, con un id que viaja en los chunks que Next sirve desde
+-- `/_next/static` —ruta que el `matcher` de `src/middleware.ts` excluye
+-- explícitamente—. Una cuenta de empresa puede sacar el id de `postularse`
+-- de esos chunks y hacerle POST contra `/empresa`, que su tipo sí tiene
+-- permitido: el middleware ve `/empresa`, deja pasar, y Next despacha la
+-- acción por id.
+--
+-- Lo que frenaba eso hasta ahora era la clave foránea `perfil_id ->
+-- perfiles`: una cuenta de empresa no tiene fila en `perfiles`, así que el
+-- insert fallaba con 23503. Andaba, pero por accidente —una clave foránea
+-- existe para integridad referencial, no para control de acceso— y no cubría
+-- la dirección inversa, que es la que va a importar cuando el Hito 6 traiga
+-- las acciones de empresa.
+--
+-- La condición que se agrega abajo no consulta `cuentas.tipo` ni necesita una
+-- función nueva. Se apoya en la garantía que ya da el disparador
+-- `validar_tipo_cuenta` de `schema.sql`: una cuenta tiene fila en `perfiles`
+-- O en `empresas`, nunca en las dos. Por lo tanto:
+--
+--   exists (select 1 from perfiles where id = auth.uid())  ==  soy individual
+--   exists (select 1 from empresas where id = auth.uid())  ==  soy empresa
+--
+-- La subquery se evalúa con los permisos de quien ejecuta, así que el RLS de
+-- la tabla consultada se aplica. Acá eso no molesta y no hace falta
+-- `security definer` como en `cuenta_activa()`: las dos políticas de lectura
+-- involucradas dejan ver la fila propia, que es exactamente la única que
+-- estas subconsultas necesitan.
+--
+-- No se tocaron las políticas de select, update ni delete. Tampoco las tres
+-- del alta (`cuentas_creo_la_mia`, `perfiles_creo_el_mio`,
+-- `empresas_creo_la_mia`): exigirles una fila que el propio insert está
+-- creando dejaría a todo el mundo afuera del registro.
+-- ============================================================
+
+-- ============================================================
 -- CUENTAS
 -- Cada uno ve y edita únicamente su propia cuenta.
 -- ============================================================
@@ -110,9 +154,16 @@ create policy "perfil_tags_lectura_publica"
 on perfil_tags for select
 using (true);
 
+-- Solo una cuenta individual suma intereses: ver la nota del encabezado.
+drop policy if exists "perfil_tags_agrego_los_mios" on perfil_tags;
+
 create policy "perfil_tags_agrego_los_mios"
 on perfil_tags for insert
-with check (auth.uid() = perfil_id);
+to authenticated
+with check (
+  auth.uid() = perfil_id
+  and exists (select 1 from perfiles where id = auth.uid())
+);
 
 create policy "perfil_tags_elimino_los_mios"
 on perfil_tags for delete
@@ -122,9 +173,15 @@ create policy "perfil_habilidades_lectura_publica"
 on perfil_habilidades for select
 using (true);
 
+drop policy if exists "perfil_habilidades_agrego_las_mias" on perfil_habilidades;
+
 create policy "perfil_habilidades_agrego_las_mias"
 on perfil_habilidades for insert
-with check (auth.uid() = perfil_id);
+to authenticated
+with check (
+  auth.uid() = perfil_id
+  and exists (select 1 from perfiles where id = auth.uid())
+);
 
 create policy "perfil_habilidades_elimino_las_mias"
 on perfil_habilidades for delete
@@ -141,9 +198,15 @@ create policy "formaciones_lectura_publica"
 on formaciones for select
 using (true);
 
+drop policy if exists "formaciones_agrego_las_mias" on formaciones;
+
 create policy "formaciones_agrego_las_mias"
 on formaciones for insert
-with check (auth.uid() = perfil_id);
+to authenticated
+with check (
+  auth.uid() = perfil_id
+  and exists (select 1 from perfiles where id = auth.uid())
+);
 
 create policy "formaciones_edito_las_mias"
 on formaciones for update
@@ -165,9 +228,19 @@ create policy "vacantes_lectura_activas_o_propias"
 on vacantes for select
 using (estado = 'activa' or empresa_id = auth.uid());
 
+-- La condición inversa: publicar una vacante es cosa de una cuenta de
+-- empresa. Las tablas hijas (`vacante_tags_publicos`, `vacante_habilidades`,
+-- `vacante_tags_ocultos`) no necesitan repetirla: ya exigen ser dueño de una
+-- vacante, y con esta política una vacante solo puede tener dueño empresa.
+drop policy if exists "vacantes_creo_las_mias" on vacantes;
+
 create policy "vacantes_creo_las_mias"
 on vacantes for insert
-with check (empresa_id = auth.uid());
+to authenticated
+with check (
+  empresa_id = auth.uid()
+  and exists (select 1 from empresas where id = auth.uid())
+);
 
 create policy "vacantes_edito_las_mias"
 on vacantes for update
@@ -258,10 +331,14 @@ using (
   or exists (select 1 from vacantes v where v.id = vacante_id and v.empresa_id = auth.uid())
 );
 
+drop policy if exists "postulaciones_me_postulo_a_vacante_activa" on postulaciones;
+
 create policy "postulaciones_me_postulo_a_vacante_activa"
 on postulaciones for insert
+to authenticated
 with check (
   perfil_id = auth.uid()
+  and exists (select 1 from perfiles where id = auth.uid())
   and exists (select 1 from vacantes v where v.id = vacante_id and v.estado = 'activa')
 );
 
@@ -290,9 +367,17 @@ create policy "eventos_lectura_activos_o_propios"
 on eventos for select
 using (estado = 'activo' or empresa_id = auth.uid());
 
+-- Mismo caso que `vacantes_creo_las_mias`, y `evento_tags` queda cubierta por
+-- la misma razón que las hijas de `vacantes`.
+drop policy if exists "eventos_creo_los_mios" on eventos;
+
 create policy "eventos_creo_los_mios"
 on eventos for insert
-with check (empresa_id = auth.uid());
+to authenticated
+with check (
+  empresa_id = auth.uid()
+  and exists (select 1 from empresas where id = auth.uid())
+);
 
 create policy "eventos_edito_los_mios"
 on eventos for update
@@ -335,9 +420,15 @@ using (
   or exists (select 1 from eventos e where e.id = evento_id and e.empresa_id = auth.uid())
 );
 
+drop policy if exists "inscripciones_me_inscribo_yo" on inscripciones_evento;
+
 create policy "inscripciones_me_inscribo_yo"
 on inscripciones_evento for insert
-with check (perfil_id = auth.uid());
+to authenticated
+with check (
+  perfil_id = auth.uid()
+  and exists (select 1 from perfiles where id = auth.uid())
+);
 
 create policy "inscripciones_cancelo_la_mia"
 on inscripciones_evento for delete

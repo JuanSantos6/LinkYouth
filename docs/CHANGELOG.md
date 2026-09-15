@@ -13,6 +13,45 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-15
+
+- **El tipo de cuenta se exige en RLS, no solo en el middleware.** Las
+  políticas de insert de `postulaciones`, `perfil_tags`, `perfil_habilidades`,
+  `formaciones` e `inscripciones_evento` ahora piden
+  `exists (select 1 from perfiles where id = auth.uid())`; las de `vacantes` y
+  `eventos`, la inversa contra `empresas`. Las siete pasan además a
+  `to authenticated`.
+  Motivo: dos auditorías independientes —la interna y Cyber Neo— encontraron lo
+  mismo. El middleware reparte por tipo de cuenta, pero eso protege la
+  navegación por URL y no el endpoint: los ids de las Server Actions viajan en
+  los chunks de `/_next/static`, que el `matcher` excluye, así que una cuenta
+  de empresa podía invocar `postularse()` por POST contra `/empresa`. Lo único
+  que lo frenaba era la clave foránea `perfil_id -> perfiles` —integridad
+  referencial, no control de acceso— y no cubría la dirección inversa, que es
+  la que va a importar en el Hito 6.
+  → [`decisiones.md`](./decisiones.md)
+
+- **Guardia de sesión compartido en `src/lib/acciones/sesion.ts`.**
+  `sesionDePostulante()` reemplaza el preámbulo —cliente, `SIN_CONFIGURAR`,
+  `getUser()`, `SIN_SESION`— que estaba repetido en las seis acciones de
+  escritura, y le suma el chequeo de tipo de cuenta.
+  Motivo: con el chequeo repetido serían seis lugares donde acordarse de
+  agregarlo. Además tapa un caso que RLS no puede informar: un `update` sobre
+  una fila que la política no deja ver no falla, devuelve cero filas, así que
+  `actualizarPerfil` invocada por una cuenta de empresa respondía «Perfil
+  actualizado.» sin haber tocado nada.
+
+- **El `42501` de RLS deja de salir crudo a la pantalla.** `mensajeDeError()`
+  lo traduce a «No tenés permiso para hacer esto.».
+  Motivo: el mensaje de Postgres nombra la tabla y la política, que es
+  justamente el mapa que necesita quien está sondeando la base.
+
+- **`arquitectura.md` §2.2 corregida, deuda §7.5 cerrada.** La sección decía
+  «Ninguna regla de permisos está escrita en TypeScript», y dejó de ser cierto
+  cuando `ad8f55c` puso el reparto por tipo en el middleware. Se corrigió la
+  frase en vez de borrarla, con la formulación que sí se sostiene: la base
+  decide, el código explica.
+
 ## 2026-09-14
 
 - **El perfil deja elegir intereses y habilidades del catálogo (RF2.3,

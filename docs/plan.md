@@ -270,10 +270,26 @@ que entre el primer usuario real hay que tener la política de privacidad y los
 términos de uso, y revisar el encuadre contra la ley 18.331. Está en
 `decisiones.md` como consecuencia pendiente.
 
-**Postulante y empresa en la misma sesión.** El esquema los separa, pero la
-aplicación todavía no distingue el tipo de cuenta en ningún lado: ni en la
-navegación, ni en las rutas, ni en el layout. Definirlo en el Hito 1 sale
-barato; hacerlo en el Hito 6 obliga a rehacer la navegación.
+> **Resuelto el 2026-09-15:** postulante y empresa en la misma sesión. Se
+> cerró en dos tiempos. Primero la navegación: `ad8f55c` sumó el registro de
+> empresa, el área `/empresa` con su propio layout y el reparto del middleware
+> según `cuentas.tipo`, así que cada mitad de la aplicación quedó inaccesible
+> para el otro tipo.
+>
+> Eso dejaba un hueco que encontraron dos auditorías independientes —la
+> interna y Cyber Neo, las dos el 2026-09-15—: el middleware protege la
+> navegación por URL, no el endpoint de una Server Action. Los ids de las
+> acciones viajan en los chunks de `/_next/static`, que el `matcher` del
+> middleware excluye, así que una cuenta de empresa podía invocar
+> `postularse()` por POST contra una ruta que sí tenía permitida. Lo único que
+> lo frenaba era la clave foránea `perfil_id -> perfiles`: andaba, pero por
+> accidente.
+>
+> Ahora la regla es una política de RLS —`exists (select 1 from perfiles where
+> id = auth.uid())` del lado individual, contra `empresas` del lado empresa—,
+> con un guardia en `src/lib/acciones/sesion.ts` por encima para que el
+> mensaje sea una frase y no un error crudo de Postgres. Ver
+> [decisiones.md](./decisiones.md).
 
 ---
 

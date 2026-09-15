@@ -2,14 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
-import { createClient } from "@/lib/supabase/server";
-
-import {
-  CLAVE_DUPLICADA,
-  SIN_CONFIGURAR,
-  SIN_SESION,
-  type EstadoAccion,
-} from "./tipos";
+import { mensajeDeError, sesionDePostulante } from "./sesion";
+import { CLAVE_DUPLICADA, type EstadoAccion } from "./tipos";
 
 /** RF3.6 — Postularse a una vacante. */
 export async function postularse(
@@ -21,20 +15,17 @@ export async function postularse(
     return { estado: "error", mensaje: "Falta identificar la vacante." };
   }
 
-  const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return SIN_SESION;
+  const guardia = await sesionDePostulante();
+  if (!guardia.ok) return guardia.error;
+  const { supabase, usuarioId } = guardia.sesion;
 
   // RF3.6.4: el estado inicial 'pendiente' es el valor por defecto de la
   // columna. RF3.6.2 lo resuelve la restricción única (vacante_id, perfil_id),
-  // y la política de RLS exige además que la vacante esté activa.
+  // y la política de RLS exige además que la vacante esté activa y que quien
+  // se postula tenga fila en `perfiles`.
   const { error } = await supabase
     .from("postulaciones")
-    .insert({ vacante_id: vacanteId, perfil_id: user.id });
+    .insert({ vacante_id: vacanteId, perfil_id: usuarioId });
 
   if (error) {
     return {
@@ -42,7 +33,7 @@ export async function postularse(
       mensaje:
         error.code === CLAVE_DUPLICADA
           ? "Ya te habías postulado a esta búsqueda."
-          : error.message,
+          : mensajeDeError(error),
     };
   }
 
@@ -73,21 +64,17 @@ export async function cancelarPostulacion(
     return { estado: "error", mensaje: "Falta identificar la postulación." };
   }
 
-  const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return SIN_SESION;
+  const guardia = await sesionDePostulante();
+  if (!guardia.ok) return guardia.error;
+  const { supabase, usuarioId } = guardia.sesion;
 
   const { error } = await supabase
     .from("postulaciones")
     .update({ estado: "cancelada" })
     .eq("id", postulacionId)
-    .eq("perfil_id", user.id);
+    .eq("perfil_id", usuarioId);
 
-  if (error) return { estado: "error", mensaje: error.message };
+  if (error) return { estado: "error", mensaje: mensajeDeError(error) };
 
   revalidatePath("/postulaciones");
 
