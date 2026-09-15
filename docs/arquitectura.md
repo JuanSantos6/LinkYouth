@@ -114,6 +114,17 @@ mantiene: **si lo que se muestra no salió de la base, hay que decirlo en
 pantalla**. Mostrar datos inventados sin aclararlo sería engañoso, y en una
 demo a terceros es la diferencia entre una maqueta honesta y una mentira.
 
+### 2.4 La lógica de negocio no vive en el componente
+
+Un componente recibe datos y los muestra. El cálculo de compatibilidad, el
+orden del feed y las reglas de estado de una postulación viven en clases
+propias, en `src/lib/dominio/`.
+
+La regla práctica: si estás por escribir un `if` sobre una regla de negocio
+dentro de un `.tsx`, va en una clase. Antes de esta separación, la afinidad se
+armaba dentro de la tarjeta de vacante y las etapas del proceso estaban
+repartidas entre la página de postulaciones y `formato.ts`.
+
 ---
 
 ## 3. Cómo viajan los datos
@@ -431,7 +442,7 @@ decisión de producto, no del esquema.
 
 ### 5.7 `src/lib/dominio/`
 
-Las reglas de negocio, fuera de los componentes (§2.3). Ninguna clase hereda
+Las reglas de negocio, fuera de los componentes (§2.4). Ninguna clase hereda
 de otra: entre comparar etiquetas, ordenar un listado e interpretar un estado
 no hay comportamiento compartido, y una jerarquía ahí sería decorativa.
 

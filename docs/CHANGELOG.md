@@ -13,6 +13,133 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-15 — La migración del bucket se puede correr dos veces (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **`db/migraciones/002-bucket-avatars.sql` borra cada política antes de
+  crearla.** `create policy` no admite `if not exists`, así que la segunda
+  corrida moría en la primera política que ya estaba — y una migración que
+  falla a la mitad deja la base en un estado que hay que desarmar a mano.
+
+---
+
+## 2026-09-15 — Los menús de acceso se abren con el mouse y el carrusel dice cuándo no hay nada que desplazar (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **«Ingresar» y «Crear cuenta» ya no pueden estar abiertos a la vez.** Eran
+  dos `<details>` independientes: con los dos abiertos, los paneles se pisaban.
+  Ahora comparten un `GrupoDeMenus` que sabe cuál está abierto, así abrir uno
+  cierra el otro sin que ninguno tenga que enterarse de que el otro existe.
+
+- **Se abren al pasar el mouse.** El panel cuelga de un envoltorio con relleno
+  superior en vez de margen: con margen quedaba un hueco de seis píxeles entre
+  el botón y el panel, y el menú se cerraba justo cuando el mouse lo estaba
+  cruzando para llegar.
+
+- **El hover no alcanza, así que conviven tres caminos**, y los tres salieron
+  de probarlos en un navegador de verdad:
+  - Con mouse, el clic ya no cierra el panel que el hover acaba de abrir.
+  - En un teléfono el toque termina con un `pointerleave`, que cerraba el menú
+    en el mismo gesto que lo abría. Los manejadores de puntero filtran por tipo.
+  - Un toque también enfoca el botón, y entre ese `focus` y el `click` que
+    viene después el menú se abría y se cerraba solo. Ahora abre por foco
+    únicamente cuando es `:focus-visible`, que es el foco que llega por
+    tabulador.
+  - `Escape` devuelve el foco al botón, y ese foco de teclado lo reabría al
+    instante. Una bandera ignora ese foco puntual.
+
+- **Las flechas del carrusel aparecen solo si hay adónde ir.** No estaban
+  rotas: con cuatro organizaciones en una pantalla de escritorio la fila entra
+  entera —`scrollWidth` es idéntico a `clientWidth`— y `scrollBy` no tiene
+  margen para desplazar. Un botón que responde al clic sin que pase nada se lee
+  como un botón roto. Ahora la fila de flechas se esconde cuando no hay
+  desborde y cada flecha se apaga al llegar a su extremo.
+
+- **La barra de desplazamiento del carrusel se esconde** con la utilidad
+  `.sin-barra`. Va solo donde hay otra forma visible de moverse: sin las
+  flechas, esconderla le sacaría a la persona la única señal de que la fila
+  sigue hacia el costado.
+
+---
+
+## 2026-09-15 — Registro con seguridad, ficha unificada y baja de inscripción (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **`empresas` tiene columna `rut`, única y opcional.** Una empresa se
+  identifica por su RUT, no por su razón social, que se puede repetir entre
+  jurisdicciones. Es opcional porque las empresas dadas de alta antes de la
+  columna no lo tienen y no hay valor razonable que inventarles
+  (`db/migraciones/001-empresas-rut.sql`). El formato lo valida la aplicación y
+  no un `check`: doce dígitos es la forma uruguaya y la plataforma no descarta
+  abrirse a otros países.
+
+- **El registro mide la fuerza de la contraseña mientras se escribe.** Antes el
+  único requisito eran seis caracteres, y quien ponía `123456` se enteraba de
+  que era mala cuando ya era tarde. Ahora son ocho a sesenta y cuatro, con
+  mayúscula y número. El tope no es de seguridad: bcrypt trunca en 72 bytes, y
+  más allá de ahí los caracteres extra no cuentan — aceptarlos sería mentir.
+  El color del medidor está [argumentado en `decisiones.md`](./decisiones.md).
+
+- **La contraseña se pide dos veces y la privacidad se acepta a mano.** Un
+  error de tipeo en el único campo dejaba a alguien afuera de su propia cuenta
+  sin forma de saber qué había escrito. El checkbox nunca viene marcado: un
+  consentimiento que viene puesto no es un consentimiento.
+
+- **La mayoría de edad se rechaza antes de crear el usuario.** La regla la
+  sigue decidiendo el `check` `perfiles_mayor_de_edad`; lo que cambia es que el
+  campo de fecha no deja elegir un día posterior y la acción corta antes. Sin
+  eso quedaba una fila en `auth.users` que nunca iba a poder tener perfil.
+
+- **Al registrarse hay que elegir al menos cinco intereses (RF1.1.11).** Sin
+  ellos la compatibilidad de RF3.9 no tiene con qué comparar: el feed abría con
+  todas las vacantes en 0 % y parecía roto sin estarlo.
+
+- **La foto de perfil y el logo se suben a Supabase Storage.** Cierra a medias
+  la deuda 7.4: suben, pero un fallo de subida no corta el alta y queda solo en
+  el registro del servidor. Para cuando corre, la cuenta ya existe, y devolver
+  un error dejaría a la persona reintentando contra un correo ya registrado.
+
+- **`TarjetaUsuario` es un solo bloque.** Los respiros entre identidad, estudio,
+  números y habilidades eran tan grandes que en el teléfono parecían cuatro
+  tarjetas apiladas. Ahora comparten superficie y se separan con filetes.
+
+- **La institución educativa es un enlace a `/institucion/[id]`.** Es el dato
+  que alguien quiere seguir para ver quién más estudia ahí. No hay tabla de
+  instituciones: el identificador se deriva del nombre y la página dice en
+  pantalla qué le falta ([decisión](./decisiones.md), deuda 7.8).
+
+- **Los eventos tienen botón de cancelar inscripción (RF4.6).** La acción de
+  servidor existía desde el principio y el botón no, así que anotarse era
+  irreversible sin entrar a la base.
+
+---
+
+## 2026-09-15 — Usuarios de prueba (rama `claude/linkyouth-applicant-dashboard-eweeld`)
+
+- **`db/seed-usuarios-prueba.sql` crea cinco postulantes y cinco empresas con
+  contraseña conocida.** Hasta ahora no había forma de probar el inicio de
+  sesión ni el feed a mano: había que registrarse cada vez, y un perfil recién
+  creado no tiene intereses, así que la compatibilidad de toda vacante daba
+  0 % y el listado se veía roto sin estarlo.
+  El script escribe directo en `auth.users` porque el pedido era pegarlo en el
+  SQL Editor de Supabase, donde no se puede usar la Admin API. Es el esquema
+  interno de GoTrue y puede cambiar entre versiones: queda anotado en la
+  cabecera del archivo.
+
+- **Las contraseñas van en claro en `docs/usuarios-prueba.md`**, que es para lo
+  que se pidieron. Ambos archivos advierten que esto sirve solo mientras la
+  base tenga datos inventados y que hay que borrar estas cuentas en cuanto se
+  registre una persona real.
+
+- **Los intereses y habilidades del seed se verifican contra el catálogo de
+  `db/seed.sql`.** Se asignan con un `join` por nombre, y un `join` que no
+  encuentra nada no falla: inserta cero filas en silencio. Once nombres no
+  existían en el catálogo, con lo que tres perfiles habrían quedado por debajo
+  del mínimo de cinco intereses de RF1.1.11 sin ningún error visible.
+
+- **`formaciones` se inserta con un guardia `where not exists`.** No tiene
+  restricción única, así que `on conflict do nothing` no la protegía y correr
+  el script dos veces duplicaba los estudios de cada perfil.
+
+---
+
 ## 2026-09-15
 
 - **El tipo de cuenta se exige en RLS, no solo en el middleware.** Las
