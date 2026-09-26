@@ -6,13 +6,13 @@ se eligió esa opción.
 
 ---
 
-## 2026-09-26 — Empleos y eventos se leen sin sesión; sus etiquetas públicas se reabren
+## 2026-09-26 — Empleos y eventos se leen sin sesión; lo que piden los avisos se reabre
 
 **Decisión.** `/empleos`, el detalle `/empleos/[id]` y `/eventos` se leen sin
 sesión. Lo que pide cuenta es postularse o inscribirse: sin sesión esos botones
 llevan a `/registro?next=…` y, con la cuenta creada, se vuelve a la vacante o
-al listado de eventos. Para que el aviso se lea completo, `vacante_tags_publicos`
-y `evento_tags` vuelven a estar abiertas a `anon`. **Esto ajusta lo hecho en el
+al listado de eventos. Para que el aviso se lea completo, `vacante_tags_publicos`,
+`vacante_habilidades` y `evento_tags` vuelven a estar abiertas a `anon`. **Esto ajusta lo hecho en el
 PR #6**, que las había cerrado con `to authenticated` junto con las tablas de
 datos de personas. Los tags ocultos (`vacante_tags_ocultos`) siguen cerrados.
 
@@ -39,8 +39,8 @@ se expongan «ni siquiera a través de la API».
   persona mira para decidir si le sirve.
 
 **Motivo.** Lo que S-3 cerró fue el padrón: datos de personas unidos por
-`perfil_id`. `vacante_tags_publicos` y `evento_tags` no tienen nada de eso:
-dicen qué pide un aviso que la propia empresa publicó para que se lea, igual
+`perfil_id`. `vacante_tags_publicos`, `vacante_habilidades` y `evento_tags` no
+tienen nada de eso: dicen qué pide un aviso que la propia empresa publicó para que se lea, igual
 que `vacantes` y `eventos`, que ya estaban abiertas. Cerrarlas no protegía a
 nadie; solo dejaba el aviso incompleto. Los tags ocultos son otra cosa —el
 criterio interno de la empresa, que RNF5 manda no mostrar— y su política sigue
@@ -58,9 +58,11 @@ exigiendo ser la empresa dueña.
   Y como el `redirect()` de una Server Action no pasa por el middleware,
   `iniciarSesion` y `registrarse` comprueban además que la ruta sea de la
   mitad de la aplicación que le toca a la cuenta.
-- `vacante_habilidades` sigue cerrada a `anon`: sin sesión, la vacante
-  muestra sus tags pero no las habilidades que pide. Queda pendiente decidir
-  si también se reabre.
+- `vacante_habilidades` no estaba en la primera versión de este cambio. La
+  prueba en el navegador mostró la consecuencia —sin sesión, la vacante
+  mostraba sus tags pero ninguna de las habilidades que pide— y se sumó con el
+  mismo criterio: es un dato del aviso, no de una persona. Lo que sí queda
+  cerrado es `perfil_habilidades`, qué habilidades declaró cada persona.
 
 ---
 

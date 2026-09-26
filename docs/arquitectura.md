@@ -77,14 +77,15 @@ no «cualquiera». Siete políticas de select decían `using (true)` sin cláusu
 `to`, y sin `to` una política alcanza también al rol `anon` — y la `ANON_KEY`
 viaja al navegador por diseño, así que con ella y PostgREST se bajaba el padrón
 entero sin cuenta y sin límite. Desde el 2026-09-15 las siete llevan
-`to authenticated`; la condición no cambió. El 2026-09-26 dos de ellas
-—`vacante_tags_publicos` y `evento_tags`— volvieron a abrirse (ver abajo).
+`to authenticated`; la condición no cambió. El 2026-09-26 tres de ellas
+—`vacante_tags_publicos`, `vacante_habilidades` y `evento_tags`— volvieron a
+abrirse (ver abajo).
 
 Siguen alcanzando a `anon`, a propósito: los catálogos `tags` y `habilidades`,
 que `/registro` lee **sin sesión** para ofrecer los intereses y que no son datos
 de nadie; `vacantes` y `eventos` activos, que son el aviso en sí y no datos de
-una persona, con sus etiquetas públicas (`vacante_tags_publicos`,
-`evento_tags`), porque desde el 2026-09-26 `/empleos` y `/eventos` se leen sin
+una persona, con lo que el aviso dice que pide (`vacante_tags_publicos`,
+`vacante_habilidades`, `evento_tags`), porque desde el 2026-09-26 `/empleos` y `/eventos` se leen sin
 sesión; y la vista `perfiles_publicos`,
 que `registrarse()` lee **sin sesión** para avisar que un nombre de usuario ya
 está tomado. Las demás políticas sin `to` acotan la fila por `auth.uid()`, así

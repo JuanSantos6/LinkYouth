@@ -161,9 +161,10 @@ alter table habilidades enable row level security;
 -- · `perfiles_publicos`: `registrarse()` la lee SIN sesión para avisar que un
 --   nombre de usuario ya está tomado. Cerrarla rompe el registro.
 -- · `vacantes` y `eventos`, que son el aviso en sí y no datos de una persona,
---   y sus etiquetas públicas (`vacante_tags_publicos`, `evento_tags`): desde
---   el 2026-09-26 `/empleos` y `/eventos` se leen sin sesión, y sin ellas el
---   aviso llegaría sin decir qué pide. Los tags ocultos siguen cerrados
+--   y lo que el aviso dice que pide (`vacante_tags_publicos`,
+--   `vacante_habilidades`, `evento_tags`): desde el 2026-09-26 `/empleos` y
+--   `/eventos` se leen sin sesión, y sin ellas el aviso llegaría sin decir qué
+--   pide. Los tags ocultos siguen cerrados
 --   (RF3.1.6, RNF5). Ver `docs/decisiones.md`.
 -- ============================================================
 
@@ -323,9 +324,9 @@ using (
 
 drop policy if exists "vacante_habilidades_lectura_publica" on vacante_habilidades;
 
+-- Sin `to` a propósito: es parte del aviso, que se lee sin sesión.
 create policy "vacante_habilidades_lectura_publica"
 on vacante_habilidades for select
-to authenticated
 using (true);
 
 create policy "vacante_habilidades_administro_las_mias"

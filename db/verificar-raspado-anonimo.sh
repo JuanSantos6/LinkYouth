@@ -77,7 +77,6 @@ echo "=== Datos de personas: TIENEN que estar cerradas a anon (CN-002 / S-3)"
 cerrada perfil_tags           si
 cerrada perfil_habilidades    si
 cerrada formaciones           si
-cerrada vacante_habilidades   no
 cerrada resenias              no
 
 echo
@@ -91,6 +90,7 @@ abierta habilidades           si "/registro no puede ofrecer los intereses"
 abierta perfiles_publicos     si "registrarse() no avisa si el usuario ya existe"
 abierta vacantes              no "/empleos queda vacío sin sesión"
 abierta vacante_tags_publicos no "las vacantes se ven sin decir qué piden"
+abierta vacante_habilidades   no "las vacantes se ven sin las habilidades que piden"
 abierta eventos               no "/eventos queda vacío sin sesión"
 abierta evento_tags           no "los eventos se ven sin sus temas"
 
@@ -114,7 +114,7 @@ from pg_policies
 where schemaname = 'public'
   and cmd = 'SELECT'
   and tablename in ('perfil_tags','perfil_habilidades','formaciones',
-                    'vacante_habilidades','resenias')
+                    'resenias')
   and ('anon' = any(roles) or 'public' = any(roles))
 order by tablename;
 
@@ -126,6 +126,7 @@ where schemaname = 'public'
   and cmd = 'SELECT'
   and policyname in ('tags_lectura_publica','habilidades_lectura_publica',
                      'vacante_tags_publicos_lectura_publica',
+                     'vacante_habilidades_lectura_publica',
                      'evento_tags_lectura_publica')
 order by tablename;
 SQL

@@ -41,9 +41,10 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   a la que se vuelve después de crear la cuenta.
   → [`decisiones.md`](./decisiones.md)
 
-- **`vacante_tags_publicos` y `evento_tags` vuelven a estar abiertas a
-  `anon`.** Ajusta el PR #6, que las había cerrado: son datos del aviso, no de
-  una persona, y sin ellas las vacantes se veían sin decir qué piden. Los tags
+- **`vacante_tags_publicos`, `vacante_habilidades` y `evento_tags` vuelven a
+  estar abiertas a `anon`.** Ajusta el PR #6, que las había cerrado: son datos
+  del aviso, no de una persona, y sin ellas las vacantes se veían sin decir qué
+  piden —ni sus tags ni las habilidades que requieren—. Los tags
   ocultos siguen cerrados. `db/verificar-raspado-anonimo.sh` pasa a listar qué
   tiene que quedar abierto y qué cerrado, y falla en los dos sentidos.
   → [`decisiones.md`](./decisiones.md)
