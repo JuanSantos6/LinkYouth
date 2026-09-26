@@ -58,6 +58,7 @@ const RUTAS_PUBLICAS = [
   "/legales",
   "/empleos",
   "/eventos",
+  "/contacto",
 ];
 
 test.describe("guard de rutas sin sesión", () => {
@@ -93,7 +94,7 @@ test.describe("guard de rutas sin sesión", () => {
 
     await expect(page).toHaveURL(/\/$/);
     await expect(
-      page.getByRole("heading", { level: 1, name: /habilidades/i }),
+      page.getByRole("heading", { level: 1, name: /primer trabajo/i }),
     ).toBeVisible();
   });
 });
@@ -146,7 +147,7 @@ test.describe("navegación pública", () => {
 
       await expect(page).toHaveURL(/\/$/);
       await expect(
-        page.getByRole("heading", { level: 1, name: /habilidades/i }),
+        page.getByRole("heading", { level: 1, name: /primer trabajo/i }),
       ).toBeVisible();
     });
   }
@@ -160,9 +161,10 @@ test.describe("navegación pública", () => {
     await expect(
       pie.getByRole("link", { name: "Mis postulaciones" }),
     ).toHaveCount(0);
-    await expect(
-      pie.getByRole("link", { name: "Página principal" }),
-    ).toHaveAttribute("href", "/");
+    await expect(pie.getByRole("link", { name: "LinkYouth" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   test("/empleos invita a crear cuenta y «Postularme» lleva al registro", async ({
