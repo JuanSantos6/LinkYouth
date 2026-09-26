@@ -44,7 +44,13 @@ export function inicioDe(area: Area): string {
  * de entrada: si pidiera sesión, nadie sin cuenta podría enterarse de qué es
  * esto.
  */
-export const INFORMATIVAS = ["/", "/empresas", "/como-funciona", "/legales"];
+export const INFORMATIVAS = [
+  "/",
+  "/empresas",
+  "/como-funciona",
+  "/legales",
+  "/contacto",
+];
 
 /**
  * Pantallas de exploración: se leen con o sin sesión (el listado de vacantes,

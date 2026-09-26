@@ -72,4 +72,21 @@ export class Compatibilidad {
   cubre(requisito: string): boolean {
     return this.cubiertos.has(normalizar(requisito));
   }
+
+  /**
+   * Cuántos requisitos de la vacante ya declara el perfil. Es lo que dice el
+   * medidor «Tenés 3 de 4»: se entiende sin saber qué es un porcentaje.
+   */
+  get cantidadCubierta(): number {
+    return this.requisitos.filter((requisito) => this.cubre(requisito)).length;
+  }
+
+  get cantidadRequerida(): number {
+    return this.requisitos.length;
+  }
+
+  /** Los requisitos que todavía no declara, en el orden de la vacante. */
+  get faltantes(): string[] {
+    return this.requisitos.filter((requisito) => !this.cubre(requisito));
+  }
 }

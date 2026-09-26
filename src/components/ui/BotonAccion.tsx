@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
+import { ConexionAnillos } from "@/components/ui/ConexionAnillos";
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { ACCION_INICIAL, type EstadoAccion } from "@/lib/acciones/tipos";
 
@@ -41,6 +42,7 @@ export function BotonAccion({
   variante = "primario",
   hecho = false,
   esEjemplo = false,
+  celebrar = false,
 }: {
   accion: (
     estadoPrevio: EstadoAccion,
@@ -55,6 +57,8 @@ export function BotonAccion({
   hecho?: boolean;
   /** El ítem salió de `ejemplos.ts`: no hay nada sobre lo que accionar. */
   esEjemplo?: boolean;
+  /** Al salir bien, los anillos del isotipo se unen (postularse, inscribirse). */
+  celebrar?: boolean;
 }) {
   const [estado, enviar, enCurso] = useActionState(accion, ACCION_INICIAL);
 
@@ -70,7 +74,8 @@ export function BotonAccion({
 
   return (
     <div className="flex flex-col items-start gap-1.5 sm:items-end">
-      <form action={enviar}>
+      <form action={enviar} className="flex items-center gap-2">
+        {celebrar && estado.estado === "ok" && <ConexionAnillos />}
         <input type="hidden" name={campo} value={valor} />
         <Boton
           type="submit"

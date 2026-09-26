@@ -1,25 +1,20 @@
-import {
-  ACENTO_POR_DEFECTO,
-  CLAVE_ACENTO,
-  CLAVE_TEMA,
-  TEMA_POR_DEFECTO,
-  esNombreDeAcento,
-  esTema,
-  type NombreDeAcento,
-  type Tema,
-} from "./tokens";
+import { CLAVE_TEMA, TEMA_POR_DEFECTO, esTema, type Tema } from "./tokens";
 
 /**
- * El tema y el acento elegidos por quien está usando la aplicación.
+ * El tema elegido por quien está usando la aplicación.
  *
- * Los guarda en `localStorage` y los aplica como atributos del elemento raíz,
- * que es de donde los lee el CSS. Está acá y no dentro del componente porque
- * el guion que corre antes del primer pintado escribe esos mismos atributos:
- * si cada uno tuviera su propia idea de dónde vive la preferencia, la pantalla
+ * Por defecto es «sistema»: no se escribe nada en el elemento raíz y el CSS
+ * sigue a `prefers-color-scheme`. Si la persona elige «claro» u «oscuro», se
+ * guarda en `localStorage` y se aplica como `data-tema` en `<html>`, que es de
+ * donde lo lee el CSS.
+ *
+ * Está acá y no dentro del componente porque el guion que corre antes del
+ * primer pintado (`src/app/layout.tsx`) escribe ese mismo atributo: si cada
+ * uno tuviera su propia idea de dónde vive la preferencia, la pantalla
  * arrancaría con un valor y seguiría con otro.
  *
  * Nada de esto lanza: en una ventana privada o con el almacenamiento
- * bloqueado, la preferencia no persiste entre visitas pero la sesión en curso
+ * bloqueado, la elección no persiste entre visitas pero la sesión en curso
  * sigue funcionando.
  */
 export class PreferenciasDeApariencia {
@@ -34,37 +29,25 @@ export class PreferenciasDeApariencia {
     return esTema(valor) ? valor : TEMA_POR_DEFECTO;
   }
 
-  get acento(): NombreDeAcento {
-    const valor = this.raiz.dataset.acento;
-    return esNombreDeAcento(valor) ? valor : ACENTO_POR_DEFECTO;
-  }
-
-  get enOscuro(): boolean {
-    return this.tema === "oscuro";
+  /** Si la pantalla se ve oscura ahora, sea por elección o por el sistema. */
+  get seVeOscuro(): boolean {
+    if (this.tema === "oscuro") return true;
+    if (this.tema === "claro") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
 
   cambiarTema(tema: Tema): void {
-    this.raiz.dataset.tema = tema;
-    this.recordar(CLAVE_TEMA, tema);
-  }
+    if (tema === "sistema") {
+      delete this.raiz.dataset.tema;
+    } else {
+      this.raiz.dataset.tema = tema;
+    }
 
-  alternarTema(): Tema {
-    const siguiente: Tema = this.enOscuro ? "claro" : "oscuro";
-    this.cambiarTema(siguiente);
-
-    return siguiente;
-  }
-
-  cambiarAcento(acento: NombreDeAcento): void {
-    this.raiz.dataset.acento = acento;
-    this.recordar(CLAVE_ACENTO, acento);
-  }
-
-  private recordar(clave: string, valor: string): void {
     try {
-      localStorage.setItem(clave, valor);
+      if (tema === "sistema") localStorage.removeItem(CLAVE_TEMA);
+      else localStorage.setItem(CLAVE_TEMA, tema);
     } catch {
-      // Almacenamiento bloqueado: la elección vale para esta sesión y nada más.
+      // Sin almacenamiento, la elección vale para esta visita.
     }
   }
 }

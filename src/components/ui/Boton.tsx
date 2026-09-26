@@ -3,11 +3,17 @@ import Link from "next/link";
 
 type Variante = "primario" | "secundario" | "fantasma";
 
+/**
+ * `primario` es el único lugar de la app donde aparece la mandarina: el acento
+ * cálido que dice «esto es lo que tenés que hacer». Lleva texto tinta, no
+ * blanco (5,0:1). Uno solo por pantalla.
+ */
 const VARIANTES: Record<Variante, string> = {
-  primario: "bg-acento text-sobre-acento hover:bg-tinta",
+  primario:
+    "bg-mandarina text-sobre-mandarina hover:brightness-[0.94] font-semibold",
   secundario:
     "border border-borde-control bg-superficie text-tinta hover:border-tinta",
-  fantasma: "text-apagado hover:text-tinta",
+  fantasma: "text-tinta hover:bg-realce",
 };
 
 /**
@@ -22,7 +28,7 @@ const VARIANTES: Record<Variante, string> = {
  * y tinta media dan 7.36:1, contra los 2.58:1 del blanco sobre `tinta-tenue`.
  */
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-control px-4 py-2 text-[14px] font-medium transition-[color,background-color,border-color] duration-150 disabled:cursor-not-allowed disabled:border-borde disabled:bg-realce disabled:text-apagado";
+  "inline-flex items-center justify-center gap-2 rounded-control px-4 py-2.5 text-[15px] font-medium leading-tight transition-[color,background-color,border-color,filter,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:border-borde disabled:bg-realce disabled:text-apagado disabled:brightness-100 disabled:translate-y-0";
 
 export function Boton({
   variante = "primario",

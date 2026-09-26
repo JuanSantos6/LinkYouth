@@ -1,14 +1,14 @@
 type Tono = "neutro" | "acento" | "acreditado" | "apagado";
 
 const TONOS: Record<Tono, string> = {
-  neutro: "border-borde text-tinta",
-  acento: "border-acento text-acento",
+  neutro: "border-borde-control/70 bg-superficie text-tinta",
+  acento: "border-acento/50 bg-lavanda text-acento",
   /**
-   * El ámbar. Aparece en dos lugares de toda la aplicación —el canto de la
-   * vacante destacada y la postulación aceptada— y en ninguno más: es lo que
-   * lo mantiene siendo una señal.
+   * Turquesa: lo que ya está logrado —una postulación aceptada—. Es el mismo
+   * color que marca «ya lo tenés» en las etiquetas, y siempre va con palabra.
    */
-  acreditado: "border-senal bg-senal-tenue text-tinta",
+  acreditado:
+    "border-coincide-borde bg-coincide-fondo text-sobre-turquesa font-semibold",
   apagado: "border-borde text-apagado",
 };
 
@@ -25,7 +25,7 @@ export function Insignia({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-control border px-2 py-0.5 text-[13px] ${TONOS[tono]}`}
+      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[13px] ${TONOS[tono]}`}
     >
       {children}
     </span>

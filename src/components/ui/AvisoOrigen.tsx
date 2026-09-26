@@ -20,11 +20,9 @@ export function Aviso({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-l-2 border-tinta bg-realce px-4 py-3">
-      {titulo && (
-        <p className="text-[14px] font-semibold text-tinta">{titulo}</p>
-      )}
-      <p className="mt-1 text-[14px] leading-relaxed text-apagado">
+    <div className="border-l-2 border-borde-control py-1 pl-3">
+      <p className="text-[13.5px] leading-relaxed text-apagado">
+        {titulo && <span className="font-semibold text-tinta">{titulo}. </span>}
         {children}
       </p>
     </div>

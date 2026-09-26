@@ -1,26 +1,28 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
+import { Red_Hat_Display, Red_Hat_Text } from "next/font/google";
 
-import {
-  ACENTO_POR_DEFECTO,
-  CLAVE_ACENTO,
-  CLAVE_TEMA,
-  TEMA_POR_DEFECTO,
-  reglasDeAcento,
-} from "@/lib/diseno/tokens";
+import { ProveedorDeTransiciones } from "@/components/navegacion/Transiciones";
+import { CLAVE_TEMA } from "@/lib/diseno/tokens";
 
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
+/*
+ * Red Hat Display para títulos y cifras, Red Hat Text para leer: una misma
+ * familia en dos cortes. Formas amables con origen corporativo, que es el
+ * registro que busca LinkYouth: cercano con los jóvenes, serio con las
+ * empresas. Ver `docs/decisiones.md`, 2026-09-27.
+ */
+const display = Red_Hat_Display({
   variable: "--fuente-titulo",
   subsets: ["latin"],
-  axes: ["opsz"],
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
-const instrument = Instrument_Sans({
+const texto = Red_Hat_Text({
   variable: "--fuente-cuerpo",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
@@ -34,22 +36,15 @@ export const metadata: Metadata = {
 };
 
 /**
- * Aplica el tema y el acento guardados antes del primer pintado.
+ * Aplica el tema elegido antes del primer pintado.
  *
- * Va en línea y sin `defer` a propósito: si esperara a la hidratación, la
- * pantalla arrancaría en claro y saltaría a oscuro a la vista de todos. Si
- * `localStorage` no está disponible —modo privado, permisos—, caen los
- * valores por defecto en lugar de romper el render.
+ * Sin elección guardada no escribe nada y el CSS sigue al sistema. Va en línea
+ * y sin `defer` a propósito: si esperara a la hidratación, la pantalla
+ * arrancaría en un tema y saltaría al otro a la vista de todos.
  */
-const GUION_DE_TEMA = `(function(){try{var r=document.documentElement,t=localStorage.getItem(${JSON.stringify(
+const GUION_DE_TEMA = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
   CLAVE_TEMA,
-)}),a=localStorage.getItem(${JSON.stringify(CLAVE_ACENTO)});r.dataset.tema=(t==="claro"||t==="oscuro")?t:${JSON.stringify(
-  TEMA_POR_DEFECTO,
-)};r.dataset.acento=a||${JSON.stringify(
-  ACENTO_POR_DEFECTO,
-)}}catch(e){document.documentElement.dataset.tema=${JSON.stringify(
-  TEMA_POR_DEFECTO,
-)};document.documentElement.dataset.acento=${JSON.stringify(ACENTO_POR_DEFECTO)}}})()`;
+)});if(t==="claro"||t==="oscuro"){document.documentElement.dataset.tema=t;}}catch(e){}})()`;
 
 export default function RootLayout({
   children,
@@ -57,18 +52,19 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      data-tema={TEMA_POR_DEFECTO}
-      data-acento={ACENTO_POR_DEFECTO}
       suppressHydrationWarning
+      className={`${display.variable} ${texto.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: GUION_DE_TEMA }} />
-        <style dangerouslySetInnerHTML={{ __html: reglasDeAcento() }} />
       </head>
-      <body
-        className={`${bricolage.variable} ${instrument.variable} antialiased`}
-      >
-        {children}
+      {/*
+        Las variables de las fuentes van en <html>: los tokens de `@theme` se
+        resuelven en `:root`, y si la variable viviera en <body> el token
+        quedaría inválido y se vería la fuente de respaldo.
+      */}
+      <body className="antialiased">
+        <ProveedorDeTransiciones>{children}</ProveedorDeTransiciones>
       </body>
     </html>
   );

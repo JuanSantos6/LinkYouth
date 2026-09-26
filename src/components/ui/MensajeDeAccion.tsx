@@ -30,7 +30,7 @@ export function MensajeDeAccion({
       aria-live="polite"
       className={`text-[13px] ${
         esError
-          ? "border-l-2 border-tinta pl-2 font-medium text-tinta"
+          ? "border-l-2 border-alerta pl-2 font-medium text-alerta"
           : "text-apagado"
       } ${className}`}
     >

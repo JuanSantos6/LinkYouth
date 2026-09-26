@@ -1,31 +1,59 @@
 import Link from "next/link";
 
+type Variante = "horizontal" | "apilado" | "isotipo";
+
+/** Proporción ancho / alto de cada archivo de `public/marca/`. */
+const PROPORCION: Record<Variante, number> = {
+  horizontal: 651.37 / 145.28,
+  apilado: 280.4 / 301.24,
+  isotipo: 1,
+};
+
 /**
- * Marca de LinkYouth.
+ * Logo oficial de LinkYouth (versión 3).
  *
- * El sello es un cuadro con las iniciales, en el color de la plataforma. Sin
- * ámbar: el ámbar significa «esto está acreditado» y un logo no acredita
- * nada. Puesto acá sería lo mismo que ponerlo en cualquier lado, y entonces
- * dejaría de decir algo donde sí importa.
+ * Los SVG de `public/marca/` son una reconstrucción de la lámina del logo:
+ * ver `docs/decisiones.md`, 2026-09-27. «Link» lleva el degradado del
+ * isotipo y «Youth» va en negro, o en blanco sobre fondo oscuro: por eso hay
+ * dos archivos, y el CSS muestra el que corresponde al tema (`.logo-claro`,
+ * `.logo-oscuro` en `globals.css`). Son imágenes y no SVG en línea para que el
+ * logo pueda aparecer dos veces en la misma página —cabecera y pie— sin
+ * repetir los ids de sus degradados.
  *
- * El destino es obligatorio a propósito. Tenía `/inicio` por defecto, y como
- * `/inicio` pide sesión, el logo de las pantallas públicas mandaba a `/login` a
- * quien no la tenía: no había forma de volver a la portada. Quien la usa pasa
- * `inicioDe(area)` de `src/lib/navegacion.ts`, o un ancla si ya está en la
- * portada.
+ * El destino es obligatorio: sin sesión, la portada; con sesión,
+ * `inicioDe(area)` de `src/lib/navegacion.ts`.
  */
-export function Marca({ href }: { href: string }) {
+export function Marca({
+  href,
+  variante = "horizontal",
+  alto = 28,
+}: {
+  href: string;
+  variante?: Variante;
+  alto?: number;
+}) {
+  const ancho = Math.round(alto * PROPORCION[variante]);
+  const archivo = variante === "isotipo" ? "isotipo" : `logo-${variante}`;
+  const oscuro = variante === "isotipo" ? "isotipo" : `logo-${variante}-oscuro`;
+
   return (
-    <Link href={href} className="flex items-center gap-2.5">
-      <span
-        aria-hidden="true"
-        className="flex h-8 w-8 items-center justify-center rounded-ficha bg-acento text-[13px] font-semibold tracking-tight text-sobre-acento"
-      >
-        LY
-      </span>
-      <span className="font-titulo text-[17px] font-semibold tracking-tight text-tinta">
-        LinkYouth
-      </span>
+    <Link href={href} className="flex shrink-0 items-center rounded-control">
+      {/* eslint-disable-next-line @next/next/no-img-element -- SVG estático, no necesita el optimizador */}
+      <img
+        src={`/marca/${archivo}.svg`}
+        alt="LinkYouth"
+        width={ancho}
+        height={alto}
+        className="logo-claro"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element -- ídem */}
+      <img
+        src={`/marca/${oscuro}.svg`}
+        alt="LinkYouth"
+        width={ancho}
+        height={alto}
+        className="logo-oscuro"
+      />
     </Link>
   );
 }

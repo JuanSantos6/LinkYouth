@@ -3,11 +3,8 @@ import type { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
 import { FilaVacante } from "./FilaVacante";
 
 /**
- * El listado de vacantes.
- *
- * La destacada va suelta arriba, elevada; el resto son filas separadas por
- * filetes. Meterla dentro del mismo listado dividido obligaría a cortar los
- * filetes alrededor de su sombra, y se notaría el parche.
+ * El listado de vacantes: tarjetas apiladas. La que más coincide con el
+ * perfil va primero y destacada (una sola, o ninguna).
  */
 export function ListadoDeVacantes({
   feed,
@@ -21,35 +18,18 @@ export function ListadoDeVacantes({
   esEjemplo?: boolean;
   conSesion?: boolean;
 }) {
-  const [primera, ...resto] = feed.entradas;
-  const destacada = primera?.destacada ? primera : null;
-  const filas = destacada ? resto : feed.entradas;
-
   return (
-    <div className="space-y-6">
-      {destacada && (
-        <FilaVacante
-          entrada={destacada}
-          yaPostulado={yaPostuladas.has(destacada.vacante.id)}
-          esEjemplo={esEjemplo}
-          conSesion={conSesion}
-        />
-      )}
-
-      {filas.length > 0 && (
-        <ul className="divide-y divide-filete border-y border-filete">
-          {filas.map((entrada) => (
-            <li key={entrada.vacante.id}>
-              <FilaVacante
-                entrada={entrada}
-                yaPostulado={yaPostuladas.has(entrada.vacante.id)}
-                esEjemplo={esEjemplo}
-                conSesion={conSesion}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ul className="grid gap-3">
+      {feed.entradas.map((entrada) => (
+        <li key={entrada.vacante.id}>
+          <FilaVacante
+            entrada={entrada}
+            yaPostulado={yaPostuladas.has(entrada.vacante.id)}
+            esEjemplo={esEjemplo}
+            conSesion={conSesion}
+          />
+        </li>
+      ))}
+    </ul>
   );
 }

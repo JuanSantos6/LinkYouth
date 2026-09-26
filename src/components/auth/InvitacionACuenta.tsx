@@ -23,11 +23,13 @@ export function InvitacionACuenta({
     <Tarjeta
       como="aside"
       aria-label="Crear una cuenta"
-      className="flex flex-col gap-4 border-l-[3px] border-l-acento p-5 sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-col gap-4 border-transparent bg-lavanda p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
     >
       <div>
-        <p className="text-[16px] font-medium text-tinta">{titulo}</p>
-        <p className="mt-1 text-[14px] leading-relaxed text-apagado">{texto}</p>
+        <p className="font-titulo text-[18px] font-bold text-tinta">{titulo}</p>
+        <p className="mt-1 text-[14.5px] leading-relaxed text-tinta/80">
+          {texto}
+        </p>
       </div>
 
       <div className="flex shrink-0 flex-wrap gap-2">

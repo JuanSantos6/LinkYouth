@@ -3,11 +3,13 @@ import type { Metadata } from "next";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvatarEditable } from "@/components/perfil/AvatarEditable";
 import { FormularioPerfil } from "@/components/perfil/FormularioPerfil";
+import { GuiaDeFicha } from "@/components/perfil/GuiaDeFicha";
 import { ListaFormacion } from "@/components/perfil/ListaFormacion";
 import { SelectorTags } from "@/components/perfil/SelectorTags";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { obtenerCatalogos, obtenerPerfilActual } from "@/lib/data/consultas";
+import { CompletitudDeFicha } from "@/lib/dominio/CompletitudDeFicha";
 
 export const metadata: Metadata = { title: "Mi perfil" };
 export const dynamic = "force-dynamic";
@@ -57,6 +59,8 @@ export default async function PaginaPerfil() {
       />
 
       <AvisoOrigen resultado={perfil} />
+
+      <GuiaDeFicha completitud={CompletitudDeFicha.de(datos)} />
 
       <Seccion
         titulo="Datos personales"
