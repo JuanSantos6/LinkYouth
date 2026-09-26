@@ -13,11 +13,13 @@ export function ListadoDeVacantes({
   feed,
   yaPostuladas,
   esEjemplo = false,
+  conSesion = true,
 }: {
   feed: FeedDeVacantes;
   yaPostuladas: Set<string>;
   /** Las vacantes salieron de `ejemplos.ts`. */
   esEjemplo?: boolean;
+  conSesion?: boolean;
 }) {
   const [primera, ...resto] = feed.entradas;
   const destacada = primera?.destacada ? primera : null;
@@ -30,6 +32,7 @@ export function ListadoDeVacantes({
           entrada={destacada}
           yaPostulado={yaPostuladas.has(destacada.vacante.id)}
           esEjemplo={esEjemplo}
+          conSesion={conSesion}
         />
       )}
 
@@ -41,6 +44,7 @@ export function ListadoDeVacantes({
                 entrada={entrada}
                 yaPostulado={yaPostuladas.has(entrada.vacante.id)}
                 esEjemplo={esEjemplo}
+                conSesion={conSesion}
               />
             </li>
           ))}

@@ -137,7 +137,7 @@ alter table habilidades enable row level security;
 -- ============================================================
 -- «LECTURA PÚBLICA» QUIERE DECIR «CUALQUIER USUARIO», NO «CUALQUIERA»
 --
--- Siete políticas de select decían `using (true)` sin cláusula `to`. Sin `to`,
+-- Varias políticas de select decían `using (true)` sin cláusula `to`. Sin `to`,
 -- una política alcanza también al rol `anon`, y la ANON_KEY viaja al navegador
 -- por diseño: con esa clave y PostgREST se podía bajar, sin cuenta y sin
 -- límite, el padrón entero —cada perfil con sus intereses, sus habilidades,
@@ -160,7 +160,11 @@ alter table habilidades enable row level security;
 --   `perfil_habilidades`), y eso sí queda cerrado. Ver `docs/decisiones.md`.
 -- · `perfiles_publicos`: `registrarse()` la lee SIN sesión para avisar que un
 --   nombre de usuario ya está tomado. Cerrarla rompe el registro.
--- · `vacantes` y `eventos`, que son el aviso en sí y no datos de una persona.
+-- · `vacantes` y `eventos`, que son el aviso en sí y no datos de una persona,
+--   y sus etiquetas públicas (`vacante_tags_publicos`, `evento_tags`): desde
+--   el 2026-09-26 `/empleos` y `/eventos` se leen sin sesión, y sin ellas el
+--   aviso llegaría sin decir qué pide. Los tags ocultos siguen cerrados
+--   (RF3.1.6, RNF5). Ver `docs/decisiones.md`.
 -- ============================================================
 
 -- Sin `to` a propósito: el catálogo es público también para `anon`.
@@ -300,9 +304,9 @@ alter table vacante_habilidades enable row level security;
 
 drop policy if exists "vacante_tags_publicos_lectura_publica" on vacante_tags_publicos;
 
+-- Sin `to` a propósito: es parte del aviso, que se lee sin sesión.
 create policy "vacante_tags_publicos_lectura_publica"
 on vacante_tags_publicos for select
-to authenticated
 using (true);
 
 create policy "vacante_tags_publicos_administro_los_mios"
@@ -440,9 +444,9 @@ alter table evento_tags enable row level security;
 
 drop policy if exists "evento_tags_lectura_publica" on evento_tags;
 
+-- Sin `to` a propósito: es parte del aviso, que se lee sin sesión.
 create policy "evento_tags_lectura_publica"
 on evento_tags for select
-to authenticated
 using (true);
 
 create policy "evento_tags_administro_los_mios"

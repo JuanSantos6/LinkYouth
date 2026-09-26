@@ -7,6 +7,7 @@ import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { obtenerCatalogos } from "@/lib/data/consultas";
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
+import { conSiguiente, destinoSeguro } from "@/lib/navegacion";
 
 export const metadata: Metadata = { title: "Crear cuenta" };
 
@@ -59,10 +60,14 @@ function Selector({ activo }: { activo: Tipo }) {
 export default async function PaginaRegistro({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string }>;
+  searchParams: Promise<{ tipo?: string; next?: string }>;
 }) {
-  const { tipo } = await searchParams;
+  const { tipo, next } = await searchParams;
   const activo: Tipo = tipo === "empresa" ? "empresa" : "individual";
+  // A dónde se vuelve con la cuenta creada: la vacante desde la que se tocó
+  // «Postularme», por ejemplo. Solo aplica a la cuenta individual —una
+  // empresa no se postula— y solo si es una ruta interna.
+  const siguiente = activo === "individual" ? destinoSeguro(next) : null;
 
   // El catálogo de intereses lo lee el servidor: `tags_lectura_publica` no
   // pide sesión, así que se puede leer antes de que la cuenta exista.
@@ -78,6 +83,12 @@ export default async function PaginaRegistro({
       <div>
         <h1 className="text-[26px] text-tinta">Creá tu cuenta</h1>
         <p className="mt-1 text-[14px] text-apagado">{BAJADA[activo]}</p>
+        {siguiente && (
+          <p className="mt-2 text-[14px] text-tinta">
+            Con tu cuenta creada, volvés a donde estabas para terminar lo que
+            empezaste.
+          </p>
+        )}
       </div>
 
       <Selector activo={activo} />
@@ -92,13 +103,17 @@ export default async function PaginaRegistro({
             intereses={catalogos.datos.tags}
             interesesDeEjemplo={catalogos.origen === "ejemplo"}
             fechaMaximaDeNacimiento={fechaMaxima}
+            siguiente={siguiente}
           />
         )}
       </Tarjeta>
 
       <p className="text-center text-[14px] text-apagado">
         ¿Ya tenés cuenta?{" "}
-        <Link href="/login" className="font-semibold text-acento">
+        <Link
+          href={conSiguiente("/login", siguiente)}
+          className="font-semibold text-acento"
+        >
           Iniciá sesión
         </Link>
       </p>

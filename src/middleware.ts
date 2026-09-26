@@ -3,23 +3,18 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { comoTipoCuenta } from "@/lib/data/tipos";
+import {
+  INFORMATIVAS,
+  PARAMETRO_SIGUIENTE,
+  correspondeA,
+  destinoSeguro,
+  esExplorable,
+} from "@/lib/navegacion";
 import { leerCredenciales } from "@/lib/supabase/config";
 import type { Database } from "@/types/database";
 
 /** Rutas de entrada. Sin sesión son públicas; con sesión ya no tienen sentido. */
 const ENTRADA = ["/login", "/registro"];
-
-/**
- * La portada y las pantallas que cuentan qué es LinkYouth.
- *
- * Se leen con o sin sesión, y por los dos tipos de cuenta: son la cara pública
- * del sitio y están enlazadas desde la cabecera y el pie, que aparecen en
- * todas partes. Mandar a `/login` a alguien que toca «Cómo funciona» sería
- * pedirle credenciales para leer un folleto, y `/` es literalmente la puerta
- * de entrada: si pidiera sesión, nadie sin cuenta podría enterarse de qué es
- * esto.
- */
-const INFORMATIVAS = ["/", "/empresas", "/como-funciona", "/legales"];
 
 /** Prefijo del panel de empresa. Todo lo demás es territorio del postulante. */
 const AREA_EMPRESA = "/empresa";
@@ -59,8 +54,11 @@ async function areaDe(
  * Refresca la sesión de Supabase en cada request, reescribe las cookies y
  * resuelve quién puede estar dónde:
  *
- * - Sin sesión, solo `ENTRADA` e `INFORMATIVAS` (RF1.3). El resto va a
- *   `/login`.
+ * - Sin sesión, `ENTRADA`, `INFORMATIVAS` y las pantallas de exploración
+ *   (`/empleos`, su detalle y `/eventos`). El resto va a `/login?next=…`, con
+ *   la ruta pedida para volver a ella después de entrar.
+ * - Con sesión, `/login` y `/registro` mandan a ese `next` si es una ruta
+ *   interna válida, y si no, al inicio de la cuenta.
  * - Con sesión, cada tipo de cuenta se queda en su mitad: una cuenta
  *   individual que pida `/empresa` cae en `/inicio`, y una de empresa que pida
  *   cualquier pantalla del postulante cae en `/empresa` (RF1.2).
@@ -107,10 +105,16 @@ export async function middleware(request: NextRequest) {
 
   const ruta = request.nextUrl.pathname;
 
-  /** Redirige conservando las cookies que el refresco acaba de reescribir. */
-  const redirigirA = (pathname: string) => {
-    const destino = request.nextUrl.clone();
-    destino.pathname = pathname;
+  /**
+   * Redirige conservando las cookies que el refresco acaba de reescribir.
+   *
+   * `destino` puede traer consulta (`/empleos/abc?x=1`), así que se arma una
+   * URL nueva sobre el origen en vez de pisar solo el `pathname`: si no, la
+   * consulta del request original se colaría en el destino.
+   */
+  const redirigirA = (ruta: string, siguiente?: string) => {
+    const destino = new URL(ruta, request.nextUrl.origin);
+    if (siguiente) destino.searchParams.set(PARAMETRO_SIGUIENTE, siguiente);
 
     // Si esas cookies se pierden, el próximo request vuelve a intentar
     // refrescar un token que ya se descartó.
@@ -123,13 +127,31 @@ export async function middleware(request: NextRequest) {
   };
 
   if (!user) {
-    const abierta = ENTRADA.includes(ruta) || INFORMATIVAS.includes(ruta);
-    return abierta ? response : redirigirA("/login");
+    const abierta =
+      ENTRADA.includes(ruta) ||
+      INFORMATIVAS.includes(ruta) ||
+      esExplorable(ruta);
+    if (abierta) return response;
+
+    // Se guarda a dónde iba, para devolverlo ahí después de entrar.
+    return redirigirA("/login", `${ruta}${request.nextUrl.search}`);
   }
 
-  // Con sesión, `/login` y `/registro` ya no tienen sentido.
+  // Con sesión, `/login` y `/registro` ya no tienen sentido: se vuelve a la
+  // pantalla que se había pedido, o al inicio de la cuenta.
   if (ENTRADA.includes(ruta)) {
-    return redirigirA(await areaDe(supabase, user.id));
+    const inicio = await areaDe(supabase, user.id);
+    const siguiente = destinoSeguro(
+      request.nextUrl.searchParams.get(PARAMETRO_SIGUIENTE),
+    );
+    const vuelve =
+      siguiente &&
+      correspondeA(
+        inicio === AREA_EMPRESA ? "empresa" : "postulante",
+        siguiente,
+      );
+
+    return redirigirA(vuelve ? siguiente : inicio);
   }
 
   // Las informativas no pertenecen a ninguna de las dos mitades.

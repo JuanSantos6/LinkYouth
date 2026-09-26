@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { FormularioLogin } from "@/components/auth/FormularioLogin";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import { conSiguiente, destinoSeguro } from "@/lib/navegacion";
 
 export const metadata: Metadata = { title: "Iniciar sesión" };
 
@@ -12,14 +13,18 @@ export const metadata: Metadata = { title: "Iniciar sesión" };
  * mitad de la aplicación entrás. El `?tipo` de la portada solo adapta la
  * bajada y el enlace al registro correcto — pedirle a alguien que elija de
  * nuevo algo que el sistema ya sabe sería trabajo inventado.
+ *
+ * `?next` es la pantalla que se había pedido: el middleware lo agrega al
+ * mandar acá a quien no tenía sesión, y el formulario lo devuelve ahí.
  */
 export default async function PaginaLogin({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string }>;
+  searchParams: Promise<{ tipo?: string; next?: string }>;
 }) {
-  const { tipo } = await searchParams;
+  const { tipo, next } = await searchParams;
   const esEmpresa = tipo === "empresa";
+  const siguiente = destinoSeguro(next);
 
   return (
     <>
@@ -33,13 +38,17 @@ export default async function PaginaLogin({
       </div>
 
       <Tarjeta className="p-6">
-        <FormularioLogin />
+        <FormularioLogin siguiente={siguiente} />
       </Tarjeta>
 
       <p className="text-center text-[14px] text-apagado">
         ¿Todavía no tenés cuenta?{" "}
         <Link
-          href={esEmpresa ? "/registro?tipo=empresa" : "/registro"}
+          href={
+            esEmpresa
+              ? "/registro?tipo=empresa"
+              : conSiguiente("/registro", siguiente)
+          }
           className="font-semibold text-acento"
         >
           Creá una

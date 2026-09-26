@@ -7,8 +7,11 @@ import { Marca } from "@/components/layout/Marca";
  * la barra lateral ni el pie. Quien está por entrar tiene una sola cosa que
  * hacer, y todo lo demás compite con ella.
  *
- * La marca sí está, y lleva a la página pública: si alguien llegó por error a
- * `/login`, tiene por dónde salir sin usar el botón de atrás.
+ * La marca sí está, y lleva a la portada, igual que el enlace de al lado: si
+ * alguien llegó por error a `/login` —o lo mandó ahí una pantalla que pide
+ * sesión—, tiene por dónde volver sin usar el botón de atrás. Antes los dos
+ * llevaban a `/como-funciona`, que desde afuera se confundía con la portada
+ * —comparten el título— y no tenía forma de llegar a ella.
  *
  * Es un `<main>` y no un `<div>`: sin el landmark, el contenido queda fuera de
  * toda región y un lector de pantalla no puede saltar hasta él.
@@ -19,12 +22,13 @@ export default function LayoutAuth({
   return (
     <div className="flex min-h-dvh flex-col px-4 py-8 sm:py-10">
       <div className="mx-auto flex w-full max-w-md items-center justify-between gap-4">
-        <Marca href="/como-funciona" />
+        <Marca href="/" />
         <Link
-          href="/como-funciona"
+          href="/"
           className="text-[14px] text-apagado transition-[color] duration-150 hover:text-tinta"
         >
-          Qué es LinkYouth
+          <span aria-hidden="true">← </span>
+          Volver a la página principal
         </Link>
       </div>
 

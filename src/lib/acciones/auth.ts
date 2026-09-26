@@ -11,6 +11,11 @@ import {
   leerArchivo,
   subirImagenDePerfil,
 } from "@/lib/supabase/almacenamiento";
+import {
+  PARAMETRO_SIGUIENTE,
+  correspondeA,
+  destinoSeguro,
+} from "@/lib/navegacion";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
@@ -629,7 +634,12 @@ export async function registrarse(
   }
 
   revalidatePath("/", "layout");
-  redirect("/inicio");
+  // Si llegó desde «Postularme» o desde una pantalla que pedía sesión, vuelve
+  // ahí. `destinoSeguro` descarta cualquier cosa que no sea una ruta interna.
+  const siguiente = destinoSeguro(datos.get(PARAMETRO_SIGUIENTE));
+  redirect(
+    siguiente && correspondeA("postulante", siguiente) ? siguiente : "/inicio",
+  );
 }
 
 /**
@@ -695,7 +705,16 @@ export async function iniciarSesion(
     if (fallo) return fallo;
   }
 
-  const destino = await destinoSegunTipo(supabase, data.user.id);
+  // Vuelve a la pantalla que se había pedido antes de entrar, si es de la
+  // mitad de la aplicación que le toca a esta cuenta. Hay que mirarlo acá: el
+  // `redirect()` de una Server Action no pasa por el middleware.
+  const inicio = await destinoSegunTipo(supabase, data.user.id);
+  const siguiente = destinoSeguro(datos.get(PARAMETRO_SIGUIENTE));
+  const destino =
+    siguiente &&
+    correspondeA(inicio === "/empresa" ? "empresa" : "postulante", siguiente)
+      ? siguiente
+      : inicio;
 
   revalidatePath("/", "layout");
   redirect(destino);

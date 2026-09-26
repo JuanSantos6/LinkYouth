@@ -175,6 +175,47 @@ export type FiltrosVacantes = {
   limite?: number;
 };
 
+/**
+ * Lo que se lee de una vacante, para el listado y para el detalle.
+ *
+ * Una sola definición a propósito: si el detalle armara su propio `select`,
+ * tarde o temprano mostraría algo distinto de la fila de la que se llegó.
+ */
+function consultarVacantes(supabase: ClienteSupabase) {
+  return supabase
+    .from("vacantes")
+    .select(
+      `id, titulo, descripcion, tipo, posiciones, estado, creada_en,
+       ${EMPRESA},
+       vacante_tags_publicos ( tags ( nombre ) ),
+       vacante_habilidades ( habilidades ( nombre ) )`,
+    )
+    .eq("estado", "activa");
+}
+
+type FilaVacante = NonNullable<
+  Awaited<ReturnType<typeof consultarVacantes>>["data"]
+>[number];
+
+function comoVacante(fila: FilaVacante): Vacante | null {
+  // La empresa es obligatoria en el esquema, pero si su cuenta fue dada de
+  // baja la política `empresas_lectura_publica` la deja fuera del join.
+  if (!fila.empresas) return null;
+
+  return {
+    id: fila.id,
+    titulo: fila.titulo,
+    descripcion: fila.descripcion,
+    tipo: comoTipoOportunidad(fila.tipo),
+    posiciones: fila.posiciones,
+    estado: comoEstadoVacante(fila.estado),
+    creada_en: fila.creada_en,
+    empresa: fila.empresas,
+    tags: nombresDe(fila.vacante_tags_publicos, "tags"),
+    habilidades: nombresDe(fila.vacante_habilidades, "habilidades"),
+  };
+}
+
 /** RF3.5.1 — Vacantes activas, de la más reciente a la más vieja. */
 export async function obtenerVacantes(
   filtros: FiltrosVacantes = {},
@@ -192,15 +233,7 @@ export async function obtenerVacantes(
   const supabase = await createClient();
   if (!supabase) return ejemplo(filtrarEjemplo(), SIN_CREDENCIALES);
 
-  let consulta = supabase
-    .from("vacantes")
-    .select(
-      `id, titulo, descripcion, tipo, posiciones, estado, creada_en,
-       ${EMPRESA},
-       vacante_tags_publicos ( tags ( nombre ) ),
-       vacante_habilidades ( habilidades ( nombre ) )`,
-    )
-    .eq("estado", "activa")
+  let consulta = consultarVacantes(supabase)
     .order("creada_en", { ascending: false })
     .limit(limite);
 
@@ -212,28 +245,36 @@ export async function obtenerVacantes(
   if (error) return ejemplo(filtrarEjemplo(), error.message);
   if (!data || data.length === 0) return ejemplo(filtrarEjemplo(), TABLA_VACIA);
 
-  const vacantes: Vacante[] = data.flatMap((fila) => {
-    // La empresa es obligatoria en el esquema, pero si su cuenta fue dada de
-    // baja la política `empresas_lectura_publica` la deja fuera del join.
-    if (!fila.empresas) return [];
-
-    return [
-      {
-        id: fila.id,
-        titulo: fila.titulo,
-        descripcion: fila.descripcion,
-        tipo: comoTipoOportunidad(fila.tipo),
-        posiciones: fila.posiciones,
-        estado: comoEstadoVacante(fila.estado),
-        creada_en: fila.creada_en,
-        empresa: fila.empresas,
-        tags: nombresDe(fila.vacante_tags_publicos, "tags"),
-        habilidades: nombresDe(fila.vacante_habilidades, "habilidades"),
-      },
-    ];
-  });
+  const vacantes = data.flatMap((fila) => comoVacante(fila) ?? []);
 
   return { datos: vacantes, origen: "supabase" };
+}
+
+/**
+ * RF3.5.3 — Una vacante activa, para su pantalla de detalle, o `null` si no
+ * existe o ya no está activa.
+ *
+ * Los ids de `ejemplos.ts` se resuelven contra el contenido de demostración:
+ * son los que muestra el listado cuando la base está vacía, y el detalle tiene
+ * que abrir igual que la fila de la que se llegó.
+ */
+export async function obtenerVacante(
+  id: string,
+): Promise<Resultado<Vacante> | null> {
+  const deEjemplo = VACANTES_EJEMPLO.find((vacante) => vacante.id === id);
+  if (deEjemplo) return ejemplo(deEjemplo, TABLA_VACIA);
+
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  // Un id que no es un UUID haría fallar la consulta con un error de tipo en
+  // vez de no encontrar nada. Para quien mira es lo mismo: esa vacante no está.
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+
+  const { data } = await consultarVacantes(supabase).eq("id", id).maybeSingle();
+  const vacante = data ? comoVacante(data) : null;
+
+  return vacante ? { datos: vacante, origen: "supabase" } : null;
 }
 
 // --- Eventos ----------------------------------------------------------------
