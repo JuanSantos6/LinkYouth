@@ -137,7 +137,7 @@ alter table habilidades enable row level security;
 -- ============================================================
 -- «LECTURA PÚBLICA» QUIERE DECIR «CUALQUIER USUARIO», NO «CUALQUIERA»
 --
--- Nueve políticas de select decían `using (true)` sin cláusula `to`. Sin `to`,
+-- Siete políticas de select decían `using (true)` sin cláusula `to`. Sin `to`,
 -- una política alcanza también al rol `anon`, y la ANON_KEY viaja al navegador
 -- por diseño: con esa clave y PostgREST se podía bajar, sin cuenta y sin
 -- límite, el padrón entero —cada perfil con sus intereses, sus habilidades,
@@ -150,24 +150,30 @@ alter table habilidades enable row level security;
 -- La condición no cambia: lo que se agrega es `to authenticated`. Los datos
 -- siguen siendo públicos entre usuarios, que es lo que pide RF2.5.
 --
--- `perfiles_publicos` queda deliberadamente afuera: `registrarse()` la lee
--- SIN sesión para avisar que un nombre de usuario ya está tomado. Cerrarla
--- rompe el registro. Lo mismo `vacantes` y `eventos`, que son el aviso en sí
--- y no datos de una persona.
+-- Quedan deliberadamente afuera:
+--
+-- · `tags` y `habilidades`, los dos catálogos de acá abajo. `/registro` los lee
+--   SIN sesión para ofrecer los intereses (RF1.1.11): cerrarlos deja el selector
+--   vacío y nadie puede registrarse. No son datos de una persona —son la lista
+--   fija de opciones, cargada por seed— así que abrirlos no expone a nadie.
+--   Lo que arma el padrón es quién eligió qué (`perfil_tags`,
+--   `perfil_habilidades`), y eso sí queda cerrado. Ver `docs/decisiones.md`.
+-- · `perfiles_publicos`: `registrarse()` la lee SIN sesión para avisar que un
+--   nombre de usuario ya está tomado. Cerrarla rompe el registro.
+-- · `vacantes` y `eventos`, que son el aviso en sí y no datos de una persona.
 -- ============================================================
 
+-- Sin `to` a propósito: el catálogo es público también para `anon`.
 drop policy if exists "tags_lectura_publica" on tags;
 
 create policy "tags_lectura_publica"
 on tags for select
-to authenticated
 using (true);
 
 drop policy if exists "habilidades_lectura_publica" on habilidades;
 
 create policy "habilidades_lectura_publica"
 on habilidades for select
-to authenticated
 using (true);
 
 -- ============================================================

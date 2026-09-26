@@ -54,9 +54,7 @@ sondear() {
   fi
 }
 
-echo "=== Las nueve tablas que marcó la auditoría (CN-002 / S-3)"
-sondear tags                  si
-sondear habilidades           si
+echo "=== Las siete tablas con datos de personas (CN-002 / S-3)"
 sondear perfil_tags           si
 sondear perfil_habilidades    si
 sondear formaciones           si
@@ -72,9 +70,24 @@ echo "  nombre de usuario ya está tomado. Si se cierra, se rompe el registro."
 sondear perfiles_publicos     si
 
 echo
+echo "=== Control: los catálogos TIENEN que seguir abiertos a anon"
+echo "  /registro lee tags y habilidades sin sesión para ofrecer los intereses."
+echo "  Si se cierran, el selector queda vacío y nadie puede registrarse."
+catalogos_cerrados=0
+for catalogo in tags habilidades; do
+  n=$(filas_visibles "$catalogo")
+  if [ "${n:-0}" = "0" ] || [ "${n:-?}" = "?" ]; then
+    printf '  %-24s %5s filas visibles   CERRADO: se rompe el registro\n' "$catalogo" "${n:-?}"
+    catalogos_cerrados=$((catalogos_cerrados + 1))
+  else
+    printf '  %-24s %5s filas visibles   abierto, como corresponde\n' "$catalogo" "$n"
+  fi
+done
+
+echo
 if [ "$abiertas" -le 1 ]; then
-  echo "Las cinco tablas con datos quedaron cerradas. Las cuatro vacías no se"
-  echo "pueden probar desde acá."
+  echo "Las tablas con datos quedaron cerradas. Las vacías no se pueden probar"
+  echo "desde acá: para esas, la consulta de abajo."
 else
   echo "Todavía hay $abiertas tablas legibles sin sesión."
 fi
@@ -89,11 +102,11 @@ select tablename, policyname, roles
 from pg_policies
 where schemaname = 'public'
   and cmd = 'SELECT'
-  and tablename in ('tags','habilidades','perfil_tags','perfil_habilidades',
-                    'formaciones','vacante_tags_publicos','vacante_habilidades',
+  and tablename in ('perfil_tags','perfil_habilidades','formaciones',
+                    'vacante_tags_publicos','vacante_habilidades',
                     'evento_tags','resenias')
   and ('anon' = any(roles) or 'public' = any(roles))
 order by tablename;
 SQL
 
-[ "$abiertas" -le 1 ] || exit 1
+[ "$abiertas" -le 1 ] && [ "$catalogos_cerrados" -eq 0 ] || exit 1

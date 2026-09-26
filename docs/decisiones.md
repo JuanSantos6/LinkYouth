@@ -6,6 +6,47 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-26 — Los catálogos `tags` y `habilidades` son públicos a propósito
+
+**Decisión.** De las nueve políticas de «lectura pública» que alcanzaban a
+`anon` (S-3), se cierran siete con `to authenticated`: `perfil_tags`,
+`perfil_habilidades`, `formaciones`, `vacante_tags_publicos`,
+`vacante_habilidades`, `evento_tags` y `resenias`. Las de `tags` y
+`habilidades` quedan sin cláusula `to`, abiertas también para quien no tiene
+sesión.
+
+**Alternativas consideradas.**
+
+- *Cerrar las nueve, como proponía la primera versión del arreglo.* Se probó
+  contra la base: con el cambio, `anon` ve 0 de 36 tags y 0 de 20
+  habilidades. `/registro` lee el catálogo sin sesión (`obtenerCatalogos()`),
+  recibe una lista vacía, cae al catálogo de ejemplo y `SelectorIntereses`
+  deshabilita la selección porque esos ids no existen en la base. Nadie
+  podría elegir los cinco intereses que exige RF1.1.11, o sea, nadie podría
+  registrarse.
+- *Cerrar las nueve y servir el catálogo del registro desde el servidor* con
+  una función `security definer` o la clave de servicio. Funciona, pero agrega
+  una puerta con privilegios elevados para proteger algo que no necesita
+  protección, y el resultado para `anon` es el mismo: ver la lista.
+
+**Motivo.** Lo que S-3 cerraba era el *padrón*: quién es cada persona, qué le
+interesa, qué sabe hacer, dónde estudió y qué dijeron de ella, todo unido por
+`perfil_id`. `tags` y `habilidades` no llevan `perfil_id` ni ningún dato de
+una persona. Son la lista fija de opciones (36 y 20 filas), cargada por seed y
+sin escritura desde la app; es lo mismo que cualquiera ve en pantalla al abrir
+el formulario de registro. Abrirlos no expone a nadie. Lo que sí revela algo
+—qué persona eligió qué opción— vive en `perfil_tags` y `perfil_habilidades`,
+y esas dos quedan cerradas.
+
+**Consecuencia.** `db/verificar-raspado-anonimo.sh` controla las dos cosas: que
+las siete tablas con datos de personas no se vean sin sesión, y que los dos
+catálogos *sí* se vean. Si alguien «completa» el arreglo cerrando también los
+catálogos, el script falla y avisa que se rompe el registro. Si alguna vez un
+catálogo pasara a llevar datos de una persona —por ejemplo, etiquetas creadas
+por los usuarios—, esta decisión deja de valer y hay que revisarla.
+
+---
+
 ## 2026-09-15 — Cero filas es error al editar, y éxito al prender o apagar una etiqueta
 
 **Decisión.** Toda escritura termina en `.select(…)`. `actualizarPerfil` y

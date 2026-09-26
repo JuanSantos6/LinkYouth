@@ -152,10 +152,10 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   sondea que la operación funcionó.
   → [`decisiones.md`](./decisiones.md)
 
-- **Las nueve políticas de «lectura pública» dejan de alcanzar a `anon` (S-3).**
-  `tags`, `habilidades`, `perfil_tags`, `perfil_habilidades`, `formaciones`,
-  `vacante_tags_publicos`, `vacante_habilidades`, `evento_tags` y `resenias`
-  pasan a `to authenticated`. La condición `using (true)` no cambia.
+- **Siete políticas de «lectura pública» dejan de alcanzar a `anon` (S-3).**
+  `perfil_tags`, `perfil_habilidades`, `formaciones`, `vacante_tags_publicos`,
+  `vacante_habilidades`, `evento_tags` y `resenias` pasan a
+  `to authenticated`. La condición `using (true)` no cambia.
   Motivo: sin cláusula `to`, una política alcanza también al rol `anon`, y la
   `ANON_KEY` viaja al navegador por diseño. Con esa clave y PostgREST se podía
   bajar el padrón entero —cada perfil con sus intereses, habilidades, estudios
@@ -163,9 +163,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   de problema que CN-001, que cerró la columna pero dejó abierta la superficie.
   `perfiles_publicos` queda afuera a propósito: `registrarse()` la lee sin
   sesión para avisar que un nombre de usuario ya está tomado.
+  Los catálogos `tags` y `habilidades` también: la primera versión del arreglo
+  los cerraba, y `/registro` —que los lee sin sesión— se quedaba sin intereses
+  para elegir. Siguen abiertos a `anon` a propósito.
+  → [`decisiones.md`](./decisiones.md)
 
 - **`db/verificar-raspado-anonimo.sh`.** Cuenta con la `ANON_KEY` cuántas filas
-  de esas nueve tablas se ven sin sesión.
+  de esas siete tablas se ven sin sesión, y falla también si los catálogos
+  `tags` y `habilidades` dejan de verse, porque eso rompe el registro.
   Motivo: la señal del arreglo es sutil y se presta a leerla mal. Cuando un rol
   no tiene política de select, Postgres no devuelve error sino cero filas con
   HTTP 200, así que una tabla cerrada y una vacía se ven idénticas desde

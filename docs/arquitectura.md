@@ -73,14 +73,16 @@ Las 49 políticas cubren las 18 tablas del esquema. Toda tabla tiene
 `enable row level security`.
 
 **Qué significa «lectura pública».** Significa «cualquier usuario con sesión»,
-no «cualquiera». Nueve políticas de select decían `using (true)` sin cláusula
+no «cualquiera». Siete políticas de select decían `using (true)` sin cláusula
 `to`, y sin `to` una política alcanza también al rol `anon` — y la `ANON_KEY`
 viaja al navegador por diseño, así que con ella y PostgREST se bajaba el padrón
-entero sin cuenta y sin límite. Desde el 2026-09-15 las nueve llevan
+entero sin cuenta y sin límite. Desde el 2026-09-15 las siete llevan
 `to authenticated`; la condición no cambió.
 
-Siguen alcanzando a `anon`, a propósito: `vacantes` y `eventos` activos, que
-son el aviso en sí y no datos de una persona, y la vista `perfiles_publicos`,
+Siguen alcanzando a `anon`, a propósito: los catálogos `tags` y `habilidades`,
+que `/registro` lee **sin sesión** para ofrecer los intereses y que no son datos
+de nadie; `vacantes` y `eventos` activos, que
+son el aviso en sí y no datos de una persona; y la vista `perfiles_publicos`,
 que `registrarse()` lee **sin sesión** para avisar que un nombre de usuario ya
 está tomado. Las demás políticas sin `to` acotan la fila por `auth.uid()`, así
 que para `anon` no devuelven nada.
