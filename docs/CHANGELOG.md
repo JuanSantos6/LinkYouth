@@ -15,6 +15,36 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-15
 
+- **Se acabó el éxito falso sobre filas ajenas o inexistentes (S-2).**
+  `cancelarPostulacion` y `actualizarPerfil` terminan en `.select("id")` y
+  devuelven error si no se tocó ninguna fila.
+  Motivo: un `update` que RLS deja pasar sin encontrar la fila no falla,
+  devuelve cero filas. Cancelar la postulación de otro respondía «Postulación
+  cancelada.» sin haber cambiado nada, y editar el perfil sin fila respondía
+  «Perfil actualizado.». Además de mentirle al usuario, le confirma a quien
+  sondea que la operación funcionó.
+  → [`decisiones.md`](./decisiones.md)
+
+- **Las nueve políticas de «lectura pública» dejan de alcanzar a `anon` (S-3).**
+  `tags`, `habilidades`, `perfil_tags`, `perfil_habilidades`, `formaciones`,
+  `vacante_tags_publicos`, `vacante_habilidades`, `evento_tags` y `resenias`
+  pasan a `to authenticated`. La condición `using (true)` no cambia.
+  Motivo: sin cláusula `to`, una política alcanza también al rol `anon`, y la
+  `ANON_KEY` viaja al navegador por diseño. Con esa clave y PostgREST se podía
+  bajar el padrón entero —cada perfil con sus intereses, habilidades, estudios
+  y reseñas, unidos por `perfil_id`— sin cuenta y sin límite. Es la misma forma
+  de problema que CN-001, que cerró la columna pero dejó abierta la superficie.
+  `perfiles_publicos` queda afuera a propósito: `registrarse()` la lee sin
+  sesión para avisar que un nombre de usuario ya está tomado.
+
+- **`db/verificar-raspado-anonimo.sh`.** Cuenta con la `ANON_KEY` cuántas filas
+  de esas nueve tablas se ven sin sesión.
+  Motivo: la señal del arreglo es sutil y se presta a leerla mal. Cuando un rol
+  no tiene política de select, Postgres no devuelve error sino cero filas con
+  HTTP 200, así que una tabla cerrada y una vacía se ven idénticas desde
+  afuera. El script marca como NO CONCLUYENTE las que estaban vacías e incluye
+  la consulta a `pg_policies`, que es la respuesta autoritativa.
+
 - **El tipo de cuenta se exige en RLS, no solo en el middleware.** Las
   políticas de insert de `postulaciones`, `perfil_tags`, `perfil_habilidades`,
   `formaciones` e `inscripciones_evento` ahora piden
