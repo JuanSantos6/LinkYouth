@@ -13,6 +13,16 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-26
+
+- **`/como-funciona` deja de decir que no hay registro ni inicio de sesión.**
+  La sección «En qué estamos» afirmaba que el registro y el inicio de sesión
+  «todavía no están», cuando ya funcionan para personas y empresas. Ahora lo
+  dice, y avisa que algunas pantallas pueden mostrar contenido de
+  demostración mientras la base no tenga búsquedas ni eventos.
+
+---
+
 ## 2026-09-15 — La migración del bucket se puede correr dos veces (rama `claude/linkyouth-applicant-dashboard-eweeld`)
 
 - **`db/migraciones/002-bucket-avatars.sql` borra cada política antes de
