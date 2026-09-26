@@ -72,6 +72,21 @@ alcance, ni por descuido ni a propósito.
 Las 49 políticas cubren las 18 tablas del esquema. Toda tabla tiene
 `enable row level security`.
 
+**Qué significa «lectura pública».** Significa «cualquier usuario con sesión»,
+no «cualquiera». Siete políticas de select decían `using (true)` sin cláusula
+`to`, y sin `to` una política alcanza también al rol `anon` — y la `ANON_KEY`
+viaja al navegador por diseño, así que con ella y PostgREST se bajaba el padrón
+entero sin cuenta y sin límite. Desde el 2026-09-15 las siete llevan
+`to authenticated`; la condición no cambió.
+
+Siguen alcanzando a `anon`, a propósito: los catálogos `tags` y `habilidades`,
+que `/registro` lee **sin sesión** para ofrecer los intereses y que no son datos
+de nadie; `vacantes` y `eventos` activos, que
+son el aviso en sí y no datos de una persona; y la vista `perfiles_publicos`,
+que `registrarse()` lee **sin sesión** para avisar que un nombre de usuario ya
+está tomado. Las demás políticas sin `to` acotan la fila por `auth.uid()`, así
+que para `anon` no devuelven nada.
+
 **Corrección del 2026-09-15.** Hasta esta fecha esta sección decía *«Ninguna
 regla de permisos está escrita en TypeScript»*. Dejó de ser cierto y conviene
 decir por qué, porque la frase se leía como permiso para no mirar el código al
@@ -113,6 +128,17 @@ reescritura de la capa de datos tiene que volver a definir. La regla que se
 mantiene: **si lo que se muestra no salió de la base, hay que decirlo en
 pantalla**. Mostrar datos inventados sin aclararlo sería engañoso, y en una
 demo a terceros es la diferencia entre una maqueta honesta y una mentira.
+
+### 2.4 La lógica de negocio no vive en el componente
+
+Un componente recibe datos y los muestra. El cálculo de compatibilidad, el
+orden del feed y las reglas de estado de una postulación viven en clases
+propias, en `src/lib/dominio/`.
+
+La regla práctica: si estás por escribir un `if` sobre una regla de negocio
+dentro de un `.tsx`, va en una clase. Antes de esta separación, la afinidad se
+armaba dentro de la tarjeta de vacante y las etapas del proceso estaban
+repartidas entre la página de postulaciones y `formato.ts`.
 
 ---
 
@@ -419,11 +445,20 @@ búsqueda», y el `23514` del constraint `perfiles_mayor_de_edad` como «Tenés 
 ser mayor de 18 años para registrarte». La regla de edad vive solo en la base
 (RF1.1.8); el código traduce su respuesta y no la reimplementa.
 
-Las cuatro acciones de etiquetas comparten `cambiarVinculo`, que además
-**absorbe el `23505`**: dos clics en el mismo tick mandan dos inserts iguales y
-el segundo choca con la clave primaria `(perfil_id, tag_id)`. La fila quedó
-como la quería quien hizo clic, así que devolver error ahí haría que la
-interfaz revirtiera una etiqueta que sí está guardada.
+Toda escritura termina en un **`.select(…)`**, y eso es lo que distingue «no se
+tocó ninguna fila» de «salió bien». Sin él, un `update` o un `delete` que RLS
+deja pasar sin encontrar la fila no devuelve error: la respuesta es un éxito
+vacío, y la pantalla lo muestra como que se guardó algo que no se guardó.
+`actualizarPerfil` y `cancelarPostulacion` devuelven error en ese caso.
+
+Las cuatro acciones de etiquetas comparten `cambiarVinculo`, y ahí cero filas
+es **deliberadamente un éxito**. Las dos direcciones son idempotentes: agregar
+una etiqueta que ya estaba choca con la clave primaria `(perfil_id, tag_id)` y
+**absorbe el `23505`**; sacar una que ya no estaba toca cero filas. En los dos
+casos el perfil quedó como lo pidió el clic, y devolver error haría que el
+estado optimista de `SelectorTags` revirtiera una etiqueta que sí quedó bien.
+Las consultas seleccionan `perfil_id` y no `id`: las dos tablas puente tienen
+clave compuesta y no llevan columna `id`.
 
 El límite de 600 caracteres de la biografía vive solo en `actualizarPerfil`:
 `db/schema.sql` declara `bio` como `text` sin restricción, así que es una
@@ -431,7 +466,7 @@ decisión de producto, no del esquema.
 
 ### 5.7 `src/lib/dominio/`
 
-Las reglas de negocio, fuera de los componentes (§2.3). Ninguna clase hereda
+Las reglas de negocio, fuera de los componentes (§2.4). Ninguna clase hereda
 de otra: entre comparar etiquetas, ordenar un listado e interpretar un estado
 no hay comportamiento compartido, y una jerarquía ahí sería decorativa.
 
