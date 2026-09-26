@@ -1,152 +1,178 @@
 ---
 name: diseno-linkyouth
-description: "Sistema de diseño de la interfaz de LinkYouth, bajo la dirección «ficha técnica». Usar SIEMPRE antes de crear o modificar cualquier pantalla, componente, estilo o texto de interfaz de este proyecto: define la paleta de cinco valores, la tipografía, la elevación, el espaciado, los patrones de listado y tarjeta, la lista de lo prohibido, las reglas de accesibilidad y el tono de la redacción en español rioplatense. Disparadores: nueva página, nuevo componente, 'que se vea más profesional', 'mejorar el diseño', modo oscuro, color de acento, ajustar colores, tipografía, espaciados, listados, tarjetas, botones, formularios o textos de la interfaz."
+description: "Sistema de diseño de la interfaz de LinkYouth, «Recreo»: paleta nacida del logo oficial (violeta de marca, turquesa de «ya lo tenés», mandarina solo en el botón principal, neutros de base), tipografía Red Hat, logo en SVG, tema claro/oscuro que sigue al sistema, encabezado flotante de vidrio, transiciones de 150–300 ms, portada narrativa con GSAP y Lenis, accesibilidad AA y tono en español rioplatense. Usar SIEMPRE antes de crear o modificar cualquier pantalla, componente, estilo o texto de interfaz de este proyecto. Disparadores: nueva página, nuevo componente, colores, tema oscuro, logo, tipografía, espaciados, tarjetas, botones, formularios, menús, animaciones, transiciones, portada, textos de la interfaz."
 ---
 
-# Diseño de LinkYouth
+# Diseño de LinkYouth — «Recreo»
 
-LinkYouth acredita habilidades en vez de leer un currículum. El vocabulario
-visual tiene que ser el del **registro sellado**: una ficha que se acredita,
-no un feed que se scrollea.
+LinkYouth es una plataforma seria de primer empleo cuyo público son jóvenes.
+La interfaz tiene que ser cálida y joven para quien busca su primer trabajo,
+y creíble para la empresa que publica. **Los neutros son la base; los colores
+son acentos y cada uno significa algo.**
 
-Quien usa la plataforma está buscando su primer trabajo. La interfaz transmite
-orden y confianza institucional, no entusiasmo.
+Decisión completa, con alternativas y contrastes medidos:
+`docs/decisiones.md`, 2026-09-27.
 
 ## Antes de escribir una línea de estilo
 
-1. Leé `src/lib/diseno/tokens.ts`. Es la fuente de verdad del color.
-2. Leé `src/app/globals.css`, que deriva de esos tokens todo lo demás.
-3. Mirá si el componente ya existe en `src/components/ui/`.
+1. `src/lib/diseno/tokens.ts`: los valores de la paleta, con su contraste.
+2. `src/app/globals.css`: los mismos valores como variables `--ly-*`, las
+   utilidades de Tailwind que salen de ellas y los estilos compartidos
+   (vidrio, esqueleto, plegable, emergente, portada).
+3. `src/components/ui/`: el componente que buscás casi seguro ya existe.
 
-Un color escrito a mano (`text-blue-600`, `#2563EB`, `bg-gray-100`) es un
-error. Las utilidades salen de los tokens: `bg-papel`, `bg-superficie`,
-`bg-realce`, `text-tinta`, `text-apagado`, `text-acento`, `border-borde`,
-`border-borde-control`, `border-filete`, `bg-senal-tenue`.
+Un color escrito a mano (`text-blue-600`, `#2563EB`) es un error. Las únicas
+excepciones son las fotos provisionales y el texto sobre fotos oscuras de la
+portada, donde el fondo no depende del tema.
 
-## La paleta: cinco valores
+## La paleta
 
-| Token     | Rol                                                                |
-| --------- | ------------------------------------------------------------------ |
-| `tinta`   | Texto y fondos oscuros                                             |
-| `papel`   | Fondo de página                                                    |
-| `acento`  | Acciones primarias. Lo elige quien usa la app, entre cinco colores |
-| `senal`   | **Ámbar. Solo lo acreditado**                                      |
-| `apagado` | Texto secundario                                                   |
+| Token | Claro | Oscuro | Para qué |
+| --- | --- | --- | --- |
+| `tinta` | `#1E1A38` | `#F3F1FA` | Texto, botón secundario activo |
+| `papel` | `#F7F6FB` | `#15132A` | Fondo de página |
+| `superficie` | `#FFFFFF` | `#1F1C38` | Tarjetas |
+| `apagado` | `#5B5770` | `#B4B0C9` | Texto secundario |
+| `violeta` | `#8C66FA` | `#9D7BFF` | **Marca**, del logo: menú activo, indicadores. **Nunca texto** |
+| `acento` (violeta texto) | `#6541E0` | `#B39DFF` | Enlaces, foco, texto de acento |
+| `turquesa` | `#19DDD2` | `#19DDD2` | **«Ya lo tenés»**, del logo: medidor, coincidencias. Siempre con ✓ o texto |
+| `coincide-fondo` | `#C8F5F2` | `#19DDD2` | Etiqueta que coincide (suave en claro) |
+| `turquesa-texto` | `#0A7A73` | `#19DDD2` | Borde e ícono de lo que ya tenés |
+| `mandarina` | `#F25C1A` | `#FF8A4C` | **Solo el botón principal**, con texto tinta |
+| `lavanda` | `#EFEAFF` | `#2C2752` | Fondo suave: fecha de evento, invitación |
+| `alerta` | `#B8123F` | `#FF7A99` | Errores, siempre con «No se pudo» |
+| `borde-control` | `#8A86A0` | `#817C9C` | Borde de campo o botón (3:1) |
 
-Todo lo demás —`superficie`, `realce`, `borde`, `filete`, `sobre-acento`,
-los tenues— se **deriva** de esos cinco con `color-mix`. No inventes un gris
-nuevo: si te falta un valor, es casi siempre una mezcla de los que ya hay.
+Reglas de uso:
 
-**El ámbar es la única audacia del diseño.** Cada vez que aparece significa
-«esto está validado». Hoy aparece en dos lugares de toda la aplicación: el
-canto vertical de la vacante destacada y la insignia de una postulación
-aceptada. No lo uses para nada más —ni en el logo, ni en un ícono, ni para
-«dar color»—: si decora, deja de significar.
+- **La mandarina aparece una vez por pantalla**: el botón principal. Si hay
+  dos botones naranjas, uno sobra.
+- **El violeta del logo no se usa para texto** (3,9:1). Para texto, `acento`.
+- **El turquesa del logo no se usa para texto** (1,7:1). Va de relleno con
+  tinta encima, o como `turquesa-texto`.
+- **El color nunca va solo**: lo que coincide lleva ✓ y un texto para
+  lectores de pantalla; los errores llevan la palabra; el medidor dice
+  «Tenés 3 de 4».
 
-En tema oscuro los tokens no cambian de nombre, cambian de valor: `tinta`
-sigue siendo el color del texto y `papel` el del fondo.
+## Tema
 
-## Prohibido
+Tres estados: **sistema** (por defecto, no escribe nada en `<html>`),
+**claro** y **oscuro** (`data-tema` en `<html>`). El botón del encabezado
+(`BotonTema`) recorre los tres y la elección se guarda en el navegador
+(`PreferenciasDeApariencia`). Ajustes ofrece lo mismo. **No hay selector de
+color**: la paleta es una sola.
 
-Son los tics que delatan una plantilla. Si aparece alguno, la pantalla no está
-terminada:
+Cada bloque de tema en `globals.css` repite los valores oscuros dos veces
+(por sistema y por elección). Si cambiás uno, cambiá los dos.
 
-- **Rótulos en VERSALITAS espaciadas** encima de los títulos. No agregan
-  información: el título ya dice dónde estás.
-- **Monoespaciada como decoración.** Solo se usa para código, rutas de archivo
-  y versiones reales, que se copian y se pegan.
-- **Acentuar una sola palabra del titular** en otro color o en itálica.
-- **Marcadores numerados 01 / 02 / 03**, salvo que el contenido sea de verdad
-  una secuencia.
-- **Flechas → pegadas** al texto de botones y enlaces.
-- **La misma sombra gris debajo de todo.** Hay una sola sombra,
-  `shadow-elevada`, y se reserva para lo que está realmente por encima del
-  plano.
-- **Cadenas de metadatos unidas con puntos medios.** Separá con espacio.
-- **El mismo radio de esquina en todo.** El radio dice la jerarquía:
-  `rounded-control` (3 px) para controles, `rounded-ficha` (4 px) para filas y
-  bloques, `rounded-tarjeta` (10 px) solo para la tarjeta de evento, que lleva
-  imagen.
+## Logo
 
-## La forma comunica el contenido
-
-- **Las vacantes son un listado con filetes, no tarjetas.** La más compatible
-  se despega: canto vertical ámbar y elevación real. Una sola, o ninguna
-  destaca.
-- **Los eventos sí son tarjetas**, porque tienen imagen y fecha propias. Esa
-  diferencia de forma es intencional: hay que distinguir de un vistazo una
-  oferta de una actividad.
-- **El menú lateral marca la sección activa con un filete vertical**, no con
-  una píldora rellena.
-- **Los números grandes** —compatibilidad, día del evento— son elemento
-  gráfico: clase `.cifra`, tipografía de título, tracking cerrado.
+El oficial, versión 3: dos anillos unidos por una barra, degradado de
+turquesa a violeta. Los archivos están en `public/marca/` y son una
+**reconstrucción en SVG** de la lámina (ver decisiones). Siempre con
+`<Marca href=…>`, que muestra la versión clara u oscura según el tema. El
+favicon es `src/app/icon.svg`. No dibujes el logo a mano en un componente.
 
 ## Tipografía
 
-Bricolage Grotesque en títulos (eje óptico activo, tracking cerrado) e
-Instrument Sans en el cuerpo. Se cargan con `next/font` en
-`src/app/layout.tsx`: nunca agregues un `<link>` a Google Fonts.
+Red Hat Display en títulos y cifras (500–800), Red Hat Text en el cuerpo
+(400–600), con `next/font` en `src/app/layout.tsx`. Las variables van en
+`<html>`: si van en `<body>`, los tokens de `@theme` quedan inválidos y se ve
+la fuente de respaldo.
+
+Escala: 40 / 32 / 28 / 20 / 17 / 15 / 13 px. `h1` de pantalla en 28–32 px
+extrabold; título de tarjeta 19 px.
+
+## Forma
+
+- Radios: `rounded-control` (10 px) en botones y campos, `rounded-ficha`
+  (12 px) en bloques, `rounded-tarjeta` (16 px) en tarjetas, `rounded-full`
+  en etiquetas, filtros y cápsulas.
+- Sombras: `shadow-elevada` para lo que se levanta al pasar el mouse **y
+  lleva a algún lado**; `shadow-flotante` para menús y la cápsula. Nada más.
+- **Vacantes y eventos son tarjetas.** La vacante es clickeable entera (el
+  título se estira con `after:absolute after:inset-0`) y el botón de
+  postularse queda por encima. Los eventos llevan la fecha en lavanda.
+
+## Navegación
+
+- **Un solo menú por tipo de cuenta** (`CabeceraGlobal`). No hay barra
+  lateral. La empresa no ve Empleos ni Eventos del postulante.
+- En el teléfono, el postulante tiene **pestañas abajo** (`BarraPestanas`);
+  público y empresa, el menú «Secciones».
+- El encabezado arriba de todo es una barra completa; al bajar se vuelve
+  **cápsula de vidrio** (`EncabezadoFlotante`, con IntersectionObserver, no
+  con eventos de scroll). El vidrio (`.vidrio`) tiene 86 % de opacidad para
+  que el texto cumpla AA con cualquier contenido detrás, y sin
+  `backdrop-filter` es sólido.
 
 ## Movimiento
 
-Solo el que responde a una acción de la persona: abrir, confirmar, expandir,
-cambiar de tema. **Nada de entradas con fade-and-slide ni de transiciones de
-hover en cada tarjeta.** `prefers-reduced-motion` apaga todo, y el anillo de
-foco nunca se desvanece: aparece instantáneo.
+Nada aparece de golpe, y nada se mueve si no responde a algo que hiciste.
 
-## Accesibilidad
+| Qué | Cómo |
+| --- | --- |
+| Abrir | 200 ms, `cubic-bezier(.2,.7,.2,1)` (`--ly-entrar`) |
+| Cerrar | 150 ms, `cubic-bezier(.4,0,1,1)` (`--ly-salir`) |
+| Menú, panel emergente | clase `.emergente` + `data-abierto` |
+| Desplegable (preguntas, «Ver más») | `.plegable` + `data-abierto`, o `DetallesSuaves` |
+| Cambio de pantalla | `EnlaceTransicion` (`document.startViewTransition`) |
+| Filtros y pestañas | `FiltroDeslizante`: la marca se desliza |
+| Postularse, inscribirse | `BotonAccion celebrar`: los anillos se unen |
+| Carga | `loading.tsx` con `EsqueletoDePantalla` |
 
-- **Nunca solo color.** Lo que coincide lleva una marca de verificación; los
-  errores se distinguen por peso, por un filete y por la palabra «No se
-  pudo». La paleta no tiene rojo a propósito.
-- **3:1 en el borde de un control.** Los campos y los botones usan
-  `border-borde-control`, más fuerte que el `border-borde` de las tarjetas,
-  que es decorativo.
-- **Foco visible siempre**, con el color del acento.
-- **390 px sin desborde horizontal.** Cuidado con los ítems de grilla: sin
-  `min-w-0`, un hijo con `overflow-x-auto` ensancha la página entera.
+Solo `transform` y `opacity` (y `clip-path` en la portada). Con
+`prefers-reduced-motion`, todo instantáneo: lo resuelve `globals.css`.
 
-## Patrones ya resueltos
+**La portada es la única pantalla con animaciones ligadas al scroll** (GSAP +
+ScrollTrigger + Lenis, cargados con `import()` en
+`AnimacionesDePortada`). No los uses en otra pantalla.
 
-| Necesidad               | Componente                                            |
-| ----------------------- | ----------------------------------------------------- |
-| Superficie con borde    | `ui/Tarjeta` (`elevada` solo para lo destacado)       |
-| Tag o habilidad         | `ui/Etiqueta` (`coincide` si el perfil ya lo declara) |
-| Estado                  | `ui/Insignia`                                         |
-| Foto o logo             | `ui/Avatar`                                           |
-| Acción                  | `ui/Boton` · `ui/BotonEnlace`                         |
-| Resultado de una acción | `ui/MensajeDeAccion`                                  |
-| Lista vacía             | `ui/EstadoVacio`                                      |
-| Datos de ejemplo        | `ui/AvisoOrigen`                                      |
-| Encabezado de pantalla  | `layout/Encabezado`                                   |
-| Cabecera y pie          | `layout/CabeceraGlobal` · `layout/PieDeSitio`         |
-| Ícono                   | `layout/Iconos` (SVG en línea, nunca una librería)    |
+## Accesibilidad (WCAG 2.1 AA)
 
-Detalle en `references/tokens.md` y `references/componentes.md`.
+- Contraste AA en texto, 3:1 en bordes de control y formas que informan.
+- Foco visible siempre, instantáneo, con `acento`.
+- Todo control con nombre accesible; menús con `aria-expanded` y Esc;
+  carruseles automáticos con pausa (2.2.2).
+- 390 px sin desborde horizontal.
+- Todo el contenido se lee sin JavaScript.
 
-## La lógica no vive en el componente
+## Contenido honesto
 
-Un componente recibe datos y los muestra. El cálculo de compatibilidad, el
-orden del feed y las reglas de estado viven en `src/lib/dominio/`:
-`Compatibilidad`, `FeedDeVacantes`, `ProcesoDePostulacion`. Si estás por
-escribir un `if` sobre una regla de negocio dentro de un `.tsx`, va en una
-clase.
-
-**Server Component por defecto.** `"use client"` solo con estado o eventos del
-navegador. Los filtros y las pestañas se hacen con enlaces y `searchParams`.
+- Los datos de ejemplo se anuncian con `AvisoOrigen`.
+- **Fotos**: nada de fotos de banco. Mientras no haya fotos propias,
+  `FotoProvisional` con un rótulo que dice qué foto va.
+- **Opiniones**: no se inventan. Las de la portada son de ejemplo y lo dicen
+  en cada tarjeta.
+- Ningún enlace lleva a una página vacía ni a una función que no existe.
 
 ## Cómo se escriben los textos
 
-Español rioplatense, voseo, frase normal (no Title Case). El botón dice qué
-pasa al tocarlo y el aviso posterior usa la misma palabra: «Postularme» →
-«Postulación enviada».
+Español rioplatense, voseo, frase normal. El botón dice qué pasa y el aviso
+usa la misma palabra: «Postularme» → «Postulación enviada». Los estados
+vacíos invitan a hacer algo; los errores explican qué pasó y cómo seguir.
+Sin signos de exclamación ni emojis.
 
-- Bien: «Todavía no te postulaste a ninguna búsqueda.»
-- Mal: «No se han encontrado postulaciones asociadas al usuario.»
+## Patrones ya resueltos
 
-Los estados vacíos invitan a hacer algo. Los errores explican qué pasó y cómo
-seguir, sin pedir disculpas. Nada de signos de exclamación ni emojis.
+| Necesidad | Componente |
+| --- | --- |
+| Botón / enlace con forma de botón | `ui/Boton` · `ui/BotonEnlace` |
+| Acción de servidor sobre un ítem | `ui/BotonAccion` |
+| Tag o habilidad | `ui/Etiqueta` (`coincide`) |
+| Estado | `ui/Insignia` |
+| Compatibilidad | `ui/Medidor` |
+| Filtros, pestañas | `ui/FiltroDeslizante` |
+| Desplegable | `ui/DetallesSuaves` |
+| Carga | `ui/Esqueleto` |
+| Lista vacía | `ui/EstadoVacio` |
+| Datos de ejemplo | `ui/AvisoOrigen` |
+| Logo | `layout/Marca` |
+| Cabecera, pie | `layout/CabeceraGlobal` · `layout/PieDeSitio` |
+| Menú que se abre | `navegacion/MenuDesplegable` |
+| Enlace con transición | `navegacion/EnlaceTransicion` |
+| Tema | `layout/BotonTema` |
+| Foto que falta | `portada/FotoProvisional` |
 
-## Antes de dar por terminada una pantalla
-
-Recorré `references/revision.md`.
+Detalle en `references/tokens.md`, `references/componentes.md` y, antes de
+dar algo por terminado, `references/revision.md`.
