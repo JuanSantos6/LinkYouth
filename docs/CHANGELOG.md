@@ -15,6 +15,23 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-27 — Rediseño «Recreo» (rama `feat/rediseno-juvenil`)
 
+- **El encabezado se transforma de a poco, desde el primer píxel.** Antes
+  cambiaba de golpe al llegar al segundo bloque y a veces quedaba trabado
+  como cápsula, porque dependía de un IntersectionObserver que podía quedar
+  desfasado al navegar. Ahora `EncabezadoFlotante` calcula un progreso de 0 a
+  1 en los primeros 120 px, siempre desde la posición real del scroll (al
+  cargar, al navegar, al volver atrás y al cambiar el tamaño), y el CSS
+  interpola con `--p` la separación, el radio, la transparencia, el
+  desenfoque, el borde y la sombra. Arriba de todo vuelve a quedar integrado.
+  Igual en la portada y en la app.
+
+- **Iniciar sesión y crear cuenta, en una tarjeta.** `TarjetaDeAcceso`
+  centrada sobre un fondo con formas muy suaves de turquesa y violeta, con el
+  logo, un título cálido, y la vuelta a la página principal. La contraseña se
+  puede mostrar u ocultar (`EntradaContrasenia`, con `aria-label`), en el
+  login y en el registro. Los mensajes de error entran con un fundido.
+  «¿Olvidaste tu contraseña?» no aparece porque RF1.8 no está implementado.
+
 - **Identidad nueva a partir del logo oficial.** Paleta de un solo juego:
   violeta del logo como marca, turquesa del logo para «ya lo tenés»,
   mandarina solo en el botón principal, neutros de base. Tipografía Red Hat.

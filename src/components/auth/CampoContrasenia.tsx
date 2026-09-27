@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 
-import { CAMPO, Campo } from "@/components/ui/Campo";
+import { Campo } from "@/components/ui/Campo";
 import {
   FuerzaDeContrasenia,
   LARGO_MAXIMO,
   LARGO_MINIMO,
   type Nivel,
 } from "@/lib/dominio/FuerzaDeContrasenia";
+
+import { EntradaContrasenia } from "./EntradaContrasenia";
 
 /** Un color por nivel. Los tokens viven encerrados en este medidor. */
 const COLOR: Record<Nivel, string> = {
@@ -51,8 +53,7 @@ export function CampoContrasenia() {
   return (
     <div className="space-y-4">
       <Campo etiqueta="Contraseña">
-        <input
-          type="password"
+        <EntradaContrasenia
           name="password"
           autoComplete="new-password"
           required
@@ -61,7 +62,6 @@ export function CampoContrasenia() {
           value={valor}
           onChange={(evento) => setValor(evento.target.value)}
           aria-describedby="requisitos-contrasenia"
-          className={`mt-1.5 ${CAMPO}`}
         />
       </Campo>
 
@@ -113,8 +113,7 @@ export function CampoContrasenia() {
       )}
 
       <Campo etiqueta="Repetir la contraseña">
-        <input
-          type="password"
+        <EntradaContrasenia
           name="password_confirmacion"
           autoComplete="new-password"
           required
@@ -122,7 +121,7 @@ export function CampoContrasenia() {
           value={confirmacion}
           onChange={(evento) => setConfirmacion(evento.target.value)}
           aria-invalid={noCoinciden || undefined}
-          className={`mt-1.5 ${CAMPO} ${noCoinciden ? "border-fuerza-baja" : ""}`}
+          className={noCoinciden ? "border-fuerza-baja" : ""}
         />
       </Campo>
 

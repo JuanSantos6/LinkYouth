@@ -1,37 +1,52 @@
-import Link from "next/link";
-
-import { BotonTema } from "@/components/layout/BotonTema";
-import { Marca } from "@/components/layout/Marca";
-
 /**
- * Estructura de las pantallas de autenticación: una sola columna centrada,
- * sin menú ni pie. Quien está por entrar tiene una sola cosa que hacer.
+ * Fondo de las pantallas de acceso: el papel de siempre con dos formas muy
+ * suaves de los colores del logo —turquesa abajo a la izquierda, violeta
+ * arriba a la derecha— y los dos anillos del isotipo, apenas visibles. Usa la
+ * marca con moderación: la protagonista es la tarjeta.
  *
- * La marca y el enlace de al lado llevan a la portada: si alguien llegó a
- * `/login` porque una pantalla pedía sesión, tiene por dónde volver sin usar
- * el botón de atrás. El botón de tema está también acá: es la primera
- * pantalla que ve mucha gente.
+ * La tarjeta (`TarjetaDeAcceso`) la arma cada pantalla, porque el registro
+ * es más ancho que el login.
  */
 export default function LayoutAuth({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="flex min-h-dvh flex-col bg-papel px-4 py-6 sm:py-8">
-      <div className="mx-auto flex w-full max-w-md items-center justify-between gap-3">
-        <Marca href="/" alto={28} />
-        <div className="flex items-center gap-1">
-          <Link
-            href="/"
-            className="rounded-control px-2 py-1.5 text-[14px] font-medium text-tinta transition-colors duration-150 hover:bg-realce"
-          >
-            <span aria-hidden="true">← </span>
-            Volver a la página principal
-          </Link>
-          <BotonTema />
-        </div>
+    <div className="relative isolate flex min-h-dvh overflow-hidden bg-papel">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+      >
+        <div className="absolute -bottom-40 -left-40 h-[520px] w-[520px] rounded-full bg-turquesa opacity-[0.16] blur-[110px]" />
+        <div className="absolute -top-44 -right-40 h-[560px] w-[560px] rounded-full bg-violeta opacity-[0.16] blur-[120px]" />
+        <svg
+          viewBox="0 0 400 400"
+          className="absolute top-[12%] left-[6%] h-40 w-40 opacity-[0.12]"
+          fill="none"
+        >
+          <circle
+            cx="200"
+            cy="200"
+            r="150"
+            strokeWidth="46"
+            className="stroke-turquesa"
+          />
+        </svg>
+        <svg
+          viewBox="0 0 400 400"
+          className="absolute right-[7%] bottom-[10%] h-28 w-28 opacity-[0.12]"
+          fill="none"
+        >
+          <circle
+            cx="200"
+            cy="200"
+            r="150"
+            strokeWidth="46"
+            className="stroke-violeta"
+          />
+        </svg>
       </div>
 
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 py-10">
+      <main className="relative mx-auto flex w-full flex-1 items-center justify-center px-4 py-10 sm:py-16">
         {children}
       </main>
     </div>

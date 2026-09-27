@@ -100,11 +100,16 @@ extrabold; título de tarjeta 19 px.
   lateral. La empresa no ve Empleos ni Eventos del postulante.
 - En el teléfono, el postulante tiene **pestañas abajo** (`BarraPestanas`);
   público y empresa, el menú «Secciones».
-- El encabezado arriba de todo es una barra completa; al bajar se vuelve
-  **cápsula de vidrio** (`EncabezadoFlotante`, con IntersectionObserver, no
-  con eventos de scroll). El vidrio (`.vidrio`) tiene 86 % de opacidad para
-  que el texto cumpla AA con cualquier contenido detrás, y sin
-  `backdrop-filter` es sólido.
+- El encabezado arriba de todo está integrado a la página; **con el primer
+  píxel de scroll se transforma de a poco** en cápsula de vidrio y llega a su
+  forma final a los 120 px (`EncabezadoFlotante` escribe `--p` de 0 a 1 desde
+  `window.scrollY`; `globals.css` interpola separación, radio, transparencia,
+  desenfoque, borde y sombra). Arriba de todo nunca queda como cápsula. El
+  vidrio llega a 86 % de opacidad para que el texto cumpla AA con cualquier
+  contenido detrás, y sin `backdrop-filter` es sólido. **Hay una sola
+  cabecera**: no agregues fondos ni bordes detrás de ella en ningún layout.
+- **Iniciar sesión y crear cuenta** van en `TarjetaDeAcceso`, sobre el fondo
+  suave de `(auth)/layout.tsx`. Las contraseñas usan `EntradaContrasenia`.
 
 ## Movimiento
 

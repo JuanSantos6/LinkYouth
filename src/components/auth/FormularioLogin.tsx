@@ -9,6 +9,8 @@ import { iniciarSesion } from "@/lib/acciones/auth";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
 import { PARAMETRO_SIGUIENTE } from "@/lib/navegacion";
 
+import { EntradaContrasenia } from "./EntradaContrasenia";
+
 /**
  * Inicio de sesión (RF1.3).
  *
@@ -39,12 +41,10 @@ export function FormularioLogin({ siguiente }: { siguiente?: string | null }) {
       </Campo>
 
       <Campo etiqueta="Contraseña">
-        <input
-          type="password"
+        <EntradaContrasenia
           name="password"
           autoComplete="current-password"
           required
-          className={`mt-1.5 ${CAMPO}`}
         />
       </Campo>
 

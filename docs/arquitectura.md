@@ -641,7 +641,7 @@ para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `EncabezadoFlotante` | `children`, `umbralId?` | Barra fija que, al bajar, se vuelve cápsula de vidrio. Lo decide un IntersectionObserver, no un evento de scroll. Deja un separador de 64 px en el flujo. |
+| `EncabezadoFlotante` | `children` | Encabezado fijo que, con el primer píxel de scroll, se transforma de a poco en cápsula de vidrio (progreso 0–1 en 120 px, curva ease-out) y vuelve a integrarse arriba. El progreso se calcula siempre desde `window.scrollY` —al hacer scroll con un `requestAnimationFrame` por cuadro, al montar, al cambiar de ruta, con `popstate`, `pageshow` y `resize`— y se escribe en `--p`; el CSS hace el resto. Deja un separador de 64 px en el flujo. |
 | `NavPrincipal` | `secciones` | Las secciones del encabezado en escritorio; la activa con peso, filete violeta y `aria-current`. Las anclas (`#…`) van como `<a>` común. |
 | `MenuDesplegable` | `boton`, `etiqueta`, `alinear?`, `children` | Menú con `aria-expanded`, Esc, clic afuera, flechas y foco de vuelta al botón. Se abre con `.emergente`. Exporta `OPCION_MENU`. |
 | `BarraPestanas` | — | Pestañas de abajo del postulante en el teléfono, en cápsula de vidrio, con la marca de la activa que se desliza. |
@@ -662,7 +662,9 @@ para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `FormularioLogin` | — | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
+| `FormularioLogin` | `siguiente?` | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
+| `TarjetaDeAcceso` | `titulo`, `bajada?`, `children`, `alternativa`, `ancha?` | La tarjeta centrada de iniciar sesión y crear cuenta: logo, tema, título, formulario, enlace alternativo y vuelta a la página principal. |
+| `EntradaContrasenia` | props de `<input>` | Campo de contraseña con botón para mostrarla u ocultarla (`aria-label`, `aria-pressed`, `aria-controls`). |
 | `FormularioRegistro` | — | Alta de cuenta individual (RF1.1). Los campos son exactamente las columnas obligatorias de `perfiles`, más el correo y la contraseña que van a `auth.users`. La mayoría de edad la exige la base: acá el campo es un `type="date"` común y el mensaje llega desde la acción. |
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
 | `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?`, `conSesion?` | Tarjetas apiladas; la que más coincide va primera y destacada. |

@@ -115,3 +115,51 @@ test.describe("portada", () => {
     ).toHaveCount(4);
   });
 });
+
+test.describe("encabezado progresivo", () => {
+  const progreso = (page: import("@playwright/test").Page) =>
+    page.evaluate(() =>
+      Number(
+        getComputedStyle(
+          document.querySelector("header.cabecera-flotante")!,
+        ).getPropertyValue("--p"),
+      ),
+    );
+
+  for (const ruta of ["/", "/empleos"]) {
+    test(`en ${ruta} avanza desde el primer píxel y se reintegra arriba`, async ({
+      page,
+    }) => {
+      await page.goto(ruta);
+      await expect.poll(() => progreso(page)).toBe(0);
+
+      await page.evaluate(() =>
+        window.scrollTo({ top: 30, behavior: "instant" }),
+      );
+      await expect.poll(() => progreso(page)).toBeGreaterThan(0);
+      expect(await progreso(page)).toBeLessThan(1);
+
+      await page.evaluate(() =>
+        window.scrollTo({ top: 400, behavior: "instant" }),
+      );
+      await expect.poll(() => progreso(page)).toBe(1);
+
+      await page.evaluate(() =>
+        window.scrollTo({ top: 0, behavior: "instant" }),
+      );
+      await expect.poll(() => progreso(page)).toBe(0);
+    });
+  }
+});
+
+test.describe("acceso", () => {
+  test("la contraseña se puede mostrar y ocultar", async ({ page }) => {
+    await page.goto("/login");
+    const campo = page.locator('input[name="password"]');
+    await expect(campo).toHaveAttribute("type", "password");
+    await page.getByRole("button", { name: "Mostrar contraseña" }).click();
+    await expect(campo).toHaveAttribute("type", "text");
+    await page.getByRole("button", { name: "Ocultar contraseña" }).click();
+    await expect(campo).toHaveAttribute("type", "password");
+  });
+});

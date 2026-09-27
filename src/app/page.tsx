@@ -219,7 +219,7 @@ export default async function Portada() {
   return (
     <div id="arriba" className="flex min-h-dvh flex-col">
       <AnimacionesDePortada />
-      <CabeceraGlobal area={area} umbralId="nosotros" secciones={SECCIONES} />
+      <CabeceraGlobal area={area} secciones={SECCIONES} />
 
       <main className="flex-1">
         <div className="relative">

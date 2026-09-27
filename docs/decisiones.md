@@ -82,6 +82,11 @@ lean como una sola cosa.
 - **Contacto es honesto.** No hay casilla ni tabla para consultas: la página
   lo dice y ofrece el repositorio como canal. Hace falta un correo del equipo.
 - **Redes**: el pie solo enlaza el repositorio, la única que existe.
+- **El encabezado progresivo usa `requestAnimationFrame` y no ScrollTrigger.**
+  Con ScrollTrigger habría que cargar GSAP en toda la app para un solo efecto;
+  un cálculo por cuadro que escribe `--p` hace lo mismo sin dependencias. El
+  progreso se deriva siempre de `window.scrollY`, así que no hay estado que
+  pueda quedar trabado.
 - **El tema se recuerda por navegador**, no por persona. Para que siga a la
   cuenta en todos los dispositivos habría que guardarlo en `perfiles`.
 

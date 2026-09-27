@@ -151,19 +151,16 @@ function MenuCuenta({ area }: { area: "postulante" | "empresa" }) {
 
 export function CabeceraGlobal({
   area = "postulante",
-  umbralId,
   secciones: propias,
 }: {
   area?: Area;
-  /** En la portada: la cápsula aparece cuando este bloque llega arriba. */
-  umbralId?: string;
   /** En la portada: anclas a sus propias secciones en vez de las rutas. */
   secciones?: readonly Seccion[];
 }) {
   const secciones = propias ?? SECCIONES[area];
 
   return (
-    <EncabezadoFlotante umbralId={umbralId}>
+    <EncabezadoFlotante>
       <Marca href={inicioDe(area)} alto={26} />
 
       <NavPrincipal secciones={secciones} />

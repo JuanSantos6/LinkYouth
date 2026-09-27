@@ -45,9 +45,19 @@ las flechas recorren.
 
 ## Encabezado (`layout/CabeceraGlobal` + `navegacion/EncabezadoFlotante`)
 
-`fixed`, altura 64 px, con un separador de 64 px en el flujo. Arriba: barra
-completa sólida. Al pasar 24 px (o, en la portada, cuando `#nosotros` llega
-arriba): cápsula de vidrio de hasta 1180 px.
+`fixed`, altura 64 px, con un separador de 64 px en el flujo. Progreso `--p`
+de 0 a 1 en los primeros 120 px de scroll, con curva ease-out, recalculado
+siempre desde la posición real. En 0: barra integrada, sin radio, con una
+línea abajo. En 1: cápsula de hasta 1180 px, radio 32 px, vidrio al 86 %,
+borde fino y sombra (los dos últimos en pseudo-elementos, animados solo con
+`opacity`). Con «reducir movimiento», 0 o 1 sin intermedios.
+
+## Acceso (`auth/TarjetaDeAcceso`)
+
+Tarjeta de 440 px (560 px en el registro), radio 28 px, sombra suave, con el
+logo y el tema arriba, título cálido, formulario, enlace alternativo y vuelta
+a la página principal. Fondo de `(auth)/layout.tsx`: dos manchas muy suaves
+de turquesa y violeta y los anillos del isotipo, casi transparentes.
 
 ## Pestañas del teléfono (`navegacion/BarraPestanas`)
 
