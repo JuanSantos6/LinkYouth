@@ -110,6 +110,14 @@ extrabold; título de tarjeta 19 px.
   cabecera**: no agregues fondos ni bordes detrás de ella en ningún layout.
 - **Iniciar sesión y crear cuenta** van en `TarjetaDeAcceso`, sobre el fondo
   suave de `(auth)/layout.tsx`. Las contraseñas usan `EntradaContrasenia`.
+  Las dos pantallas llevan `PestanasDeCuenta` («Busco trabajo» / «Soy
+  empresa»); en el login la pestaña solo cambia los textos.
+- **Sin sesión**, la cabecera muestra «Entrar» y «Crear cuenta»: sin avisos,
+  sin menú de cuenta y sin botón de tema (el tema sigue al sistema).
+- **Cintas de logos** (`CintaDeOrganizaciones`): de borde a borde, animación
+  CSS de `transform`, pausa al pasar el mouse o con foco, botón de pausa, y
+  quieta con «reducir movimiento». Logos como imagen, nunca como enlace. Un
+  logo real solo con autorización escrita de la empresa.
 
 ## Movimiento
 

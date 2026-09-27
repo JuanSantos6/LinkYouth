@@ -87,6 +87,27 @@ lean como una sola cosa.
   un cálculo por cuadro que escribe `--p` hace lo mismo sin dependencias. El
   progreso se deriva siempre de `window.scrollY`, así que no hay estado que
   pueda quedar trabado.
+- **Los logos de la cinta «Quiénes publican» son de ejemplo.** Las empresas
+  de prueba no tienen logo y ninguna empresa real autorizó a mostrar el suyo:
+  la cinta dibuja una marca de ejemplo con las iniciales y lo dice debajo.
+  **Mostrar el logo real de una organización requiere su autorización
+  expresa**, por escrito, antes de cargarlo en `empresas.logo_url`.
+- **«Mantener la sesión iniciada» sin tocar Supabase.** `@supabase/ssr` escribe
+  las cookies de sesión con 400 días de duración. Sin la casilla, el login
+  deja una cookie de sesión `ly-recordar=0`, y mientras exista, el cliente del
+  servidor y el middleware escriben las cookies de Supabase sin `maxAge` ni
+  `expires` (`src/lib/supabase/sesion.ts`): se borran al cerrar el navegador,
+  también cuando el middleware renueva el token. Se descartó acortar la
+  duración del token en Supabase, porque afectaría a todas las cuentas por
+  igual, y guardar la preferencia en `localStorage`, porque el servidor no la
+  ve. La cookie no lleva `secure` porque la app también se sirve por HTTP en la
+  red interna, igual que las de Supabase.
+- **Las pestañas «Busco trabajo» y «Soy empresa» del login no deciden a dónde
+  se entra.** Lo decide `cuentas.tipo` (RF1.2). Si no coinciden, se entra
+  igual a la sección que corresponde, con un aviso (`avisoPorPestana`). Así la
+  pestaña no se puede usar para entrar a la mitad equivocada.
+- **Los visitantes sin sesión no ven el botón de tema**: siguen al sistema. El
+  botón es de la cuenta.
 - **El tema se recuerda por navegador**, no por persona. Para que siga a la
   cuenta en todos los dispositivos habría que guardarlo en `perfiles`.
 

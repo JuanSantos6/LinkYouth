@@ -231,10 +231,20 @@ lugar de fallar es lo que sostiene la regla §2.3.
 
 ### 5.2 `src/lib/supabase/server.ts`
 
-#### `async createClient()`
+#### `async createClient({ recordar? })`
 
 Cliente para Server Components, Route Handlers y Server Actions. Lee y escribe
-las cookies de sesión a través de `cookies()` de Next.js.
+las cookies de sesión a través de `cookies()` de Next.js. Si la persona no
+eligió «Mantener la sesión iniciada» (cookie `ly-recordar=0`, o `recordar:
+false` en el mismo request del login), escribe las cookies de Supabase sin
+`maxAge` ni `expires`: son de sesión.
+
+#### `sesion.ts`
+
+`COOKIE_RECORDAR`, `recuerdaSesion(valor)` y `opcionesDeCookie(opciones,
+recordar)`, que usan el cliente del servidor y el middleware para que las
+cookies renovadas respeten la preferencia. Solo importa tipos: corre también
+en Edge.
 
 Es `async` porque en Next.js 15 `cookies()` pasó a ser asíncrono. El `setAll`
 está envuelto en `try/catch` a propósito: un Server Component no puede
@@ -645,6 +655,7 @@ para que no se lea como permiso general.
 | `NavPrincipal` | `secciones` | Las secciones del encabezado en escritorio; la activa con peso, filete violeta y `aria-current`. Las anclas (`#…`) van como `<a>` común. |
 | `MenuDesplegable` | `boton`, `etiqueta`, `alinear?`, `children` | Menú con `aria-expanded`, Esc, clic afuera, flechas y foco de vuelta al botón. Se abre con `.emergente`. Exporta `OPCION_MENU`. |
 | `BarraPestanas` | — | Pestañas de abajo del postulante en el teléfono, en cápsula de vidrio, con la marca de la activa que se desliza. |
+| `AvisoDeLlegada` | — | Aviso al llegar desde la pestaña del login que no correspondía (`?aviso=`). Se cierra solo, se anuncia y limpia la URL. En los layouts de `(app)` y `empresa`. |
 | `ProveedorDeTransiciones` | `children` | En el layout raíz: envuelve la navegación en `document.startViewTransition`, con tope de 800 ms. Sin soporte o con «reducir movimiento», navega normal. |
 | `EnlaceTransicion` | props de `<Link>` | Un `Link` que cambia de pantalla con transición. Modificadores y anclas quedan como siempre. |
 
@@ -662,7 +673,8 @@ para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `FormularioLogin` | `siguiente?` | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
+| `FormularioLogin` | `siguiente?`, `tipo?` | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
+| `PestanasDeCuenta` | `activo`, `destinos` | «Busco trabajo» / «Soy empresa» en login y registro, como enlaces con `?tipo=empresa`. |
 | `TarjetaDeAcceso` | `titulo`, `bajada?`, `children`, `alternativa`, `ancha?` | La tarjeta centrada de iniciar sesión y crear cuenta: logo, tema, título, formulario, enlace alternativo y vuelta a la página principal. |
 | `EntradaContrasenia` | props de `<input>` | Campo de contraseña con botón para mostrarla u ocultarla (`aria-label`, `aria-pressed`, `aria-controls`). |
 | `FormularioRegistro` | — | Alta de cuenta individual (RF1.1). Los campos son exactamente las columnas obligatorias de `perfiles`, más el correo y la contraseña que van a `auth.users`. La mayoría de edad la exige la base: acá el campo es un `type="date"` común y el mensaje llega desde la acción. |
@@ -675,7 +687,8 @@ para que no se lea como permiso general.
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
-| `landing/CarruselEmpresas` | `empresas` | Las organizaciones que publican. No se mueve solo: avanza con las flechas, el dedo o la rueda. Las flechas aparecen solo si la fila desborda y cada una se apaga en su extremo: con cuatro organizaciones en escritorio no hay nada que desplazar, y una flecha que no hace nada se lee como una flecha rota. |
+| `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca de ejemplo si no hay logo. |
+| `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
 | `landing/FormularioConsulta` | — | Formulario de consultas, en `/contacto`. El aviso de que todavía no entrega va **antes** del formulario. |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |

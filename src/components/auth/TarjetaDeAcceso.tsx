@@ -1,11 +1,10 @@
 import Link from "next/link";
 
-import { BotonTema } from "@/components/layout/BotonTema";
 import { Marca } from "@/components/layout/Marca";
 
 /**
  * La tarjeta de iniciar sesión y de crear cuenta: centrada, con esquinas
- * redondeadas, sombra suave y aire adentro. Arriba, el logo y el tema; abajo,
+ * redondeadas, sombra suave y aire adentro. Arriba, el logo; abajo,
  * el enlace alternativo (crear cuenta / iniciar sesión) y la vuelta a la
  * página principal, para que nadie quede sin salida.
  */
@@ -30,10 +29,7 @@ export function TarjetaDeAcceso({
         ancha ? "max-w-[560px]" : "max-w-[440px]"
       }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <Marca href="/" alto={28} />
-        <BotonTema />
-      </div>
+      <Marca href="/" alto={28} />
 
       <div className="mt-8 space-y-2">
         <h1 className="text-[28px] leading-tight font-extrabold text-tinta sm:text-[30px]">

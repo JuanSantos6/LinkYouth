@@ -124,3 +124,42 @@ export function correspondeA(
   const deEmpresa = camino === "/empresa" || camino.startsWith("/empresa/");
   return area === "empresa" ? deEmpresa : !deEmpresa;
 }
+
+/** Parámetro con el aviso de llegada: «Tu cuenta es de empresa, te llevamos…». */
+export const PARAMETRO_AVISO = "aviso";
+
+export type AvisoDeLlegada = "cuenta-empresa" | "cuenta-joven";
+
+export const TEXTO_DE_AVISO: Record<AvisoDeLlegada, string> = {
+  "cuenta-empresa": "Tu cuenta es de empresa, así que te llevamos a tu panel.",
+  "cuenta-joven":
+    "Tu cuenta es para buscar trabajo, así que te llevamos a tu inicio.",
+};
+
+export function esAvisoDeLlegada(valor: unknown): valor is AvisoDeLlegada {
+  return valor === "cuenta-empresa" || valor === "cuenta-joven";
+}
+
+/**
+ * Si la pestaña del login («Busco trabajo» / «Soy empresa») no coincide con
+ * el tipo real de la cuenta, qué aviso mostrar al llegar. La pestaña nunca
+ * decide a dónde se entra: eso lo decide `cuentas.tipo` (RF1.2). Solo cambia
+ * el texto de la pantalla y, si no coincide, avisa por qué se llegó a otro
+ * lado.
+ */
+export function avisoPorPestana(
+  elegida: unknown,
+  real: "individual" | "empresa",
+): AvisoDeLlegada | null {
+  if (elegida !== "individual" && elegida !== "empresa") return null;
+  if (elegida === real) return null;
+  return real === "empresa" ? "cuenta-empresa" : "cuenta-joven";
+}
+
+/** Agrega el aviso de llegada a una ruta interna, respetando consulta y ancla. */
+export function conAviso(ruta: string, aviso: AvisoDeLlegada | null): string {
+  if (!aviso) return ruta;
+  const [base, ancla] = ruta.split("#", 2);
+  const separador = base.includes("?") ? "&" : "?";
+  return `${base}${separador}${PARAMETRO_AVISO}=${aviso}${ancla ? `#${ancla}` : ""}`;
+}

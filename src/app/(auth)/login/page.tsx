@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { FormularioLogin } from "@/components/auth/FormularioLogin";
+import { PestanasDeCuenta } from "@/components/auth/PestanasDeCuenta";
 import { TarjetaDeAcceso } from "@/components/auth/TarjetaDeAcceso";
 import { conSiguiente, destinoSeguro } from "@/lib/navegacion";
 
@@ -31,12 +32,14 @@ export default async function PaginaLogin({
       titulo={esEmpresa ? "Hola de nuevo" : "Qué bueno verte de nuevo"}
       bajada={
         esEmpresa
-          ? "Entrá al panel de tu organización."
+          ? "Entrá al panel de tu organización para ver tus búsquedas y tus eventos."
           : "Seguí tus postulaciones y enterate de los próximos eventos."
       }
       alternativa={
         <>
-          ¿Todavía no tenés cuenta?{" "}
+          {esEmpresa
+            ? "¿Tu organización todavía no tiene cuenta?"
+            : "¿Todavía no tenés cuenta?"}{" "}
           <Link
             href={
               esEmpresa
@@ -50,7 +53,19 @@ export default async function PaginaLogin({
         </>
       }
     >
-      <FormularioLogin siguiente={siguiente} />
+      <div className="space-y-6">
+        <PestanasDeCuenta
+          activo={esEmpresa ? "empresa" : "individual"}
+          destinos={{
+            individual: conSiguiente("/login", siguiente),
+            empresa: conSiguiente("/login", siguiente, { tipo: "empresa" }),
+          }}
+        />
+        <FormularioLogin
+          siguiente={siguiente}
+          tipo={esEmpresa ? "empresa" : "individual"}
+        />
+      </div>
     </TarjetaDeAcceso>
   );
 }

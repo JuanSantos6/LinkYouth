@@ -45,22 +45,52 @@ test.describe("pie de página", () => {
   });
 });
 
-test.describe("tema", () => {
-  test("el botón del encabezado cambia el tema y lo recuerda", async ({
+test.describe("visitante sin sesión", () => {
+  test("ve Entrar y Crear cuenta, sin avisos ni tema, y el logo lleva a la portada", async ({
     page,
   }) => {
-    await page.goto("/como-funciona");
-    const raiz = page.locator("html");
-    await expect(raiz).not.toHaveAttribute("data-tema", /.+/);
+    await page.goto("/empleos");
+    const cabecera = page.getByRole("banner");
+    await expect(cabecera.getByRole("link", { name: "Entrar" })).toBeVisible();
+    await expect(
+      cabecera.getByRole("link", { name: "Crear cuenta" }),
+    ).toBeVisible();
+    await expect(cabecera.getByRole("link", { name: "Avisos" })).toHaveCount(0);
+    await expect(cabecera.getByRole("button", { name: /^Tema:/ })).toHaveCount(
+      0,
+    );
+    await expect(
+      cabecera.getByRole("link", { name: "LinkYouth" }),
+    ).toHaveAttribute("href", "/");
+  });
+});
 
-    const boton = page.getByRole("button", { name: /^Tema:/ });
-    await boton.click();
-    await expect(raiz).toHaveAttribute("data-tema", "claro");
-    await boton.click();
-    await expect(raiz).toHaveAttribute("data-tema", "oscuro");
+test.describe("iniciar sesión", () => {
+  test("tiene las pestañas Busco trabajo y Soy empresa, con textos propios", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    const pestanas = page.getByRole("navigation", { name: "Tipo de cuenta" });
+    await expect(
+      pestanas.getByRole("link", { name: "Busco trabajo" }),
+    ).toHaveAttribute("aria-current", "page");
+    await pestanas.getByRole("link", { name: "Soy empresa" }).click();
+    await expect(page).toHaveURL(/tipo=empresa/);
+    await expect(page.getByText(/panel de tu organización/)).toBeVisible();
+    await expect(page.locator('input[name="tipo_elegido"]')).toHaveValue(
+      "empresa",
+    );
+  });
 
-    await page.reload();
-    await expect(raiz).toHaveAttribute("data-tema", "oscuro");
+  test("ofrece mantener la sesión iniciada, sin marcar por defecto", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    const casilla = page.getByRole("checkbox", {
+      name: /Mantener la sesión iniciada/,
+    });
+    await expect(casilla).toBeVisible();
+    await expect(casilla).not.toBeChecked();
   });
 });
 
@@ -105,6 +135,24 @@ test.describe("portada", () => {
     await expect(
       page.getByRole("button", { name: "Reanudar el cambio automático" }),
     ).toBeVisible();
+  });
+
+  test("la cinta de organizaciones se mueve sola, sin flechas, y se puede pausar", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const cinta = page.locator(".cinta");
+    await expect(
+      cinta.getByRole("button", { name: /anteriores|siguientes/ }),
+    ).toHaveCount(0);
+    await expect(cinta.locator("a")).toHaveCount(0);
+    const animacion = await cinta
+      .locator(".cinta-pista")
+      .evaluate((e) => getComputedStyle(e).animationName);
+    expect(animacion).toBe("ly-cinta");
+    await cinta.getByRole("button", { name: "Pausar la cinta" }).click();
+    await expect(cinta).toHaveAttribute("data-pausada", "true");
+    await expect(page.getByText(/Logos de ejemplo/)).toBeVisible();
   });
 
   test("las opiniones están marcadas como ejemplo", async ({ page }) => {

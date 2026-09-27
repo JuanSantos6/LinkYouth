@@ -1,6 +1,8 @@
 import { CabeceraGlobal } from "@/components/layout/CabeceraGlobal";
 import { PieDeSitio } from "@/components/layout/PieDeSitio";
+import { AvisoDeLlegada } from "@/components/navegacion/AvisoDeLlegada";
 import { BarraPestanas } from "@/components/navegacion/BarraPestanas";
+import { Suspense } from "react";
 import { obtenerTipoCuenta } from "@/lib/data/consultas";
 import { areaDe } from "@/lib/navegacion";
 
@@ -24,6 +26,9 @@ export default async function LayoutApp({
   return (
     <div className="flex min-h-dvh flex-col">
       <CabeceraGlobal area={area} />
+      <Suspense>
+        <AvisoDeLlegada />
+      </Suspense>
 
       <main className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-8 sm:px-6 lg:py-12">
         {children}

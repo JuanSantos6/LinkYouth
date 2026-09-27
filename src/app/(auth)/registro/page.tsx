@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { FormularioRegistro } from "@/components/auth/FormularioRegistro";
 import { FormularioRegistroEmpresa } from "@/components/auth/FormularioRegistroEmpresa";
+import { PestanasDeCuenta } from "@/components/auth/PestanasDeCuenta";
 import { TarjetaDeAcceso } from "@/components/auth/TarjetaDeAcceso";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { obtenerCatalogos } from "@/lib/data/consultas";
@@ -13,49 +14,10 @@ export const metadata: Metadata = { title: "Crear cuenta" };
 
 type Tipo = "individual" | "empresa";
 
-const OPCIONES: { tipo: Tipo; etiqueta: string; destino: string }[] = [
-  { tipo: "individual", etiqueta: "Busco trabajo", destino: "/registro" },
-  {
-    tipo: "empresa",
-    etiqueta: "Ofrezco trabajo",
-    destino: "/registro?tipo=empresa",
-  },
-];
-
 const BAJADA: Record<Tipo, string> = {
   individual: "Tu primer empleo, prácticas y eventos, en un solo lugar.",
   empresa: "Publicá búsquedas y encontrá gente que recién empieza.",
 };
-
-/**
- * Elegir entre los dos registros son dos enlaces, no estado del cliente: cada
- * variante tiene su URL, se puede compartir y volver atrás funciona. Mismo
- * criterio que las pestañas del feed.
- */
-function Selector({ activo }: { activo: Tipo }) {
-  return (
-    <div role="group" aria-label="Tipo de cuenta" className="flex gap-1.5">
-      {OPCIONES.map(({ tipo, etiqueta, destino }) => {
-        const seleccionado = tipo === activo;
-
-        return (
-          <Link
-            key={tipo}
-            href={destino}
-            aria-current={seleccionado ? "page" : undefined}
-            className={`flex-1 rounded-full border px-3 py-2.5 text-center text-[15px] font-semibold transition-colors duration-200 ${
-              seleccionado
-                ? "border-acento bg-acento-tenue text-acento"
-                : "border-borde bg-superficie text-apagado hover:border-borde-control"
-            }`}
-          >
-            {etiqueta}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
 
 export default async function PaginaRegistro({
   searchParams,
@@ -106,7 +68,13 @@ export default async function PaginaRegistro({
       }
     >
       <div className="space-y-6">
-        <Selector activo={activo} />
+        <PestanasDeCuenta
+          activo={activo}
+          destinos={{
+            individual: conSiguiente("/registro", siguiente),
+            empresa: "/registro?tipo=empresa",
+          }}
+        />
 
         {activo === "individual" && <AvisoOrigen resultado={catalogos} />}
 

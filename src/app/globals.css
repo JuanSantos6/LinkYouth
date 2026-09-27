@@ -552,6 +552,49 @@ html.lenis body {
   }
 }
 
+/* ---------- Cinta de organizaciones ----------
+ * Solo `transform`, animación CSS: la lista va dos veces y la pista se corre
+ * la mitad de su ancho, así el final empalma con el principio.
+ */
+.cinta-pista {
+  animation: ly-cinta 45s linear infinite;
+  will-change: transform;
+}
+
+.cinta:hover .cinta-pista,
+.cinta:focus-within .cinta-pista,
+.cinta[data-pausada="true"] .cinta-pista {
+  animation-play-state: paused;
+}
+
+@keyframes ly-cinta {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Quieta y sin repeticiones: cada logo una vez, en filas. */
+@media (prefers-reduced-motion: reduce) {
+  .cinta-pista {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+    row-gap: 1rem;
+  }
+
+  .cinta-logo[aria-hidden="true"] {
+    display: none;
+  }
+
+  .cinta-ventana {
+    mask-image: none;
+  }
+}
+
 @keyframes ly-brillo {
   from {
     background-position: 100% 0;

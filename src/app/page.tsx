@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { CarruselEmpresas } from "@/components/landing/CarruselEmpresas";
+import { CintaDeOrganizaciones } from "@/components/landing/CintaDeOrganizaciones";
 import { PreguntasFrecuentes } from "@/components/landing/PreguntasFrecuentes";
 import { CabeceraGlobal } from "@/components/layout/CabeceraGlobal";
 import { IconoCamara } from "@/components/layout/Iconos";
@@ -419,9 +419,16 @@ export default async function Portada() {
                 ejemplo.
               </p>
             )}
-            <div data-revelar>
-              <CarruselEmpresas empresas={empresas.datos} />
-            </div>
+          </div>
+          {/* La cinta ocupa todo el ancho de la página, fuera del contenedor. */}
+          <div data-revelar>
+            <CintaDeOrganizaciones
+              empresas={empresas.datos}
+              deEjemplo={
+                empresas.origen === "ejemplo" ||
+                empresas.datos.every((empresa) => !empresa.logo_url)
+              }
+            />
           </div>
         </section>
 

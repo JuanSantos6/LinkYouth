@@ -15,6 +15,21 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-27 — Rediseño «Recreo» (rama `feat/rediseno-juvenil`)
 
+- **Cinta de organizaciones en lugar del carrusel con flechas.** Logos
+  seguidos que se desplazan solos, de borde a borde, con animación CSS solo
+  de `transform`. Se detiene con el mouse o el foco, tiene botón de pausa y con
+  «reducir movimiento» queda quieta. Los logos son de ejemplo y lo dice: los
+  reales requieren autorización de cada empresa.
+- **Pestañas «Busco trabajo» y «Soy empresa» en iniciar sesión y en crear
+  cuenta**, con textos propios. Si se entra por la que no corresponde, se
+  llega igual a la sección correcta con un aviso («Tu cuenta es de empresa,
+  así que te llevamos a tu panel»). Motivo: separar la entrada sin permitir
+  que la pestaña decida el acceso (RF1.2).
+- **«Mantener la sesión iniciada».** Sin marcarla, la sesión termina al cerrar
+  el navegador (`src/lib/supabase/sesion.ts`).
+- **Los visitantes ya no ven el botón de tema** en la cabecera ni en el login:
+  la cabecera sin sesión es «Entrar» y «Crear cuenta».
+
 - **El encabezado se transforma de a poco, desde el primer píxel.** Antes
   cambiaba de golpe al llegar al segundo bloque y a veces quedaba trabado
   como cápsula, porque dependía de un IntersectionObserver que podía quedar
