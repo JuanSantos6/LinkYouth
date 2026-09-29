@@ -424,10 +424,7 @@ export default async function Portada() {
           <div data-revelar>
             <CintaDeOrganizaciones
               empresas={empresas.datos}
-              deEjemplo={
-                empresas.origen === "ejemplo" ||
-                empresas.datos.every((empresa) => !empresa.logo_url)
-              }
+              deEjemplo={empresas.origen === "ejemplo"}
             />
           </div>
         </section>

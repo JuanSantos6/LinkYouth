@@ -16,17 +16,29 @@ import { PausaDeCinta } from "./PausaDeCinta";
  * - Cada logo es solo una imagen: ni botón ni enlace. La segunda copia está
  *   oculta para lectores de pantalla, que leen cada organización una vez.
  *
- * Los logos de hoy son de ejemplo (las empresas de prueba no tienen logo y
- * ninguna empresa real autorizó a mostrar el suyo): ver `docs/decisiones.md`.
+ * Una empresa sin logo se muestra con una marca provisoria (sus iniciales).
+ * Alcanza con un solo logo provisorio en la cinta para que se avise en
+ * pantalla, aunque otras empresas ya hayan subido el suyo: ver
+ * `docs/decisiones.md`.
  */
 export function CintaDeOrganizaciones({
   empresas,
   deEjemplo,
 }: {
   empresas: EmpresaResumen[];
-  /** Los logos son de ejemplo: se dice en pantalla. */
+  /** Las organizaciones mismas son de ejemplo, no salen de la base. */
   deEjemplo: boolean;
 }) {
+  const provisorios = empresas.filter(
+    (empresa) => deEjemplo || !empresa.logo_url,
+  ).length;
+  const aviso =
+    provisorios === 0
+      ? "Organizaciones que ya publican búsquedas o eventos."
+      : provisorios === empresas.length
+        ? "Logos de ejemplo: todavía no hay empresas con permiso para mostrar su marca."
+        : "Algunos logos son provisorios: esas empresas todavía no subieron su marca.";
+
   // Cada tramo tiene que ser más ancho que la pantalla para que no se vea el
   // empalme: con pocas organizaciones, la lista se repite dentro del tramo.
   const repeticiones = Math.max(
@@ -61,10 +73,11 @@ export function CintaDeOrganizaciones({
       </div>
 
       <div className="mx-auto mt-2 flex max-w-[1180px] flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
-        <p className="text-[13.5px] text-apagado">
-          {deEjemplo
-            ? "Logos de ejemplo: todavía no hay empresas con permiso para mostrar su marca."
-            : "Organizaciones que ya publican búsquedas o eventos."}
+        <p
+          className="text-[13.5px] text-apagado"
+          data-aviso-cinta={provisorios > 0 ? "provisorios" : "reales"}
+        >
+          {aviso}
         </p>
         <PausaDeCinta />
       </div>
@@ -79,11 +92,10 @@ function Logo({
   empresa: EmpresaResumen;
   deEjemplo: boolean;
 }) {
-  const nombre = deEjemplo
-    ? `Logo de ejemplo de ${empresa.razon_social}`
-    : `Logo de ${empresa.razon_social}`;
-
   if (empresa.logo_url) {
+    const nombre = deEjemplo
+      ? `Logo de ejemplo de ${empresa.razon_social}`
+      : `Logo de ${empresa.razon_social}`;
     return (
       // eslint-disable-next-line @next/next/no-img-element -- logo en Supabase Storage, fuera del optimizador
       <img
@@ -106,7 +118,8 @@ function Logo({
   return (
     <svg
       role="img"
-      aria-label={nombre}
+      aria-label={`Logo provisorio de ${empresa.razon_social}`}
+      data-logo-provisorio
       viewBox="0 0 220 48"
       className="h-10 w-auto text-apagado"
     >

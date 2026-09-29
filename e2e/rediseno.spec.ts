@@ -152,7 +152,26 @@ test.describe("portada", () => {
     expect(animacion).toBe("ly-cinta");
     await cinta.getByRole("button", { name: "Pausar la cinta" }).click();
     await expect(cinta).toHaveAttribute("data-pausada", "true");
-    await expect(page.getByText(/Logos de ejemplo/)).toBeVisible();
+  });
+
+  test("la cinta avisa si hay al menos un logo provisorio", async ({
+    page,
+  }) => {
+    // No depende de qué empresas subieron logo en la base: compara el aviso
+    // con los logos que la cinta dibujó de verdad.
+    await page.goto("/");
+    const cinta = page.locator(".cinta");
+    const provisorios = await cinta
+      .locator(".cinta-ventana [data-logo-provisorio]")
+      .count();
+    const aviso = cinta.locator("[data-aviso-cinta]");
+    await expect(aviso).toBeVisible();
+    if (provisorios > 0) {
+      await expect(aviso).toHaveAttribute("data-aviso-cinta", "provisorios");
+      await expect(aviso).toHaveText(/Logos de ejemplo|logos son provisorios/);
+    } else {
+      await expect(aviso).toHaveAttribute("data-aviso-cinta", "reales");
+    }
   });
 
   test("las opiniones están marcadas como ejemplo", async ({ page }) => {

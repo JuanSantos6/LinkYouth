@@ -13,6 +13,16 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-29 — Aviso de logos provisorios en la cinta
+
+- **La cinta avisa en cuanto hay un logo provisorio, no solo cuando lo son
+  todos.** Antes, con una sola empresa con logo, las demás seguían con la marca
+  de iniciales y el aviso desaparecía: se mostraban marcas inventadas como si
+  fueran reales. Ahora cada marca de iniciales se llama «Logo provisorio de…» y
+  el aviso distingue entre todos provisorios, algunos y ninguno. El test e2e
+  dejó de depender de qué empresas subieron logo en la base: compara el aviso
+  con los logos que la cinta dibujó.
+
 ## 2026-09-27 — Rediseño «Recreo» (rama `feat/rediseno-juvenil`)
 
 - **Cinta de organizaciones en lugar del carrusel con flechas.** Logos

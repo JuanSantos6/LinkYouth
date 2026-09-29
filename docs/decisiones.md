@@ -90,6 +90,9 @@ lean como una sola cosa.
 - **Los logos de la cinta «Quiénes publican» son de ejemplo.** Las empresas
   de prueba no tienen logo y ninguna empresa real autorizó a mostrar el suyo:
   la cinta dibuja una marca de ejemplo con las iniciales y lo dice debajo.
+  Alcanza con **una** marca provisoria para que el aviso aparezca, aunque
+  otras empresas ya tengan logo (2026-09-29): se descartó avisar solo cuando
+  todos son provisorios, porque dejaba marcas inventadas sin anunciar.
   **Mostrar el logo real de una organización requiere su autorización
   expresa**, por escrito, antes de cargarlo en `empresas.logo_url`.
 - **«Mantener la sesión iniciada» sin tocar Supabase.** `@supabase/ssr` escribe
