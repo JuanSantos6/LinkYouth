@@ -57,12 +57,20 @@ export async function actualizarPerfil(
   if (!guardia.ok) return guardia.error;
   const { supabase, usuarioId } = guardia.sesion;
 
-  const { error } = await supabase
+  // Mismo motivo que en `cancelarPostulacion`: un `update` que no encuentra la
+  // fila no falla, devuelve cero filas. El `.select("id")` es lo que convierte
+  // ese caso en un error en vez de un «Perfil actualizado.» sobre nada.
+  const { data, error } = await supabase
     .from("perfiles")
     .update({ nombre, apellido, pais, bio: bio || null })
-    .eq("id", usuarioId);
+    .eq("id", usuarioId)
+    .select("id");
 
   if (error) return { estado: "error", mensaje: mensajeDeError(error) };
+
+  if (!data || data.length === 0) {
+    return { estado: "error", mensaje: "No se pudo actualizar el perfil." };
+  }
 
   revalidatePath("/perfil");
 
@@ -93,7 +101,10 @@ async function cambiarVinculo(
   consulta: (
     supabase: ClienteSupabase,
     perfilId: string,
-  ) => PromiseLike<{ error: { code: string; message: string } | null }>,
+  ) => PromiseLike<{
+    data: unknown[] | null;
+    error: { code: string; message: string } | null;
+  }>,
 ): Promise<EstadoAccion> {
   if (!id) {
     return { estado: "error", mensaje: "No se indicó qué agregar o quitar." };
@@ -113,6 +124,18 @@ async function cambiarVinculo(
     return { estado: "error", mensaje: mensajeDeError(error) };
   }
 
+  // Las cuatro consultas terminan en `.select("perfil_id")` —no `"id"`: estas
+  // dos tablas puente tienen clave compuesta y no llevan columna `id`—, así
+  // que `data` dice cuántas filas se tocaron.
+  //
+  // Acá, a diferencia de `actualizarPerfil` y `cancelarPostulacion`, cero filas
+  // NO es un error, y la simetría es deliberada: sacar una etiqueta que ya no
+  // estaba deja el perfil como lo pidió el clic, igual que agregar una que ya
+  // estaba. Devolver error haría que el estado optimista de `SelectorTags`
+  // revirtiera una etiqueta que sí quedó bien, que es exactamente lo que evita
+  // el caso del `23505` de arriba. La operación es idempotente en las dos
+  // direcciones, y ahora eso está escrito en vez de pasar de casualidad.
+
   revalidatePath("/perfil");
 
   return { estado: "ok", mensaje: "" };
@@ -121,7 +144,10 @@ async function cambiarVinculo(
 /** RF2.3 — Sumar un interés del catálogo al perfil propio. */
 export async function agregarTag(tagId: string): Promise<EstadoAccion> {
   return cambiarVinculo(tagId, (supabase, perfilId) =>
-    supabase.from("perfil_tags").insert({ perfil_id: perfilId, tag_id: tagId }),
+    supabase
+      .from("perfil_tags")
+      .insert({ perfil_id: perfilId, tag_id: tagId })
+      .select("perfil_id"),
   );
 }
 
@@ -132,7 +158,8 @@ export async function quitarTag(tagId: string): Promise<EstadoAccion> {
       .from("perfil_tags")
       .delete()
       .eq("perfil_id", perfilId)
-      .eq("tag_id", tagId),
+      .eq("tag_id", tagId)
+      .select("perfil_id"),
   );
 }
 
@@ -143,7 +170,8 @@ export async function agregarHabilidad(
   return cambiarVinculo(habilidadId, (supabase, perfilId) =>
     supabase
       .from("perfil_habilidades")
-      .insert({ perfil_id: perfilId, habilidad_id: habilidadId }),
+      .insert({ perfil_id: perfilId, habilidad_id: habilidadId })
+      .select("perfil_id"),
   );
 }
 
@@ -156,6 +184,7 @@ export async function quitarHabilidad(
       .from("perfil_habilidades")
       .delete()
       .eq("perfil_id", perfilId)
-      .eq("habilidad_id", habilidadId),
+      .eq("habilidad_id", habilidadId)
+      .select("perfil_id"),
   );
 }

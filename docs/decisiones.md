@@ -6,6 +6,142 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-26 — Los catálogos `tags` y `habilidades` son públicos a propósito
+
+**Decisión.** De las nueve políticas de «lectura pública» que alcanzaban a
+`anon` (S-3), se cierran siete con `to authenticated`: `perfil_tags`,
+`perfil_habilidades`, `formaciones`, `vacante_tags_publicos`,
+`vacante_habilidades`, `evento_tags` y `resenias`. Las de `tags` y
+`habilidades` quedan sin cláusula `to`, abiertas también para quien no tiene
+sesión.
+
+**Alternativas consideradas.**
+
+- *Cerrar las nueve, como proponía la primera versión del arreglo.* Se probó
+  contra la base: con el cambio, `anon` ve 0 de 36 tags y 0 de 20
+  habilidades. `/registro` lee el catálogo sin sesión (`obtenerCatalogos()`),
+  recibe una lista vacía, cae al catálogo de ejemplo y `SelectorIntereses`
+  deshabilita la selección porque esos ids no existen en la base. Nadie
+  podría elegir los cinco intereses que exige RF1.1.11, o sea, nadie podría
+  registrarse.
+- *Cerrar las nueve y servir el catálogo del registro desde el servidor* con
+  una función `security definer` o la clave de servicio. Funciona, pero agrega
+  una puerta con privilegios elevados para proteger algo que no necesita
+  protección, y el resultado para `anon` es el mismo: ver la lista.
+
+**Motivo.** Lo que S-3 cerraba era el *padrón*: quién es cada persona, qué le
+interesa, qué sabe hacer, dónde estudió y qué dijeron de ella, todo unido por
+`perfil_id`. `tags` y `habilidades` no llevan `perfil_id` ni ningún dato de
+una persona. Son la lista fija de opciones (36 y 20 filas), cargada por seed y
+sin escritura desde la app; es lo mismo que cualquiera ve en pantalla al abrir
+el formulario de registro. Abrirlos no expone a nadie. Lo que sí revela algo
+—qué persona eligió qué opción— vive en `perfil_tags` y `perfil_habilidades`,
+y esas dos quedan cerradas.
+
+**Consecuencia.** `db/verificar-raspado-anonimo.sh` controla las dos cosas: que
+las siete tablas con datos de personas no se vean sin sesión, y que los dos
+catálogos *sí* se vean. Si alguien «completa» el arreglo cerrando también los
+catálogos, el script falla y avisa que se rompe el registro. Si alguna vez un
+catálogo pasara a llevar datos de una persona —por ejemplo, etiquetas creadas
+por los usuarios—, esta decisión deja de valer y hay que revisarla.
+
+---
+
+## 2026-09-15 — Cero filas es error al editar, y éxito al prender o apagar una etiqueta
+
+**Decisión.** Toda escritura termina en `.select(…)`. `actualizarPerfil` y
+`cancelarPostulacion` devuelven error cuando no se tocó ninguna fila. Las
+cuatro acciones de etiquetas, no: ahí cero filas es un éxito.
+
+**Alternativas consideradas.**
+
+- Tratar cero filas como error en las seis, por simetría.
+- Dejar las etiquetas como estaban, sin `.select(…)`.
+
+**Motivo.** La asimetría no es un descuido. Editar el perfil o cancelar una
+postulación son operaciones sobre una fila concreta: si no se tocó ninguna, la
+operación no ocurrió y decir «Perfil actualizado.» es mentir. Prender o apagar
+una etiqueta es otra cosa: la operación describe un estado final, no un cambio.
+Sacar una etiqueta que ya no estaba deja el perfil exactamente como lo pidió el
+clic.
+
+Tratarlo como error ahí rompe algo concreto. `SelectorTags` mantiene estado
+optimista, y revierte la etiqueta si la acción falla. Con cero filas como
+error, un doble clic haría que la interfaz apagara una etiqueta que en la base
+quedó bien — que es exactamente el problema que ya evita la absorción del
+`23505` del lado del insert. La simetría bonita rompería la pantalla.
+
+Dejarlas sin `.select(…)` se descartó porque la idempotencia pasaba de
+casualidad: nadie miraba las filas, y funcionaba porque `error` venía en
+`null`. Ahora está escrita y comentada.
+
+**Consecuencia.** Las consultas de etiquetas seleccionan `perfil_id` y no `id`:
+`perfil_tags` y `perfil_habilidades` tienen clave compuesta y no tienen columna
+`id`. Un `.select("id")` copiado de las acciones de formación fallaría.
+
+---
+
+## 2026-09-15 — El medidor de contraseña usa rojo, amarillo y verde
+
+**Decisión.** Agregar tres tokens —`--ly-fuerza-baja`, `--ly-fuerza-media`,
+`--ly-fuerza-alta`— fuera de la paleta de cinco valores, usados únicamente por
+el medidor de contraseña, y acompañados siempre de la palabra «Débil», «Media»
+o «Fuerte».
+
+**Alternativas consideradas.**
+
+- Pintar la barra con `acento` y variar cuánto se llena, sin cambiar de color.
+- Usar el ámbar de `senal` para el nivel intermedio.
+- Sustituir la barra por una lista de requisitos con marcas de verificación.
+
+**Motivo.** La primera es la más fiel al sistema y la peor para lo que el
+medidor tiene que comunicar: llenar más o menos una barra del mismo color dice
+«vas por la mitad», no «esto es riesgoso». El semáforo es una convención que la
+gente ya sabe leer sin que nadie se la explique, y esta es la única pantalla de
+la aplicación donde hace falta comunicar riesgo.
+
+La segunda queda descartada por la regla del ámbar: `senal` significa
+«acreditado» y aparece dos veces en toda la aplicación. Usarlo acá lo
+convertiría en decoración y le sacaría el significado en los dos lugares donde
+sí lo tiene.
+
+La tercera se hace igual —la lista de requisitos está debajo de la barra— pero
+sola no alcanza: leer tres renglones para saber si la contraseña sirve es más
+trabajo que mirar una barra.
+
+Los tokens quedan encerrados en el medidor por la misma razón que el ámbar: si
+aparecen en otro lado, dejan de significar. Y el color nunca va solo, porque
+quien no distingue el rojo del verde tiene que poder leer lo mismo
+(WCAG 1.4.1).
+
+---
+
+## 2026-09-15 — La institución educativa se identifica por su nombre
+
+**Decisión.** Derivar el identificador de `/institucion/[id]` del nombre de la
+institución, y decir en la propia pantalla que la ficha está incompleta.
+
+**Alternativas consideradas.**
+
+- Agregar una tabla `instituciones` a `db/schema.sql`, con logo y clave
+  estable, y apuntar `formaciones` a ella.
+- No enlazar la institución: dejarla como texto, que es lo que era.
+
+**Motivo.** La primera es la solución correcta y es una decisión de esquema. El
+equipo fijó que `db/schema.sql` es el esquema que se mantiene, y agregarle una
+tabla desde una tarea de interfaz lo convierte en algo que cada uno extiende
+cuando le hace falta — el mismo criterio que se aplicó a las columnas de
+salario y al formulario de consultas.
+
+La segunda deja la pantalla más honesta pero menos útil: la institución es
+justamente el dato que alguien quiere seguir para ver quién más estudia ahí.
+
+El identificador derivado es lo que se puede hacer sin tocar el esquema, con
+dos límites que quedan escritos en la pantalla y en la deuda 7.8: dos grafías
+del mismo lugar son dos instituciones, y el enlace no es permanente.
+
+---
+
 ## 2026-09-15 — El tipo de cuenta se exige por existencia de fila, no por `cuentas.tipo`
 
 **Decisión.** Las políticas de insert exigen el tipo de cuenta con
