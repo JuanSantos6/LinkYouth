@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { cerrarSesion } from "@/lib/acciones/auth";
+import { type Area, inicioDe } from "@/lib/navegacion";
 
 import { IconoAvisos, IconoPerfil, IconoSalir } from "./Iconos";
 import { Marca } from "./Marca";
@@ -40,12 +41,12 @@ export function CabeceraGlobal({
    * los accesos a avisos ni a perfil, que son secciones del postulante: el
    * middleware la rebotaría a su panel.
    */
-  area?: "publico" | "postulante" | "empresa";
+  area?: Area;
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-borde bg-papel/92 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-[1320px] items-center gap-3 px-4 sm:gap-6 sm:px-6">
-        <Marca />
+        <Marca href={inicioDe(area)} />
 
         <nav
           aria-label="Secciones de LinkYouth"

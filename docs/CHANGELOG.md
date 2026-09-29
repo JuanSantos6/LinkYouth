@@ -15,6 +15,40 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-09-26
 
+- **Sin sesión ya no se queda encerrado entre el login y las pantallas
+  privadas.** El logo del login llevaba a `/como-funciona` —que comparte el
+  título con la portada— y el de las pantallas públicas a `/inicio`, que el
+  middleware rebotaba a `/login`: no había camino a la portada. Ahora el logo
+  lleva a `/` sin sesión y al inicio de la cuenta con ella (`inicioDe()` en
+  `src/lib/navegacion.ts`; `Marca` exige el destino), el login tiene «Volver a
+  la página principal» y el pie sin sesión ofrece solo enlaces públicos más
+  «Página principal».
+  → [`decisiones.md`](./decisiones.md)
+
+- **Después de entrar se vuelve a la pantalla pedida.** El middleware manda a
+  `/login?next=/ruta`, y `iniciarSesion` y `registrarse` vuelven ahí.
+  `destinoSeguro()` solo acepta rutas internas, para que `next` no sirva de
+  redirector abierto, y `correspondeA()` descarta un `next` de la otra mitad de
+  la aplicación: el `redirect()` de una Server Action no pasa por el
+  middleware, y una empresa que entraba con `?next=/perfil` terminaba viendo la
+  pantalla del postulante.
+
+- **`/empleos` y `/eventos` se leen sin sesión, y existe `/empleos/[id]`.**
+  Sin sesión no hay porcentaje de compatibilidad, hay una invitación a crear
+  cuenta («Creá tu cuenta para ver cuánto coincidís con cada búsqueda») y
+  «Postularme» e «Inscribirme» llevan a `/registro?next=…`. El detalle de
+  vacante (RF3.5.3, el «ver más» del feed) no existía: es también la pantalla
+  a la que se vuelve después de crear la cuenta.
+  → [`decisiones.md`](./decisiones.md)
+
+- **`vacante_tags_publicos`, `vacante_habilidades` y `evento_tags` vuelven a
+  estar abiertas a `anon`.** Ajusta el PR #6, que las había cerrado: son datos
+  del aviso, no de una persona, y sin ellas las vacantes se veían sin decir qué
+  piden —ni sus tags ni las habilidades que requieren—. Los tags
+  ocultos siguen cerrados. `db/verificar-raspado-anonimo.sh` pasa a listar qué
+  tiene que quedar abierto y qué cerrado, y falla en los dos sentidos.
+  → [`decisiones.md`](./decisiones.md)
+
 - **`/como-funciona` deja de decir que no hay registro ni inicio de sesión.**
   La sección «En qué estamos» afirmaba que el registro y el inicio de sesión
   «todavía no están», cuando ya funcionan para personas y empresas. Ahora lo

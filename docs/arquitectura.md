@@ -77,12 +77,16 @@ no «cualquiera». Siete políticas de select decían `using (true)` sin cláusu
 `to`, y sin `to` una política alcanza también al rol `anon` — y la `ANON_KEY`
 viaja al navegador por diseño, así que con ella y PostgREST se bajaba el padrón
 entero sin cuenta y sin límite. Desde el 2026-09-15 las siete llevan
-`to authenticated`; la condición no cambió.
+`to authenticated`; la condición no cambió. El 2026-09-26 tres de ellas
+—`vacante_tags_publicos`, `vacante_habilidades` y `evento_tags`— volvieron a
+abrirse (ver abajo).
 
 Siguen alcanzando a `anon`, a propósito: los catálogos `tags` y `habilidades`,
 que `/registro` lee **sin sesión** para ofrecer los intereses y que no son datos
-de nadie; `vacantes` y `eventos` activos, que
-son el aviso en sí y no datos de una persona; y la vista `perfiles_publicos`,
+de nadie; `vacantes` y `eventos` activos, que son el aviso en sí y no datos de
+una persona, con lo que el aviso dice que pide (`vacante_tags_publicos`,
+`vacante_habilidades`, `evento_tags`), porque desde el 2026-09-26 `/empleos` y `/eventos` se leen sin
+sesión; y la vista `perfiles_publicos`,
 que `registrarse()` lee **sin sesión** para avisar que un nombre de usuario ya
 está tomado. Las demás políticas sin `to` acotan la fila por `auth.uid()`, así
 que para `anon` no devuelven nada.
@@ -242,11 +246,16 @@ específico se puede ignorar sin perder nada.
 #### `async middleware(request)`
 
 Corre en cada request. Revalida el token de Supabase con `auth.getUser()`,
-reescribe las cookies rotadas en la respuesta y **manda a `/login` a quien
-entre sin sesión**, salvo a las rutas de `PUBLICAS` (`/login`, `/registro`).
+reescribe las cookies rotadas en la respuesta y **manda a `/login?next=…` a
+quien entre sin sesión** a una pantalla que la pide. `next` es la ruta pedida,
+para volver a ella después de entrar. Sin sesión quedan abiertas `ENTRADA`,
+`INFORMATIVAS` y `EXPLORABLES`.
+
+Con sesión, `/login` y `/registro` mandan al `next` si es una ruta interna que
+le corresponde a ese tipo de cuenta, y si no, al inicio de la cuenta.
 
 El control vive acá y no repetido en cada `page.tsx` porque es el único punto
-por el que pasan las cinco pantallas de `(app)/`. Las cookies que el refresco
+por el que pasan todas las pantallas de `(app)/`. Las cookies que el refresco
 acaba de reescribir se copian a la redirección: si se perdieran, el próximo
 request intentaría refrescar un token ya descartado.
 
@@ -254,14 +263,25 @@ Si no hay credenciales, deja pasar el request intacto en vez de romper toda la
 navegación: sin Supabase no hay sesión posible y la aplicación tiene que poder
 recorrerse igual con los datos de ejemplo (§2.3).
 
-#### `ENTRADA` · `INFORMATIVAS`
+#### `ENTRADA` · `INFORMATIVAS` · `EXPLORABLES`
 
-Dos listas, no una. `ENTRADA` (`/login`, `/registro`) es pública sin sesión y
-deja de tener sentido con ella. `INFORMATIVAS` (`/empresas`,
-`/como-funciona`, `/legales`) se lee siempre y por los dos tipos de cuenta:
-están enlazadas desde la cabecera y el pie, que aparecen en todas las
-pantallas, y mandar a `/login` a alguien que toca «Cómo funciona» sería
-pedirle credenciales para leer un folleto.
+Tres listas. `ENTRADA` (`/login`, `/registro`) es pública sin sesión y deja de
+tener sentido con ella. `INFORMATIVAS` (`/`, `/empresas`, `/como-funciona`,
+`/legales`) se lee siempre y por los dos tipos de cuenta: están enlazadas desde
+la cabecera y el pie, que aparecen en todas las pantallas, y mandar a `/login`
+a alguien que toca «Cómo funciona» sería pedirle credenciales para leer un
+folleto. `EXPLORABLES` (`/empleos`, `/empleos/[id]`, `/eventos`) se lee sin
+sesión desde el 2026-09-26: lo que pide cuenta es postularse o inscribirse, y
+cada botón lleva a `/registro?next=…` en vez de hacerlo.
+
+`INFORMATIVAS` y `EXPLORABLES` viven en `src/lib/navegacion.ts`, junto con
+`inicioDe(area)` —a dónde lleva el logo—, `destinoSeguro()` —que descarta un
+`next` que no sea una ruta interna, para que el parámetro no sirva de
+redirector abierto— y `correspondeA()`. Esta última existe porque el
+`redirect()` de una Server Action renderiza el destino en la misma respuesta
+sin pasar por el middleware: `iniciarSesion` y `registrarse` tienen que
+comprobar por su cuenta que el `next` sea de la mitad de la aplicación que le
+toca a la cuenta.
 
 #### `config`
 
@@ -358,6 +378,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | Función | Devuelve | Requisito |
 | --- | --- | --- |
 | `obtenerVacantes(filtros?)` | `Resultado<Vacante[]>` | RF3.5.1. Filtra por tipo y busca por título. |
+| `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
 | `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
@@ -588,7 +609,7 @@ para que no se lea como permiso general.
 | --- | --- | --- |
 | `CabeceraGlobal` | `area?` | Barra superior fija en todas las pantallas: marca, navegación de sitio y los accesos de la cuenta. `area` decide qué ofrece: entrar si no hay sesión, avisos y perfil para un postulante, solo salir para una empresa —a la que el middleware rebotaría de las secciones del postulante—. |
 | `PieDeSitio` | `area?` | Cuatro columnas, copyright y el repositorio, que es la única red que existe. La columna «Plataforma» cambia según el tipo de cuenta, por el mismo motivo. |
-| `Marca` | `href?` | El sello con las iniciales. Sin ámbar: un logo no acredita nada. |
+| `Marca` | `href` | El sello con las iniciales. Sin ámbar: un logo no acredita nada. El destino es obligatorio: sin sesión, `/`; con sesión, `inicioDe(area)`. |
 | `BarraLateral` | — | Las seis secciones de la cuenta. `"use client"` solo para leer `usePathname()`. La activa lleva filete vertical, no píldora rellena. El `min-w-0` no es decorativo: sin él la fila de secciones empuja la página entera a 574 px dentro de un viewport de 390. |
 | `Encabezado` | `titulo`, `descripcion?` | Encabezado de sección. |
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
@@ -625,8 +646,9 @@ para que no se lea como permiso general.
 | `/login` | `PaginaLogin` | Inicio de sesión. Layout propio de `(auth)/`: una columna centrada, sin barra lateral. |
 | `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
-| `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. |
-| `/eventos` | `PaginaEventos` | Agenda de eventos próximos. |
+| `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. Se lee sin sesión: sin compatibilidad, con una invitación a crear cuenta. |
+| `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
+| `/eventos` | `PaginaEventos` | Agenda de eventos próximos. Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
 | `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |

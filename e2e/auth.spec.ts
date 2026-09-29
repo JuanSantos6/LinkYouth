@@ -20,7 +20,9 @@ import { expect, test } from "@playwright/test";
  */
 
 /**
- * Las siete pantallas de `(app)/` más el panel de empresa. Todas exigen sesión.
+ * Las pantallas de `(app)/` que exigen sesión, más el panel de empresa.
+ * `/empleos` y `/eventos` ya no están: desde el 2026-09-26 se leen sin cuenta
+ * (`EXPLORABLES` en `src/lib/navegacion.ts`).
  *
  * Que una cuenta individual no pueda entrar a `/empresa` y viceversa (RF1.2) no
  * se prueba acá: hace falta una sesión de cada tipo, y eso significa escribir
@@ -32,8 +34,6 @@ import { expect, test } from "@playwright/test";
  */
 const RUTAS_PRIVADAS = [
   "/inicio",
-  "/empleos",
-  "/eventos",
   "/postulaciones",
   "/perfil",
   "/avisos",
@@ -56,6 +56,8 @@ const RUTAS_PUBLICAS = [
   "/empresas",
   "/como-funciona",
   "/legales",
+  "/empleos",
+  "/eventos",
 ];
 
 test.describe("guard de rutas sin sesión", () => {
@@ -63,20 +65,23 @@ test.describe("guard de rutas sin sesión", () => {
    * Verificado el 2026-09-12 desactivando a mano el `if (!user)` de
    * `src/middleware.ts`: solo `/eventos` y `/postulaciones` se ponen rojos.
    *
-   * Las otras tres no dependen solo del middleware — `/inicio`, `/empleos` y
-   * `/perfil` llaman a `obtenerPerfilActual()`, que tiene su propio
-   * `redirect("/login")` (`consultas.ts:206`), y `/` cae en `/inicio`. Son dos
-   * barreras y no una, que es lo que se buscaba.
+   * `/inicio` y `/perfil` no dependen solo del middleware: llaman a
+   * `obtenerPerfilActual()`, que tiene su propio `redirect("/login")`. Son dos
+   * barreras y no una, que es lo que se buscaba. (`/empleos` y `/eventos`
+   * salieron de esta lista el 2026-09-26, cuando pasaron a leerse sin sesión.)
    *
-   * La consecuencia práctica: `/eventos` y `/postulaciones` son las únicas
-   * cubiertas por una sola capa. Si alguien toca `PUBLICAS` o el guard, esos
-   * dos tests son los que avisan.
+   * La consecuencia práctica: `/postulaciones` es la única cubierta por una
+   * sola capa. Si alguien toca el guard, ese test es el que avisa.
    */
   for (const ruta of RUTAS_PRIVADAS) {
-    test(`${ruta} redirige a /login`, async ({ page }) => {
+    test(`${ruta} redirige a /login y recuerda a dónde iba`, async ({
+      page,
+    }) => {
       await page.goto(ruta);
 
-      await expect(page).toHaveURL(/\/login$/);
+      const url = new URL(page.url());
+      expect(url.pathname).toBe("/login");
+      expect(url.searchParams.get("next")).toBe(ruta);
     });
   }
 
@@ -104,6 +109,92 @@ test.describe("rutas públicas", () => {
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     });
   }
+});
+
+/**
+ * Navegación sin sesión: que nadie quede encerrado entre `/login` y las
+ * pantallas que piden cuenta.
+ *
+ * El caso que motivó estos tests: el logo del login llevaba a
+ * `/como-funciona`, el de las pantallas públicas a `/inicio` —que rebotaba a
+ * `/login`— y no había ningún camino de vuelta a la portada.
+ */
+test.describe("navegación pública", () => {
+  test("el login tiene el logo y un enlace visible a la portada", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+
+    await expect(
+      page.getByRole("link", { name: /volver a la página principal/i }),
+    ).toHaveAttribute("href", "/");
+    await expect(
+      page.getByRole("link", { name: "LinkYouth", exact: true }),
+    ).toHaveAttribute("href", "/");
+  });
+
+  for (const ruta of ["/como-funciona", "/empleos", "/eventos"]) {
+    test(`el logo de ${ruta} lleva a la portada sin sesión`, async ({
+      page,
+    }) => {
+      await page.goto(ruta);
+
+      await page
+        .getByRole("banner")
+        .getByRole("link", { name: "LinkYouth" })
+        .click();
+
+      await expect(page).toHaveURL(/\/$/);
+      await expect(
+        page.getByRole("heading", { level: 1, name: /habilidades/i }),
+      ).toBeVisible();
+    });
+  }
+
+  test("el pie sin sesión no ofrece secciones de una cuenta", async ({
+    page,
+  }) => {
+    await page.goto("/como-funciona");
+    const pie = page.getByRole("contentinfo");
+
+    await expect(
+      pie.getByRole("link", { name: "Mis postulaciones" }),
+    ).toHaveCount(0);
+    await expect(
+      pie.getByRole("link", { name: "Página principal" }),
+    ).toHaveAttribute("href", "/");
+  });
+
+  test("/empleos invita a crear cuenta y «Postularme» lleva al registro", async ({
+    page,
+  }) => {
+    await page.goto("/empleos");
+
+    await expect(
+      page.getByText(/creá tu cuenta para ver cuánto coincidís/i),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Crear mi cuenta" }),
+    ).toHaveAttribute("href", "/registro?next=%2Fempleos");
+  });
+
+  test("/login vuelve a una ruta interna y descarta una externa", async ({
+    page,
+  }) => {
+    const campo = page.locator('input[type="hidden"][name="next"]');
+
+    await page.goto("/login?next=/empleos");
+    await expect(campo).toHaveValue("/empleos");
+
+    for (const externa of [
+      "https://ejemplo.com",
+      "//ejemplo.com",
+      "/\\ejemplo.com",
+    ]) {
+      await page.goto(`/login?next=${encodeURIComponent(externa)}`);
+      await expect(campo).toHaveCount(0);
+    }
+  });
 });
 
 test.describe("cabeceras de seguridad (CN-002)", () => {

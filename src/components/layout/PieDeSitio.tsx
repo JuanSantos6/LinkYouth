@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { type Area, inicioDe } from "@/lib/navegacion";
+
 import { IconoCodigo } from "./Iconos";
 import { Marca } from "./Marca";
 
@@ -20,16 +22,31 @@ const PLATAFORMA_EMPRESA = [
   { href: "/empresas", etiqueta: "Qué ofrece LinkYouth" },
 ];
 
+/**
+ * Sin sesión, lo que se puede recorrer sin cuenta y las dos puertas de
+ * entrada. Antes veía la columna del postulante —«Mis postulaciones», «Mi
+ * perfil»—, y cada enlace terminaba en `/login`.
+ */
+const PLATAFORMA_PUBLICO = [
+  { href: "/empleos", etiqueta: "Empleos y pasantías" },
+  { href: "/eventos", etiqueta: "Eventos" },
+  { href: "/registro", etiqueta: "Crear una cuenta" },
+  { href: "/login", etiqueta: "Entrar" },
+];
+
+const PLATAFORMA = {
+  publico: PLATAFORMA_PUBLICO,
+  postulante: PLATAFORMA_POSTULANTE,
+  empresa: PLATAFORMA_EMPRESA,
+} as const;
+
+/** «Avisos» y «Ajustes» son secciones de la cuenta del postulante. */
+const DE_LA_CUENTA = [
+  { href: "/avisos", etiqueta: "Avisos" },
+  { href: "/ajustes", etiqueta: "Ajustes" },
+];
+
 const COLUMNAS = [
-  {
-    titulo: "LinkYouth",
-    enlaces: [
-      { href: "/como-funciona", etiqueta: "Cómo funciona" },
-      { href: "/empresas", etiqueta: "Para empresas" },
-      { href: "/avisos", etiqueta: "Avisos" },
-      { href: "/ajustes", etiqueta: "Ajustes" },
-    ],
-  },
   {
     titulo: "Legales",
     enlaces: [
@@ -47,15 +64,19 @@ const COLUMNAS = [
  * que existe de verdad. Sumar íconos de LinkedIn o Instagram que no llevan a
  * ninguna cuenta sería decorar el pie con enlaces muertos.
  */
-export function PieDeSitio({
-  area = "postulante",
-}: {
-  area?: "publico" | "postulante" | "empresa";
-}) {
+export function PieDeSitio({ area = "postulante" }: { area?: Area }) {
   const columnas = [
+    { titulo: "Plataforma", enlaces: PLATAFORMA[area] },
     {
-      titulo: "Plataforma",
-      enlaces: area === "empresa" ? PLATAFORMA_EMPRESA : PLATAFORMA_POSTULANTE,
+      titulo: "LinkYouth",
+      enlaces: [
+        // La portada, siempre a mano: es la única forma de volver a ella
+        // desde cualquier pantalla sin depender del botón de atrás.
+        { href: "/", etiqueta: "Página principal" },
+        { href: "/como-funciona", etiqueta: "Cómo funciona" },
+        { href: "/empresas", etiqueta: "Para empresas" },
+        ...(area === "postulante" ? DE_LA_CUENTA : []),
+      ],
     },
     ...COLUMNAS,
   ];
@@ -65,7 +86,7 @@ export function PieDeSitio({
       <div className="mx-auto max-w-[1320px] px-4 py-12 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
-            <Marca />
+            <Marca href={inicioDe(area)} />
             <p className="mt-3 max-w-xs text-[14px] leading-relaxed text-apagado">
               Primer empleo, formación y networking para jóvenes. Tu perfil son
               tus habilidades acreditadas, no un currículum.

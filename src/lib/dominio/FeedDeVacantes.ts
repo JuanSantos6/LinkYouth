@@ -26,7 +26,8 @@ export class FeedDeVacantes {
 
   static armar(
     vacantes: readonly Vacante[],
-    perfil: PerfilDeclarado,
+    /** Sin perfil —quien mira no tiene sesión—, todas miden cero: queda el orden por fecha. */
+    perfil?: PerfilDeclarado,
   ): FeedDeVacantes {
     const evaluadas = vacantes
       .map((vacante) => ({

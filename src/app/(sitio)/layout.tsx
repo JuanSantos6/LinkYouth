@@ -1,6 +1,7 @@
 import { CabeceraGlobal } from "@/components/layout/CabeceraGlobal";
 import { PieDeSitio } from "@/components/layout/PieDeSitio";
 import { obtenerTipoCuenta } from "@/lib/data/consultas";
+import { areaDe } from "@/lib/navegacion";
 
 /**
  * Estructura de las pantallas públicas: las mismas cabecera y pie que el
@@ -21,8 +22,7 @@ export const dynamic = "force-dynamic";
 export default async function LayoutSitio({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const tipo = await obtenerTipoCuenta();
-  const area = tipo === "empresa" ? "empresa" : tipo ? "postulante" : "publico";
+  const area = areaDe(await obtenerTipoCuenta());
 
   return (
     <div className="flex min-h-dvh flex-col">

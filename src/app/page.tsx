@@ -11,7 +11,8 @@ import { FormularioConsulta } from "@/components/landing/FormularioConsulta";
 import { GrupoDeMenus, MenuDeAcceso } from "@/components/landing/MenuDeAcceso";
 import { PreguntasFrecuentes } from "@/components/landing/PreguntasFrecuentes";
 import { PieDeSitio } from "@/components/layout/PieDeSitio";
-import { obtenerEmpresas } from "@/lib/data/consultas";
+import { obtenerEmpresas, obtenerTipoCuenta } from "@/lib/data/consultas";
+import { areaDe, inicioDe } from "@/lib/navegacion";
 
 export const metadata: Metadata = {
   title: "LinkYouth — tu primer empleo, sin currículum",
@@ -76,11 +77,17 @@ function Seccion({
 }
 
 export default async function Portada() {
-  const empresas = await obtenerEmpresas();
+  const [empresas, tipo] = await Promise.all([
+    obtenerEmpresas(),
+    obtenerTipoCuenta(),
+  ]);
+  const area = areaDe(tipo);
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <CabeceraLanding />
+      <CabeceraLanding
+        marca={area === "publico" ? "#que-es" : inicioDe(area)}
+      />
 
       <main className="mx-auto w-full max-w-[1320px] flex-1 px-4 sm:px-6">
         <section
@@ -186,7 +193,7 @@ export default async function Portada() {
         </Seccion>
       </main>
 
-      <PieDeSitio area="publico" />
+      <PieDeSitio area={area} />
     </div>
   );
 }

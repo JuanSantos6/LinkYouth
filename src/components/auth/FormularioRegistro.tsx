@@ -12,6 +12,7 @@ import { CAMPO, Campo } from "@/components/ui/Campo";
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { registrarse } from "@/lib/acciones/auth";
 import { ACCION_INICIAL } from "@/lib/acciones/tipos";
+import { PARAMETRO_SIGUIENTE } from "@/lib/navegacion";
 import type { OpcionCatalogo } from "@/lib/data/tipos";
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 
@@ -35,6 +36,7 @@ export function FormularioRegistro({
   intereses,
   interesesDeEjemplo = false,
   fechaMaximaDeNacimiento,
+  siguiente,
 }: {
   /** Catálogo de `tags` para elegir las áreas de interés (RF1.1.11). */
   intereses: OpcionCatalogo[];
@@ -47,6 +49,8 @@ export function FormularioRegistro({
    * hidratación esperando a pasar.
    */
   fechaMaximaDeNacimiento: string;
+  /** Pantalla a la que se vuelve con la cuenta creada. La valida la acción. */
+  siguiente?: string | null;
 }) {
   const [estado, enviar, enCurso] = useActionState(registrarse, ACCION_INICIAL);
 
@@ -64,6 +68,10 @@ export function FormularioRegistro({
 
   return (
     <form action={enviar} className="space-y-5">
+      {siguiente && (
+        <input type="hidden" name={PARAMETRO_SIGUIENTE} value={siguiente} />
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Campo etiqueta="Nombre">
           <input

@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { AccionConCuenta } from "@/components/auth/InvitacionACuenta";
 import { Avatar } from "@/components/ui/Avatar";
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
@@ -20,16 +23,22 @@ import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
  * En pantalla angosta la cifra encabeza la fila en lugar de esconderse. Es el
  * dato que ordena el listado: si desaparece en el teléfono, la persona no
  * entiende por qué está viendo esa vacante primero.
+ *
+ * Sin sesión no hay perfil contra el que medir, así que la cifra no aparece:
+ * un «0 % compatible» en cada fila diría algo falso. «Postularme» lleva a
+ * crear la cuenta y vuelve al detalle de esta vacante.
  */
 export function FilaVacante({
   entrada,
   yaPostulado = false,
   esEjemplo = false,
+  conSesion = true,
 }: {
   entrada: EntradaDelFeed;
   yaPostulado?: boolean;
   /** La vacante salió de `ejemplos.ts`: no existe nada a lo que postularse. */
   esEjemplo?: boolean;
+  conSesion?: boolean;
 }) {
   const { vacante, compatibilidad, destacada } = entrada;
 
@@ -46,7 +55,7 @@ export function FilaVacante({
       )}
 
       <div className="flex flex-wrap items-start gap-x-4 gap-y-3">
-        {compatibilidad.medible && (
+        {conSesion && compatibilidad.medible && (
           <p className="flex w-full items-baseline gap-2 sm:order-3 sm:w-20 sm:flex-col sm:items-end sm:gap-0">
             <span className="cifra text-[28px] text-tinta sm:text-[34px]">
               {compatibilidad.porcentaje}
@@ -74,7 +83,12 @@ export function FilaVacante({
           </div>
 
           <h3 className="mt-1 text-[18px] text-tinta sm:text-[19px]">
-            {vacante.titulo}
+            <Link
+              href={`/empleos/${vacante.id}`}
+              className="transition-colors duration-150 hover:text-acento"
+            >
+              {vacante.titulo}
+            </Link>
           </h3>
 
           <p className="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-apagado">
@@ -107,19 +121,26 @@ export function FilaVacante({
           </span>
         </div>
 
-        <BotonAccion
-          accion={postularse}
-          campo="vacanteId"
-          valor={vacante.id}
-          hecho={yaPostulado}
-          esEjemplo={esEjemplo}
-          textos={{
-            inicial: "Postularme",
-            enCurso: "Enviando…",
-            hecho: "Ya te postulaste",
-            ejemplo: "Disponible con vacantes reales",
-          }}
-        />
+        {conSesion || esEjemplo ? (
+          <BotonAccion
+            accion={postularse}
+            campo="vacanteId"
+            valor={vacante.id}
+            hecho={yaPostulado}
+            esEjemplo={esEjemplo}
+            textos={{
+              inicial: "Postularme",
+              enCurso: "Enviando…",
+              hecho: "Ya te postulaste",
+              ejemplo: "Disponible con vacantes reales",
+            }}
+          />
+        ) : (
+          <AccionConCuenta
+            etiqueta="Postularme"
+            siguiente={`/empleos/${vacante.id}`}
+          />
+        )}
       </div>
     </article>
   );

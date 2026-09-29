@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { InvitacionACuenta } from "@/components/auth/InvitacionACuenta";
 import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PaginaEventos() {
   const usuarioId = (await obtenerUsuarioId()) ?? undefined;
+  const conSesion = usuarioId !== undefined;
 
   const [eventos, yaInscriptos] = await Promise.all([
     obtenerEventos(20),
@@ -27,6 +29,14 @@ export default async function PaginaEventos() {
         titulo="Eventos de networking"
         descripcion="Charlas, talleres y ferias que organizan empresas e instituciones educativas. La inscripción es gratuita."
       />
+
+      {!conSesion && (
+        <InvitacionACuenta
+          titulo="Creá tu cuenta para inscribirte a los eventos"
+          texto="La inscripción es gratuita, y con tu cuenta ves los eventos que coinciden con tus intereses."
+          siguiente="/eventos"
+        />
+      )}
 
       <AvisoOrigen resultado={eventos} />
 
@@ -43,6 +53,7 @@ export default async function PaginaEventos() {
               evento={evento}
               yaInscripto={yaInscriptos.has(evento.id)}
               esEjemplo={eventos.origen === "ejemplo"}
+              conSesion={conSesion}
             />
           ))
         )}

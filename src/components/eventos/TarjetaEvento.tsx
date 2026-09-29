@@ -1,3 +1,4 @@
+import { AccionConCuenta } from "@/components/auth/InvitacionACuenta";
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
@@ -27,11 +28,14 @@ export function TarjetaEvento({
   evento,
   yaInscripto = false,
   esEjemplo = false,
+  conSesion = true,
 }: {
   evento: Evento;
   yaInscripto?: boolean;
   /** El evento salió de `ejemplos.ts`: no hay nada a lo que inscribirse. */
   esEjemplo?: boolean;
+  /** Sin sesión, «Inscribirme» lleva a crear la cuenta y vuelve a `/eventos`. */
+  conSesion?: boolean;
 }) {
   const { dia, mes } = fechaBloque(evento.fecha_hora);
 
@@ -102,7 +106,13 @@ export function TarjetaEvento({
              * clave React reutilizaría el estado de uno en el otro, dejando el
              * mensaje de la inscripción colgado debajo del botón de cancelar.
              */}
-            {yaInscripto ? (
+            {!conSesion && !esEjemplo ? (
+              <AccionConCuenta
+                etiqueta="Inscribirme"
+                siguiente="/eventos"
+                variante="secundario"
+              />
+            ) : yaInscripto ? (
               <BotonAccion
                 key="cancelar"
                 accion={cancelarInscripcion}

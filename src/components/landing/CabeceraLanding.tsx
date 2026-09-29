@@ -49,11 +49,15 @@ export const CREAR_CUENTA = [
   },
 ];
 
-export function CabeceraLanding() {
+/**
+ * `marca` es a dónde lleva el logo. Sin sesión, al principio de esta misma
+ * página; con sesión, al inicio de la cuenta, como en el resto del sitio.
+ */
+export function CabeceraLanding({ marca = "#que-es" }: { marca?: string }) {
   return (
     <header className="sticky top-0 z-40 border-b border-borde bg-papel/92 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1320px] flex-wrap items-center gap-x-3 px-4 py-2 sm:px-6 lg:h-14 lg:flex-nowrap lg:gap-6 lg:py-0">
-        <Marca href="#que-es" />
+        <Marca href={marca} />
 
         {/*
          * Los dos menús comparten grupo para que no puedan estar abiertos a la

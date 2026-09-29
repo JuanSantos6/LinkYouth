@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { InvitacionACuenta } from "@/components/auth/InvitacionACuenta";
 import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
 import { BuscadorVacantes } from "@/components/layout/BuscadorVacantes";
 import { Encabezado } from "@/components/layout/Encabezado";
@@ -38,21 +39,38 @@ export default async function PaginaEmpleos({
     : undefined;
 
   const usuarioId = (await obtenerUsuarioId()) ?? undefined;
+  const conSesion = usuarioId !== undefined;
 
+  // Sin sesión no se pide el perfil: `obtenerPerfilActual()` manda a `/login`
+  // a quien no tiene uno, y esta pantalla se lee sin cuenta. Sin perfil el
+  // feed queda ordenado por fecha, que es lo que resulta de medir todas las
+  // vacantes contra un perfil vacío.
   const [vacantes, perfil, yaPostuladas] = await Promise.all([
     obtenerVacantes({ busqueda: q, tipo: tipoValido, limite: 30 }),
-    obtenerPerfilActual(usuarioId),
+    conSesion ? obtenerPerfilActual(usuarioId) : null,
     obtenerVacantesPostuladas(usuarioId),
   ]);
 
-  const feed = FeedDeVacantes.armar(vacantes.datos, perfil.datos);
+  const feed = FeedDeVacantes.armar(vacantes.datos, perfil?.datos);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Encabezado
         titulo="Empleos y pasantías"
-        descripcion="Búsquedas abiertas para primera experiencia laboral, ordenadas por lo que ya acreditaste."
+        descripcion={
+          conSesion
+            ? "Búsquedas abiertas para primera experiencia laboral, ordenadas por lo que ya acreditaste."
+            : "Búsquedas abiertas para primera experiencia laboral, de la más reciente a la más vieja."
+        }
       />
+
+      {!conSesion && (
+        <InvitacionACuenta
+          titulo="Creá tu cuenta para ver cuánto coincidís con cada búsqueda"
+          texto="Elegís tus habilidades e intereses una vez, y cada vacante te muestra qué tenés de lo que pide. Postularte también se hace desde tu cuenta."
+          siguiente="/empleos"
+        />
+      )}
 
       <AvisoOrigen resultado={vacantes} />
 
@@ -110,6 +128,7 @@ export default async function PaginaEmpleos({
             feed={feed}
             yaPostuladas={yaPostuladas}
             esEjemplo={vacantes.origen === "ejemplo"}
+            conSesion={conSesion}
           />
         )}
       </section>

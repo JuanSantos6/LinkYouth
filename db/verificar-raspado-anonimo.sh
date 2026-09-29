@@ -36,77 +36,99 @@ filas_visibles() {
   | tr -d '\r' | grep -i '^content-range:' | sed -E 's#.*/##'
 }
 
-abiertas=0
+fallas=0
 
-# sondear <tabla> <tenia_filas_antes: si|no>
-sondear() {
+# cerrada <tabla> <tenia_filas_antes: si|no>
+# Tiene que devolver cero filas a `anon`.
+cerrada() {
   local tabla="$1" tenia="$2" n
   n=$(filas_visibles "$tabla")
   n=${n:-?}
 
   if [ "$n" != "0" ] && [ "$n" != "?" ]; then
-    printf '  %-24s %5s filas visibles   ABIERTA a anon\n' "$tabla" "$n"
-    abiertas=$((abiertas + 1))
+    printf '  %-24s %5s filas visibles   ABIERTA a anon: tiene que estar cerrada\n' "$tabla" "$n"
+    fallas=$((fallas + 1))
   elif [ "$tenia" = "si" ]; then
-    printf '  %-24s %5s filas visibles   CERRADA (antes tenía filas)\n' "$tabla" "$n"
+    printf '  %-24s %5s filas visibles   cerrada (antes tenía filas)\n' "$tabla" "$n"
   else
     printf '  %-24s %5s filas visibles   NO CONCLUYENTE (tabla vacía)\n' "$tabla" "$n"
   fi
 }
 
-echo "=== Las siete tablas con datos de personas (CN-002 / S-3)"
-sondear perfil_tags           si
-sondear perfil_habilidades    si
-sondear formaciones           si
-sondear vacante_tags_publicos no
-sondear vacante_habilidades   no
-sondear evento_tags           no
-sondear resenias              no
+# abierta <tabla> <tiene_filas_seguro: si|no> <qué se rompe si se cierra>
+# Tiene que verse sin sesión. Si la tabla puede estar vacía, cero filas no
+# prueba nada: se marca NO CONCLUYENTE y decide `pg_policies`.
+abierta() {
+  local tabla="$1" llena="$2" rompe="$3" n
+  n=$(filas_visibles "$tabla")
+  n=${n:-?}
 
-echo
-echo "=== Control: esto TIENE que seguir abierto a anon"
-echo "  \`registrarse()\` lee perfiles_publicos sin sesión, para avisar que el"
-echo "  nombre de usuario ya está tomado. Si se cierra, se rompe el registro."
-sondear perfiles_publicos     si
-
-echo
-echo "=== Control: los catálogos TIENEN que seguir abiertos a anon"
-echo "  /registro lee tags y habilidades sin sesión para ofrecer los intereses."
-echo "  Si se cierran, el selector queda vacío y nadie puede registrarse."
-catalogos_cerrados=0
-for catalogo in tags habilidades; do
-  n=$(filas_visibles "$catalogo")
-  if [ "${n:-0}" = "0" ] || [ "${n:-?}" = "?" ]; then
-    printf '  %-24s %5s filas visibles   CERRADO: se rompe el registro\n' "$catalogo" "${n:-?}"
-    catalogos_cerrados=$((catalogos_cerrados + 1))
+  if [ "$n" != "0" ] && [ "$n" != "?" ]; then
+    printf '  %-24s %5s filas visibles   abierta, como corresponde\n' "$tabla" "$n"
+  elif [ "$llena" = "si" ]; then
+    printf '  %-24s %5s filas visibles   CERRADA: %s\n' "$tabla" "$n" "$rompe"
+    fallas=$((fallas + 1))
   else
-    printf '  %-24s %5s filas visibles   abierto, como corresponde\n' "$catalogo" "$n"
+    printf '  %-24s %5s filas visibles   NO CONCLUYENTE (vacía o cerrada)\n' "$tabla" "$n"
   fi
-done
+}
+
+echo "=== Datos de personas: TIENEN que estar cerradas a anon (CN-002 / S-3)"
+cerrada perfil_tags           si
+cerrada perfil_habilidades    si
+cerrada formaciones           si
+cerrada resenias              no
 
 echo
-if [ "$abiertas" -le 1 ]; then
-  echo "Las tablas con datos quedaron cerradas. Las vacías no se pueden probar"
-  echo "desde acá: para esas, la consulta de abajo."
+echo "=== Tags ocultos: nunca a anon (RF3.1.6, RNF5)"
+cerrada vacante_tags_ocultos  no
+
+echo
+echo "=== Abiertas a propósito: sin ellas se rompe algo que se usa sin sesión"
+abierta tags                  si "/registro no puede ofrecer los intereses"
+abierta habilidades           si "/registro no puede ofrecer los intereses"
+abierta perfiles_publicos     si "registrarse() no avisa si el usuario ya existe"
+abierta vacantes              no "/empleos queda vacío sin sesión"
+abierta vacante_tags_publicos no "las vacantes se ven sin decir qué piden"
+abierta vacante_habilidades   no "las vacantes se ven sin las habilidades que piden"
+abierta eventos               no "/eventos queda vacío sin sesión"
+abierta evento_tags           no "los eventos se ven sin sus temas"
+
+echo
+if [ "$fallas" -eq 0 ]; then
+  echo "Todo lo que se pudo medir está como tiene que estar. Para las tablas"
+  echo "vacías, la respuesta la dan las dos consultas de abajo."
 else
-  echo "Todavía hay $abiertas tablas legibles sin sesión."
+  echo "Hay $fallas tablas en un estado que no corresponde."
 fi
 
 cat <<'SQL'
 
 === Verificación autoritativa, para correr en el SQL Editor
-    Lista las políticas de select que todavía alcanzan a `anon`.
-    Después del arreglo tiene que devolver cero filas.
 
+-- 1. Tablas que tienen que estar cerradas a anon. Tiene que devolver cero
+--    filas. Las políticas de `vacante_tags_ocultos` no llevan `to`, pero su
+--    condición exige ser la empresa dueña: se mira aparte, con `qual`.
 select tablename, policyname, roles
 from pg_policies
 where schemaname = 'public'
   and cmd = 'SELECT'
   and tablename in ('perfil_tags','perfil_habilidades','formaciones',
-                    'vacante_tags_publicos','vacante_habilidades',
-                    'evento_tags','resenias')
+                    'resenias')
   and ('anon' = any(roles) or 'public' = any(roles))
+order by tablename;
+
+-- 2. Tablas que tienen que estar abiertas. Tiene que devolver una fila por
+--    tabla, cada una con roles {public}.
+select tablename, policyname, roles
+from pg_policies
+where schemaname = 'public'
+  and cmd = 'SELECT'
+  and policyname in ('tags_lectura_publica','habilidades_lectura_publica',
+                     'vacante_tags_publicos_lectura_publica',
+                     'vacante_habilidades_lectura_publica',
+                     'evento_tags_lectura_publica')
 order by tablename;
 SQL
 
-[ "$abiertas" -le 1 ] && [ "$catalogos_cerrados" -eq 0 ] || exit 1
+[ "$fallas" -eq 0 ] || exit 1
