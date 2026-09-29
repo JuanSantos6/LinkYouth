@@ -51,16 +51,16 @@ export function TarjetaEvento({
         />
       )}
 
-      <div className="flex gap-4 p-4 sm:gap-5 sm:p-5">
-        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-ficha border border-borde bg-realce">
-          <span className="cifra text-[26px] text-tinta">{dia}</span>
-          <span className="mt-1 text-[11px] font-medium text-apagado">
+      <div className="flex gap-4 p-5 sm:gap-5 sm:p-6">
+        <div className="flex h-[68px] w-16 shrink-0 flex-col items-center justify-center rounded-ficha bg-lavanda">
+          <span className="cifra text-[28px] text-tinta">{dia}</span>
+          <span className="mt-1 text-[11px] font-bold uppercase tracking-wide text-acento">
             {mes}
           </span>
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-medium text-tinta">
+          <p className="text-[13px] font-semibold text-tinta">
             {evento.empresa.razon_social}
           </p>
 
@@ -135,6 +135,7 @@ export function TarjetaEvento({
                 valor={evento.id}
                 variante="secundario"
                 esEjemplo={esEjemplo}
+                celebrar
                 textos={{
                   inicial: "Inscribirme",
                   enCurso: "Inscribiendo…",

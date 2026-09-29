@@ -1,86 +1,71 @@
 # Tokens
 
-La fuente de verdad es `src/lib/diseno/tokens.ts`. De ahí salen las variables
-CSS que emite `src/app/layout.tsx` y las opciones del selector de Ajustes.
-`src/app/globals.css` deriva el resto.
+La fuente de verdad del color es `src/lib/diseno/tokens.ts` (con el contraste
+de cada par) y `src/app/globals.css` (las variables `--ly-*`). Tienen que
+decir lo mismo.
 
 ## Por qué el doble nombre
 
-Los valores viven en `:root` con prefijo `--ly-`, y `@theme inline` los expone
-como utilidades de Tailwind (`--color-*`). El rodeo tiene motivo: Tailwind 4
-solo emite las variables de `@theme` que alguna utilidad usa, así que un
-`var(--color-acento)` escrito a mano en CSS —el anillo de foco, por ejemplo—
-se quedaba sin valor y caía en `currentColor`.
+Los valores viven en `:root` como `--ly-*` y `@theme inline` los expone como
+utilidades de Tailwind (`bg-papel`, `text-acento`…). Tailwind 4 solo emite
+las variables de `@theme` que alguna utilidad usa; declaradas en `:root`
+existen siempre, también para el CSS escrito a mano.
 
-**Regla:** en una clase de Tailwind usá `text-tinta`, `bg-papel`. En CSS a
-mano usá `var(--ly-tinta)`, `var(--ly-papel)`.
+**Regla:** en una clase de Tailwind, `text-tinta`. En CSS a mano,
+`var(--ly-tinta)`.
 
-## Los cinco valores
+## Contrastes medidos (WCAG 2.1)
 
-| Token     | Claro          | Oscuro           | Rol                    |
-| --------- | -------------- | ---------------- | ---------------------- |
-| `tinta`   | `#14231D`      | `#E7ECE6`        | Texto y fondos oscuros |
-| `papel`   | `#EDF0EB`      | `#101A16`        | Fondo de página        |
-| `apagado` | `#5C6B63`      | `#93A39A`        | Texto secundario       |
-| `acento`  | según elección | versión luminosa | Acciones primarias     |
-| `senal`   | `#FFB627`      | `#FFB627`        | **Solo lo acreditado** |
+| Par | Claro | Oscuro |
+| --- | --- | --- |
+| tinta / papel | 15,5:1 | 16,2:1 |
+| apagado / papel | 6,4:1 | 8,6:1 |
+| acento (violeta texto) / blanco | 6,2:1 | 7,9:1 sobre papel |
+| tinta sobre mandarina | 5,0:1 | 7,8:1 |
+| tinta sobre turquesa | 9,8:1 | 10,6:1 |
+| tinta sobre coincide-fondo | 14,1:1 | — |
+| turquesa-texto / blanco | 5,2:1 | — |
+| alerta / blanco | 6,6:1 | 6,6:1 |
+| borde-control / papel | 3,3:1 | 4,6:1 |
+| violeta (forma) / blanco | 3,9:1 | — |
 
-El ámbar no cambia nunca: ni con el tema ni con el acento. Es lo que lo
-mantiene siendo una señal.
-
-## Los cinco acentos
-
-`pino` (por defecto), `marino`, `ciruela`, `ladrillo`, `grafito`. Cada uno
-tiene dos valores: el de tema claro, que lleva texto claro encima, y el de
-tema oscuro, que es el mismo tono más luminoso porque sobre fondo oscuro el
-primero no llega al contraste mínimo.
-
-Para agregar un color, se toca solo `ACENTOS` en `tokens.ts`:
-`reglasDeAcento()` genera el CSS y el selector se actualiza solo.
+Vidrio (86 %): con contenido negro detrás, tinta 12:1 y apagado 5:1; en
+oscuro, con blanco detrás, 10,8:1 y 5,7:1.
 
 ## Derivados
 
-Ninguno es un color nuevo; todos son `color-mix` de los de arriba.
-
-| Token                          | Para qué                                                                                                        |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `superficie`                   | Fondo de una tarjeta                                                                                            |
-| `realce`                       | Bloque dentro de una tarjeta, pie del sitio, campo deshabilitado                                                |
-| `borde`                        | Borde de tarjeta. Decorativo                                                                                    |
-| `borde-control`                | Borde de campo o botón. Llega a 3:1 contra el papel, que es lo que WCAG 1.4.11 pide para identificar un control |
-| `filete`                       | Separador entre filas de un listado                                                                             |
-| `sobre-acento`                 | Texto encima del acento                                                                                         |
-| `acento-tenue` · `senal-tenue` | Fondos suaves de insignia                                                                                       |
+`realce`, `borde` y `filete` son neutros fijos por tema (no `color-mix`), para
+que el contraste medido no dependa del navegador.
 
 ## Tipografía
 
-| Fuente              | Uso                                                                                     |
-| ------------------- | --------------------------------------------------------------------------------------- |
-| Bricolage Grotesque | Títulos y cifras. Eje óptico variable, `font-optical-sizing: auto`, tracking `-0.035em` |
-| Instrument Sans     | Cuerpo, 15 px, interlínea 1.55                                                          |
+| Fuente | Uso |
+| --- | --- |
+| Red Hat Display | Títulos y cifras, 500–800, tracking `-0.02em` |
+| Red Hat Text | Cuerpo, 15 px, interlínea 1,55 |
 
-La clase `.cifra` trata un número como elemento gráfico: tipografía de título,
-tracking `-0.05em` y `tabular-nums`.
+`.cifra` trata un número como elemento gráfico: Display 800, tracking
+`-0.04em`, `tabular-nums`.
 
-No hay familia monoespaciada cargada: para las tres rutas de archivo que la
-necesitan alcanza la del sistema.
+## Radios y sombras
 
-## Radios y elevación
+| Token | Uso |
+| --- | --- |
+| `rounded-control` (10 px) | Botones, campos |
+| `rounded-ficha` (12 px) | Bloques, avatares cuadrados, fecha de evento |
+| `rounded-tarjeta` (16 px) | Tarjetas |
+| `rounded-full` | Etiquetas, filtros, cápsulas, pestañas |
+| `shadow-elevada` | Tarjeta clickeable al pasar el mouse |
+| `shadow-flotante` | Menús, cápsula de vidrio |
 
-| Token                     | Uso                                                    |
-| ------------------------- | ------------------------------------------------------ |
-| `rounded-control` (3 px)  | Botones, campos, etiquetas                             |
-| `rounded-ficha` (4 px)    | Filas destacadas, bloques, avatares cuadrados          |
-| `rounded-tarjeta` (10 px) | Solo la tarjeta de evento, que lleva imagen            |
-| `shadow-elevada`          | La única sombra. Para lo que está realmente por encima |
+## Tiempos
+
+`--ly-entrar`: 200 ms `cubic-bezier(.2,.7,.2,1)`. `--ly-salir`: 150 ms
+`cubic-bezier(.4,0,1,1)`. Todo lo que se abre y se cierra los usa.
 
 ## Tema y persistencia
 
-`PreferenciasDeApariencia` (`src/lib/diseno/PreferenciasDeApariencia.ts`) lee
-y escribe `data-tema` y `data-acento` en el elemento raíz, y los guarda en
-`localStorage`. Un guion en línea en `layout.tsx` los aplica **antes del
-primer pintado**: sin eso la pantalla arrancaría en claro y saltaría a oscuro
-a la vista de todos.
-
-Nada de esto lanza si el almacenamiento está bloqueado: la elección vale para
-la sesión en curso y no persiste.
+`PreferenciasDeApariencia` lee y escribe `data-tema` en `<html>` y lo guarda
+en `localStorage` (`linkyouth.tema`). «Sistema» no guarda nada. El guion en
+línea de `layout.tsx` lo aplica antes del primer pintado. Nada de esto lanza
+si el almacenamiento está bloqueado.

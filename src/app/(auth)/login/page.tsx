@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { FormularioLogin } from "@/components/auth/FormularioLogin";
-import { Tarjeta } from "@/components/ui/Tarjeta";
+import { PestanasDeCuenta } from "@/components/auth/PestanasDeCuenta";
+import { TarjetaDeAcceso } from "@/components/auth/TarjetaDeAcceso";
 import { conSiguiente, destinoSeguro } from "@/lib/navegacion";
 
 export const metadata: Metadata = { title: "Iniciar sesión" };
@@ -27,33 +28,44 @@ export default async function PaginaLogin({
   const siguiente = destinoSeguro(next);
 
   return (
-    <>
-      <div>
-        <h1 className="text-[26px] text-tinta">Entrá a LinkYouth</h1>
-        <p className="mt-1 text-[14px] text-apagado">
+    <TarjetaDeAcceso
+      titulo={esEmpresa ? "Hola de nuevo" : "Qué bueno verte de nuevo"}
+      bajada={
+        esEmpresa
+          ? "Entrá al panel de tu organización para ver tus búsquedas y tus eventos."
+          : "Seguí tus postulaciones y enterate de los próximos eventos."
+      }
+      alternativa={
+        <>
           {esEmpresa
-            ? "Entrá al panel de tu organización."
-            : "Seguí tus postulaciones y enterate de los próximos eventos."}
-        </p>
+            ? "¿Tu organización todavía no tiene cuenta?"
+            : "¿Todavía no tenés cuenta?"}{" "}
+          <Link
+            href={
+              esEmpresa
+                ? "/registro?tipo=empresa"
+                : conSiguiente("/registro", siguiente)
+            }
+            className="font-semibold text-acento underline-offset-4 hover:underline"
+          >
+            Creá una
+          </Link>
+        </>
+      }
+    >
+      <div className="space-y-6">
+        <PestanasDeCuenta
+          activo={esEmpresa ? "empresa" : "individual"}
+          destinos={{
+            individual: conSiguiente("/login", siguiente),
+            empresa: conSiguiente("/login", siguiente, { tipo: "empresa" }),
+          }}
+        />
+        <FormularioLogin
+          siguiente={siguiente}
+          tipo={esEmpresa ? "empresa" : "individual"}
+        />
       </div>
-
-      <Tarjeta className="p-6">
-        <FormularioLogin siguiente={siguiente} />
-      </Tarjeta>
-
-      <p className="text-center text-[14px] text-apagado">
-        ¿Todavía no tenés cuenta?{" "}
-        <Link
-          href={
-            esEmpresa
-              ? "/registro?tipo=empresa"
-              : conSiguiente("/registro", siguiente)
-          }
-          className="font-semibold text-acento"
-        >
-          Creá una
-        </Link>
-      </p>
-    </>
+    </TarjetaDeAcceso>
   );
 }

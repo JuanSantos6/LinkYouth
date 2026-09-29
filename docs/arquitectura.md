@@ -231,10 +231,20 @@ lugar de fallar es lo que sostiene la regla §2.3.
 
 ### 5.2 `src/lib/supabase/server.ts`
 
-#### `async createClient()`
+#### `async createClient({ recordar? })`
 
 Cliente para Server Components, Route Handlers y Server Actions. Lee y escribe
-las cookies de sesión a través de `cookies()` de Next.js.
+las cookies de sesión a través de `cookies()` de Next.js. Si la persona no
+eligió «Mantener la sesión iniciada» (cookie `ly-recordar=0`, o `recordar:
+false` en el mismo request del login), escribe las cookies de Supabase sin
+`maxAge` ni `expires`: son de sesión.
+
+#### `sesion.ts`
+
+`COOKIE_RECORDAR`, `recuerdaSesion(valor)` y `opcionesDeCookie(opciones,
+recordar)`, que usan el cliente del servidor y el middleware para que las
+cookies renovadas respeten la preferencia. Solo importa tipos: corre también
+en Edge.
 
 Es `async` porque en Next.js 15 `cookies()` pasó a ser asíncrono. El `setAll`
 está envuelto en `try/catch` a propósito: un Server Component no puede
@@ -379,6 +389,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | --- | --- | --- |
 | `obtenerVacantes(filtros?)` | `Resultado<Vacante[]>` | RF3.5.1. Filtra por tipo y busca por título. |
 | `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
+| `obtenerPanelDeEmpresa(usuarioId?)` | `Resultado<PanelDeEmpresa>` | RF7.1 y RF3.4.1 en lectura. Búsquedas propias (activas y cerradas) con `postulaciones(count)` —sin traer datos de quién se postuló— y eventos propios. Las políticas de RLS ya acotan a lo propio. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
 | `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
@@ -495,7 +506,8 @@ no hay comportamiento compartido, y una jerarquía ahí sería decorativa.
 
 `Compatibilidad.entre(vacante, perfil)` compara lo que pide la vacante —sus
 tags públicos y sus habilidades— con lo que el perfil declara. Expone
-`medible`, `porcentaje`, `alta` y `cubre(requisito)`.
+`medible`, `porcentaje`, `alta`, `cubre(requisito)` y, para el medidor
+«Tenés 3 de 4», `cantidadCubierta`, `cantidadRequerida` y `faltantes`.
 
 Es una clase y no una función porque la pantalla necesita tres cosas del mismo
 cálculo: el número, si una etiqueta puntual coincide y si el total alcanza para
@@ -504,6 +516,20 @@ rehacer la comparación.
 
 Solo mira datos públicos. El puntaje de RF3.9 usa los tags ocultos, se calcula
 en la base y lo ve únicamente la empresa.
+
+#### `CompletitudDeFicha`
+
+`CompletitudDeFicha.de(perfil)` dice qué le falta a una ficha y por qué
+importa cada cosa: intereses (al menos `TAGS_MINIMOS`), habilidades,
+biografía y formación. `pasos`, `hechos`, `total`, `completa`. La usa la guía
+de arriba de `/perfil`.
+
+#### `ResumenDePanel`
+
+`new ResumenDePanel(panel)` da los números del panel de empresa:
+`busquedasActivas`, `posicionesAbiertas`, `postulacionesRecibidas` y
+`eventosProximos`. Qué cuenta como «activa» o «próximo» es una regla de
+negocio, y vive acá.
 
 #### `FeedDeVacantes`
 
@@ -560,17 +586,18 @@ nombre: no se puede guardar ni compartir como enlace permanente (deuda 7.8).
 
 #### `tokens.ts`
 
-Fuente de verdad del color: los cinco valores base, los cinco acentos con su
-versión clara y oscura, las claves de `localStorage` y `reglasDeAcento()`, que
-genera el CSS de los acentos para inyectar una vez en el `<head>`. Agregar un
-color es tocar solo `ACENTOS`.
+Paleta «Recreo» (2026-09-27): `CLARO` y `OSCURO`, con el contraste medido de
+cada par en comentarios; `TEMAS` (`sistema`, `claro`, `oscuro`),
+`TEMA_POR_DEFECTO`, `CLAVE_TEMA`, `esTema()` y `temaSiguiente()`, el orden en
+que el botón del encabezado recorre los temas. Los mismos valores están en
+`globals.css` como `--ly-*`. Ya no hay acentos elegibles.
 
 #### `PreferenciasDeApariencia`
 
-Lee y escribe `data-tema` y `data-acento` en el elemento raíz y los persiste.
-`delDocumento()` la construye; `alternarTema()` y `cambiarAcento()` la
-modifican. No lanza nunca: con el almacenamiento bloqueado, la elección vale
-para la sesión en curso.
+Lee y escribe `data-tema` en `<html>` y lo guarda en `localStorage`.
+«Sistema» borra el atributo y la clave, y el CSS sigue a
+`prefers-color-scheme`. `tema`, `seVeOscuro` y `cambiarTema()`. No lanza
+nunca: con el almacenamiento bloqueado, la elección vale para la visita.
 
 ### 5.9 Componentes
 
@@ -590,59 +617,87 @@ para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `Tarjeta` | `como?`, `elevada?`, + props del elemento | Superficie con borde. Ya no envuelve todo: las vacantes son filas con filetes. `elevada` solo para lo que está realmente por encima del plano. |
-| `Boton` | `variante?`, + props de `<button>` | Botón de acción. La transición enumera sus propiedades: `transition-colors` incluye `outline-color` y hacía que el anillo de foco tardara 150 ms en tomar color. |
+| `Tarjeta` | `como?`, `elevada?`, + props del elemento | Superficie con borde, radio de tarjeta. `elevada` solo para lo que está realmente por encima del plano. |
+| `Boton` | `variante?`, + props de `<button>` | Botón de acción. `primario` es mandarina con texto tinta y es el único lugar de la app con mandarina: uno por pantalla. Baja 1 px al presionar. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
 | `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
-| `Etiqueta` | `children`, `coincide?` | Un tag o una habilidad. Lo que el perfil ya declara se marca con ✓ y más peso, nunca con relleno de color: seis etiquetas pintadas son un fondo, no una señal. |
-| `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es el único que usa ámbar, y solo para una postulación aceptada. |
+| `Etiqueta` | `children`, `coincide?` | Un tag o una habilidad, en píldora. Lo que el perfil ya declara va en turquesa (suave en claro) con ✓ y un texto para lectores de pantalla: nunca solo color. |
+| `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es turquesa, para lo ya logrado (postulación aceptada, búsqueda activa). Siempre con palabra. |
 | `Campo` | `etiqueta`, `ayuda?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
-| `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Sale de fusionar `BotonPostularse` e `BotonInscribirse`, que diferían solo en el nombre del campo oculto y en la variante. No conoce vacantes ni eventos; de `src/lib/` solo importa `EstadoAccion`, no `src/lib/data/`. |
+| `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?`, `celebrar?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Con `celebrar`, al salir bien aparecen los anillos del isotipo uniéndose (`ConexionAnillos`). No conoce vacantes ni eventos. |
 | `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
-| `Aviso` | `titulo?`, `children` | Caja de aviso: filete a la izquierda y fondo de realce. Todo lo que la aplicación aclara sobre sí misma se ve igual. El filete hace el trabajo que en otra paleta haría un amarillo: acá el ámbar significa «acreditado» y no se presta para otra cosa. |
+| `Aviso` | `titulo?`, `children` | Aviso discreto: una línea con filete a la izquierda. Lo que la aplicación aclara sobre sí misma se ve igual, sin dominar la pantalla. |
 | `MensajeDeAccion` | `estado`, `className?` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
+| `Medidor` | `cubiertos`, `total`, `detalle?` | Compatibilidad como segmentos, uno por requisito, con el texto «Tenés 3 de 4». Reemplaza al porcentaje suelto. |
+| `FiltroDeslizante` | `opciones`, `etiqueta` | Filtros y pestañas como enlaces con `searchParams`; la marca de la activa se desliza (`transform`). Sin JavaScript, funciona igual. |
+| `DetallesSuaves` | `resumen`, `children`, `abiertoAlInicio?` | Un `<details>` que se despliega y se pliega con transición. Sin JavaScript, un `<details>` común. |
+| `EsqueletoDePantalla` | `tarjetas?`, `columnas?` | Silueta de carga para los `loading.tsx`. |
+| `ConexionAnillos` | — | Los dos anillos del isotipo uniéndose: la única «celebración» de la app. |
 
 #### `layout/` — estructura
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `CabeceraGlobal` | `area?` | Barra superior fija en todas las pantallas: marca, navegación de sitio y los accesos de la cuenta. `area` decide qué ofrece: entrar si no hay sesión, avisos y perfil para un postulante, solo salir para una empresa —a la que el middleware rebotaría de las secciones del postulante—. |
-| `PieDeSitio` | `area?` | Cuatro columnas, copyright y el repositorio, que es la única red que existe. La columna «Plataforma» cambia según el tipo de cuenta, por el mismo motivo. |
-| `Marca` | `href` | El sello con las iniciales. Sin ámbar: un logo no acredita nada. El destino es obligatorio: sin sesión, `/`; con sesión, `inicioDe(area)`. |
-| `BarraLateral` | — | Las seis secciones de la cuenta. `"use client"` solo para leer `usePathname()`. La activa lleva filete vertical, no píldora rellena. El `min-w-0` no es decorativo: sin él la fila de secciones empuja la página entera a 574 px dentro de un viewport de 390. |
+| `CabeceraGlobal` | `area?`, `umbralId?`, `secciones?` | Un solo menú por tipo de cuenta, dentro de `EncabezadoFlotante`. La empresa no ve Empleos ni Eventos del postulante. A la derecha: tema, y según el área, Entrar y Crear cuenta, o avisos y el menú de la cuenta. En el teléfono, el menú «Secciones». La portada pasa sus propias anclas en `secciones`. |
+| `PieDeSitio` | `area?` | Columnas LinkYouth, Para jóvenes, Para empresas, Ayuda y legales, y Redes (solo el repositorio). Ningún enlace lleva a una página vacía. |
+| `Marca` | `href`, `variante?`, `alto?` | Logo oficial desde `public/marca/`: la versión clara y la oscura como imágenes, y el CSS muestra la del tema (`.logo-claro`, `.logo-oscuro`). Imágenes y no SVG en línea para no repetir ids de degradado si aparece dos veces. |
 | `Encabezado` | `titulo`, `descripcion?` | Encabezado de sección. |
+| `BotonTema` | `className?` | Botón visible del tema: sistema → claro → oscuro. Lee el estado de `<html>` al montarse. |
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
 | `Iconos` | `className?` | Doce íconos SVG en línea, todos sobre grilla de 24 y trazo 1.75. Inline y no una librería: una dependencia entera para doce trazos no se paga sola. |
+
+#### `navegacion/` — menús y transiciones (clientes)
+
+| Componente | Props | Qué resuelve |
+| --- | --- | --- |
+| `EncabezadoFlotante` | `children` | Encabezado fijo que, con el primer píxel de scroll, se transforma de a poco en cápsula de vidrio (progreso 0–1 en 120 px, curva ease-out) y vuelve a integrarse arriba. El progreso se calcula siempre desde `window.scrollY` —al hacer scroll con un `requestAnimationFrame` por cuadro, al montar, al cambiar de ruta, con `popstate`, `pageshow` y `resize`— y se escribe en `--p`; el CSS hace el resto. Deja un separador de 64 px en el flujo. |
+| `NavPrincipal` | `secciones` | Las secciones del encabezado en escritorio; la activa con peso, filete violeta y `aria-current`. Las anclas (`#…`) van como `<a>` común. |
+| `MenuDesplegable` | `boton`, `etiqueta`, `alinear?`, `children` | Menú con `aria-expanded`, Esc, clic afuera, flechas y foco de vuelta al botón. Se abre con `.emergente`. Exporta `OPCION_MENU`. |
+| `BarraPestanas` | — | Pestañas de abajo del postulante en el teléfono, en cápsula de vidrio, con la marca de la activa que se desliza. |
+| `AvisoDeLlegada` | — | Aviso al llegar desde la pestaña del login que no correspondía (`?aviso=`). Se cierra solo, se anuncia y limpia la URL. En los layouts de `(app)` y `empresa`. |
+| `ProveedorDeTransiciones` | `children` | En el layout raíz: envuelve la navegación en `document.startViewTransition`, con tope de 800 ms. Sin soporte o con «reducir movimiento», navega normal. |
+| `EnlaceTransicion` | props de `<Link>` | Un `Link` que cambia de pantalla con transición. Modificadores y anclas quedan como siempre. |
+
+#### `portada/` — solo la página principal
+
+| Componente | Props | Qué resuelve |
+| --- | --- | --- |
+| `AnimacionesDePortada` | — | Carga GSAP, ScrollTrigger y Lenis con `import()` y arma las animaciones ligadas al scroll: bienvenida que se opaca, tarjetas con parallax, recorte de la imagen de búsquedas, bloques que aparecen. Inercia solo con mouse o trackpad; con «reducir movimiento» no carga nada. |
+| `SliderBienvenida` | `diapositivas` | Slider que cambia solo, con pausa, anterior, siguiente y puntos (WCAG 2.2.2). Sin JavaScript, scroll horizontal. |
+| `TarjetasPasos` | `pasos` | Las tres tarjetas de «Así funciona», del mismo tamaño; «Ver más» / «Ver menos» con `aria-expanded`. |
+| `Carrusel` | `etiqueta`, `children`, `claro?`, `controlesArriba?`, `className?` | Fila con `scroll-snap` y flechas que aparecen con JavaScript. |
+| `FotoProvisional` | `que`, `tono?`, `semilla?`, `src?`, `conRotulo?` | Espacio para una foto real, con una composición provisional rotulada. Con `src`, la foto con `object-fit: cover`. Exporta también `RotuloFotoProvisional`. |
 
 #### `auth/` · `empleos/` · `eventos/` · `perfil/` — por dominio
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `FormularioLogin` | — | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
+| `FormularioLogin` | `siguiente?`, `tipo?` | Correo y contraseña (RF1.3). `"use client"` por `useActionState`. |
+| `PestanasDeCuenta` | `activo`, `destinos` | «Busco trabajo» / «Soy empresa» en login y registro, como enlaces con `?tipo=empresa`. |
+| `TarjetaDeAcceso` | `titulo`, `bajada?`, `children`, `alternativa`, `ancha?` | La tarjeta centrada de iniciar sesión y crear cuenta: logo, tema, título, formulario, enlace alternativo y vuelta a la página principal. |
+| `EntradaContrasenia` | props de `<input>` | Campo de contraseña con botón para mostrarla u ocultarla (`aria-label`, `aria-pressed`, `aria-controls`). |
 | `FormularioRegistro` | — | Alta de cuenta individual (RF1.1). Los campos son exactamente las columnas obligatorias de `perfiles`, más el correo y la contraseña que van a `auth.users`. La mayoría de edad la exige la base: acá el campo es un `type="date"` común y el mensaje llega desde la acción. |
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
-| `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?` | La destacada suelta arriba y elevada; el resto, filas separadas por filetes. |
-| `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?` | Una vacante. No es tarjeta. El porcentaje va en `.cifra` y nunca solo: al lado están las etiquetas que lo explican. En pantalla angosta encabeza la fila en vez de esconderse, porque es el dato que ordena el listado. |
-| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?` | Sí es tarjeta: tiene imagen y fecha propias, y esa diferencia de forma con la vacante es intencional. Sin imagen no se inventa una banda de color; el bloque de fecha pasa a ser el ancla. Sin cupos ni conteo de inscriptos: el esquema no guarda cupo y la RLS no deja contar las ajenas. |
+| `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?`, `conSesion?` | Tarjetas apiladas; la que más coincide va primera y destacada. |
+| `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?`, `conSesion?` | Una vacante como tarjeta clickeable entera hacia el detalle; el botón de postularse queda por encima. Medidor «Tenés X de Y» a la derecha. |
+| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta con imagen opcional y bloque de fecha en lavanda. Inscribirse une los anillos. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
-| `landing/CabeceraLanding` | — | Cabecera de la portada: anclas a la misma página y los dos menús de acceso. Hasta 1024 px las anclas bajan a su propia fila, porque compartiendo la primera quedaban en 36 px. |
-| `landing/GrupoDeMenus` | `children`, `className?` | Envuelve a dos `MenuDeAcceso` vecinos y garantiza que solo uno esté abierto. Sin él, los dos paneles abiertos se pisaban. |
-| `landing/MenuDeAcceso` | `etiqueta`, `opciones`, `destacado?` | Las dos puertas de entrada, joven y organización. Se abre al pasar el mouse, al tocarlo y al llegar con el tabulador —los tres caminos, porque cada uno tapa un agujero del anterior—. Dejó de ser un `<details>` para poder abrirse con hover. |
-| `landing/CarruselEmpresas` | `empresas` | Las organizaciones que publican. No se mueve solo: avanza con las flechas, el dedo o la rueda. Las flechas aparecen solo si la fila desborda y cada una se apaga en su extremo: con cuatro organizaciones en escritorio no hay nada que desplazar, y una flecha que no hace nada se lee como una flecha rota. |
-| `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `<details>`. |
-| `landing/FormularioConsulta` | — | Consultas de la portada. El aviso de que todavía no entrega va **antes** del formulario, no después de enviarlo. |
+| `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca provisoria (iniciales) si no hay logo; el aviso de abajo aparece en cuanto hay una sola. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
+| `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
+| `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
+| `landing/FormularioConsulta` | — | Formulario de consultas, en `/contacto`. El aviso de que todavía no entrega va **antes** del formulario. |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 
 #### Páginas
 
 | Ruta | Función | Qué hace |
 | --- | --- | --- |
-| `/` | `Portada` | Portada pública. Cabecera con anclas a la misma página, carrusel de organizaciones, preguntas frecuentes y formulario de consultas. |
+| `/` | `Portada` | Portada narrativa: slider de bienvenida, panel que emerge, «Así funciona», búsquedas abiertas, quiénes publican, opiniones de ejemplo, preguntas y llamada final. La única pantalla con animaciones ligadas al scroll. |
 | `/login` | `PaginaLogin` | Inicio de sesión. Layout propio de `(auth)/`: una columna centrada, sin barra lateral. |
 | `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
@@ -654,7 +709,8 @@ para que no se lea como permiso general.
 | `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |
 | `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
 | `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, en `(sitio)/`. Se leen con o sin sesión. |
-| `/empresa` | `PaginaEmpresa` | Panel de empresa: hoy, el cartel de que llega en el Hito 6. |
+| `/empresa` | `PaginaEmpresa` | Panel de empresa en modo lectura: métricas, búsquedas con su cantidad de postulaciones, eventos, y lo que viene (RF3.1, RF3.4). |
+| `/contacto` | `PaginaContacto` | Contacto honesto: el repositorio como canal que funciona hoy, contacto comercial y el formulario con su aviso. Pública. |
 
 Las cinco pantallas de `(app)/` declaran
 `export const dynamic = "force-dynamic"`: leen datos por sesión, y cachearlas
@@ -904,3 +960,21 @@ Tres consecuencias, todas visibles en la pantalla:
 
 La salida es una tabla `instituciones` con clave estable, y `formaciones`
 apuntando a ella. Es una decisión de esquema que el equipo todavía no tomó.
+
+### 7.9 Contenido provisional de la portada
+
+Con el rediseño «Recreo» (2026-09-27) la portada quedó con tres cosas que
+esperan contenido real, todas rotuladas en pantalla:
+
+1. **Fotos.** Los espacios usan `FotoProvisional`, con un rótulo que dice qué
+   foto va. La lista está en `docs/decisiones.md`, 2026-09-27.
+2. **Opiniones.** Son de ejemplo y lo dicen en cada tarjeta. Se reemplazan
+   por opiniones verdaderas, con permiso.
+3. **Canal de contacto.** `/contacto` ofrece el repositorio porque no hay
+   casilla ni tabla de consultas. Hace falta un correo del equipo.
+
+### 7.10 El tema se recuerda por navegador
+
+La elección de tema vive en `localStorage`. Para que acompañe a la persona en
+todos sus dispositivos haría falta una columna en `perfiles`. No se hizo
+porque es un cambio de esquema.

@@ -6,6 +6,7 @@ import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
 import { BuscadorVacantes } from "@/components/layout/BuscadorVacantes";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
+import { FiltroDeslizante } from "@/components/ui/FiltroDeslizante";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import {
   obtenerPerfilActual,
@@ -54,12 +55,12 @@ export default async function PaginaEmpleos({
   const feed = FeedDeVacantes.armar(vacantes.datos, perfil?.datos);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <Encabezado
         titulo="Empleos y pasantías"
         descripcion={
           conSesion
-            ? "Búsquedas abiertas para primera experiencia laboral, ordenadas por lo que ya acreditaste."
+            ? "Búsquedas abiertas para primera experiencia laboral, ordenadas por cuánto coinciden con tu ficha."
             : "Búsquedas abiertas para primera experiencia laboral, de la más reciente a la más vieja."
         }
       />
@@ -79,27 +80,14 @@ export default async function PaginaEmpleos({
           <BuscadorVacantes accion="/empleos" valor={q} />
         </div>
 
-        <div className="flex gap-2">
-          {FILTROS.map(({ valor, etiqueta }) => {
-            const activo = valor === tipoValido;
-            const destino = valor ? `/empleos?tipo=${valor}` : "/empleos";
-
-            return (
-              <Link
-                key={etiqueta}
-                href={destino}
-                aria-current={activo ? "page" : undefined}
-                className={`rounded-control border px-3 py-1.5 text-[13px] transition-colors duration-150 ${
-                  activo
-                    ? "border-tinta text-tinta"
-                    : "border-borde-control text-apagado hover:text-tinta"
-                }`}
-              >
-                {etiqueta}
-              </Link>
-            );
-          })}
-        </div>
+        <FiltroDeslizante
+          etiqueta="Tipo de búsqueda"
+          opciones={FILTROS.map(({ valor, etiqueta }) => ({
+            etiqueta,
+            href: valor ? `/empleos?tipo=${valor}` : "/empleos",
+            activa: valor === tipoValido,
+          }))}
+        />
       </div>
 
       <p className="text-[14px] text-apagado">

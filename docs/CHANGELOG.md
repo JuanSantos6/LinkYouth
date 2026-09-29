@@ -13,6 +13,102 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-09-29 — Aviso de logos provisorios en la cinta
+
+- **La cinta avisa en cuanto hay un logo provisorio, no solo cuando lo son
+  todos.** Antes, con una sola empresa con logo, las demás seguían con la marca
+  de iniciales y el aviso desaparecía: se mostraban marcas inventadas como si
+  fueran reales. Ahora cada marca de iniciales se llama «Logo provisorio de…» y
+  el aviso distingue entre todos provisorios, algunos y ninguno. El test e2e
+  dejó de depender de qué empresas subieron logo en la base: compara el aviso
+  con los logos que la cinta dibujó.
+
+## 2026-09-27 — Rediseño «Recreo» (rama `feat/rediseno-juvenil`)
+
+- **Cinta de organizaciones en lugar del carrusel con flechas.** Logos
+  seguidos que se desplazan solos, de borde a borde, con animación CSS solo
+  de `transform`. Se detiene con el mouse o el foco, tiene botón de pausa y con
+  «reducir movimiento» queda quieta. Los logos son de ejemplo y lo dice: los
+  reales requieren autorización de cada empresa.
+- **Pestañas «Busco trabajo» y «Soy empresa» en iniciar sesión y en crear
+  cuenta**, con textos propios. Si se entra por la que no corresponde, se
+  llega igual a la sección correcta con un aviso («Tu cuenta es de empresa,
+  así que te llevamos a tu panel»). Motivo: separar la entrada sin permitir
+  que la pestaña decida el acceso (RF1.2).
+- **«Mantener la sesión iniciada».** Sin marcarla, la sesión termina al cerrar
+  el navegador (`src/lib/supabase/sesion.ts`).
+- **Los visitantes ya no ven el botón de tema** en la cabecera ni en el login:
+  la cabecera sin sesión es «Entrar» y «Crear cuenta».
+
+- **El encabezado se transforma de a poco, desde el primer píxel.** Antes
+  cambiaba de golpe al llegar al segundo bloque y a veces quedaba trabado
+  como cápsula, porque dependía de un IntersectionObserver que podía quedar
+  desfasado al navegar. Ahora `EncabezadoFlotante` calcula un progreso de 0 a
+  1 en los primeros 120 px, siempre desde la posición real del scroll (al
+  cargar, al navegar, al volver atrás y al cambiar el tamaño), y el CSS
+  interpola con `--p` la separación, el radio, la transparencia, el
+  desenfoque, el borde y la sombra. Arriba de todo vuelve a quedar integrado.
+  Igual en la portada y en la app.
+
+- **Iniciar sesión y crear cuenta, en una tarjeta.** `TarjetaDeAcceso`
+  centrada sobre un fondo con formas muy suaves de turquesa y violeta, con el
+  logo, un título cálido, y la vuelta a la página principal. La contraseña se
+  puede mostrar u ocultar (`EntradaContrasenia`, con `aria-label`), en el
+  login y en el registro. Los mensajes de error entran con un fundido.
+  «¿Olvidaste tu contraseña?» no aparece porque RF1.8 no está implementado.
+
+- **Identidad nueva a partir del logo oficial.** Paleta de un solo juego:
+  violeta del logo como marca, turquesa del logo para «ya lo tenés»,
+  mandarina solo en el botón principal, neutros de base. Tipografía Red Hat.
+  Se saca el selector de color de Ajustes. Motivo: el diseño anterior se leía
+  distante y genérico para un público joven.
+  → [`decisiones.md`](./decisiones.md)
+
+- **Logo oficial en SVG** (`public/marca/`, favicon en `src/app/icon.svg`),
+  reconstruido a partir de la lámina. Reemplaza al cuadrado «LY» dibujado en
+  código y al favicon de Next.js.
+
+- **Tema claro y oscuro que sigue al sistema**, con un botón visible en el
+  encabezado que lo cambia a mano y se recuerda en el navegador.
+
+- **Un solo menú por tipo de cuenta, sin barra lateral.** Encabezado que se
+  vuelve cápsula de vidrio al bajar; pestañas abajo en el teléfono para el
+  postulante; la empresa ya no ve Empleos ni Eventos. Motivo: dos menús que
+  repetían secciones confundían.
+
+- **Transiciones en toda la app** (200 ms al abrir, 150 ms al cerrar), cambio
+  de pantalla con View Transitions, filtros con indicador que se desliza,
+  anillos que se unen al postularse y esqueletos de carga en las pantallas
+  que leen de la base. Con «reducir movimiento», todo instantáneo.
+
+- **Vacantes como tarjetas clickeables** con medidor «Tenés X de Y»;
+  **detalle** con la acción fija y «Qué pasa después»; **perfil** con una guía
+  de lo que le falta a la ficha (`CompletitudDeFicha`).
+
+- **Panel de empresa con datos reales, en modo lectura**
+  (`obtenerPanelDeEmpresa`, `ResumenDePanel`): búsquedas con cantidad de
+  postulaciones y eventos. Publicar (RF3.1) y responder (RF3.4) quedan
+  pendientes en `plan.md`.
+
+- **Portada narrativa**, solo en la página principal, con GSAP, ScrollTrigger
+  y Lenis cargados con `import()`: slider de bienvenida con pausa, panel que
+  emerge, tarjetas con parallax del mismo tamaño y «Ver más», imagen que se
+  recorta en carrusel de búsquedas, opiniones de ejemplo rotuladas, preguntas
+  que se despliegan suave y «Volver arriba» al principio de la página.
+
+- **Pie completo y página de Contacto.** Ningún enlace del pie lleva a una
+  página vacía: se crearon `/contacto` (honesta: el formulario todavía no
+  entrega) y las secciones «Publicar búsquedas» y «Planes y publicidad» en
+  `/empresas`.
+
+- **Vacantes y eventos de prueba** en `db/seed-vacantes-eventos-prueba.sql`
+  (se borran con `db/borrar-vacantes-eventos-prueba.sql`).
+
+- **Tests**: `e2e/rediseno.spec.ts` (pie sin enlaces vacíos, tema, tarjetas
+  del mismo tamaño, «Ver más», pausa del slider, opiniones rotuladas).
+
+---
+
 ## 2026-09-26
 
 - **Sin sesión ya no se queda encerrado entre el login y las pantallas

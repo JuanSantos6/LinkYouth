@@ -11,6 +11,11 @@ import {
   esExplorable,
 } from "@/lib/navegacion";
 import { leerCredenciales } from "@/lib/supabase/config";
+import {
+  COOKIE_RECORDAR,
+  opcionesDeCookie,
+  recuerdaSesion,
+} from "@/lib/supabase/sesion";
 import type { Database } from "@/types/database";
 
 /** Rutas de entrada. Sin sesión son públicas; con sesión ya no tienen sentido. */
@@ -90,8 +95,17 @@ export async function middleware(request: NextRequest) {
             request.cookies.set(name, value),
           );
           response = NextResponse.next({ request });
+          // Sin «Mantener la sesión iniciada», las cookies renovadas siguen
+          // siendo de sesión: ver `src/lib/supabase/sesion.ts`.
+          const recordar = recuerdaSesion(
+            request.cookies.get(COOKIE_RECORDAR)?.value,
+          );
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
+            response.cookies.set(
+              name,
+              value,
+              opcionesDeCookie(options, recordar),
+            ),
           );
         },
       },

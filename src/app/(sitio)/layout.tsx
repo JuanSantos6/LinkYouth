@@ -27,7 +27,7 @@ export default async function LayoutSitio({
   return (
     <div className="flex min-h-dvh flex-col">
       <CabeceraGlobal area={area} />
-      <main className="mx-auto w-full max-w-[760px] flex-1 px-4 py-10 sm:px-6 sm:py-12">
+      <main className="mx-auto w-full max-w-[820px] flex-1 px-4 py-10 sm:px-6 sm:py-14">
         {children}
       </main>
       <PieDeSitio area={area} />

@@ -24,6 +24,7 @@ import {
   comoTipoOportunidad,
   type Aviso,
   type EmpresaResumen,
+  type PanelDeEmpresa,
   type FichaDeInstitucion,
   type TipoCuenta,
   type Evento,
@@ -577,5 +578,83 @@ export async function obtenerInstitucion(
       titulos: [...new Set(suyas.map((formacion) => formacion.titulo))].sort(),
     },
     origen: "supabase",
+  };
+}
+
+// --- Panel de empresa -------------------------------------------------------
+
+/**
+ * RF7.1 y RF3.4.1 (lectura) — Lo que tiene publicado la empresa de la sesión.
+ *
+ * Solo lee: publicar búsquedas (RF3.1) y responder postulaciones (RF3.4) son
+ * pendientes, anotados en `docs/plan.md`. No hace falta filtrar a mano por
+ * dueño para ver datos ajenos: `vacantes_lectura_activas_o_propias` y
+ * `postulaciones_veo_las_mias_o_de_mi_empresa` ya lo acotan, y el filtro por
+ * `empresa_id` es para no traer las búsquedas activas de las demás.
+ *
+ * El conteo de postulaciones sale de PostgREST (`postulaciones(count)`), así
+ * que nunca viajan las filas —ni los datos de quién se postuló— al panel.
+ */
+export async function obtenerPanelDeEmpresa(
+  usuarioId?: string,
+): Promise<Resultado<PanelDeEmpresa>> {
+  const vacio: PanelDeEmpresa = {
+    empresa: { id: "", razon_social: "Tu empresa", rubro: "", logo_url: null },
+    vacantes: [],
+    eventos: [],
+  };
+
+  const supabase = await createClient();
+  if (!supabase) return ejemplo(vacio, SIN_CREDENCIALES);
+
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) redirect("/login");
+
+  const [empresa, vacantes, eventos] = await Promise.all([
+    supabase
+      .from("empresas")
+      .select("id, razon_social, rubro, logo_url")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("vacantes")
+      .select(
+        "id, titulo, tipo, posiciones, estado, creada_en, postulaciones(count)",
+      )
+      .eq("empresa_id", id)
+      .order("creada_en", { ascending: false }),
+    supabase
+      .from("eventos")
+      .select("id, titulo, fecha_hora, estado")
+      .eq("empresa_id", id)
+      .order("fecha_hora", { ascending: true }),
+  ]);
+
+  const error = empresa.error ?? vacantes.error ?? eventos.error;
+  if (error) return ejemplo(vacio, error.message);
+  if (!empresa.data)
+    return ejemplo(vacio, "La sesión todavía no tiene empresa creada");
+
+  return {
+    origen: "supabase",
+    datos: {
+      empresa: empresa.data,
+      vacantes: (vacantes.data ?? []).map((fila) => ({
+        id: fila.id,
+        titulo: fila.titulo,
+        tipo: comoTipoOportunidad(fila.tipo),
+        posiciones: fila.posiciones,
+        estado: comoEstadoVacante(fila.estado),
+        creada_en: fila.creada_en,
+        postulaciones:
+          (fila.postulaciones as unknown as { count: number }[])[0]?.count ?? 0,
+      })),
+      eventos: (eventos.data ?? []).map((fila) => ({
+        id: fila.id,
+        titulo: fila.titulo,
+        fecha_hora: fila.fecha_hora,
+        estado: comoEstadoEvento(fila.estado),
+      })),
+    },
   };
 }

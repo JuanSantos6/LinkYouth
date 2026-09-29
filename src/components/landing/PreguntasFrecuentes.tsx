@@ -1,3 +1,5 @@
+import { DetallesSuaves } from "@/components/ui/DetallesSuaves";
+
 const PREGUNTAS = [
   {
     pregunta: "¿Necesito currículum para usar LinkYouth?",
@@ -27,38 +29,31 @@ const PREGUNTAS = [
   {
     pregunta: "Soy una organización, ¿ya puedo publicar?",
     respuesta:
-      "Podés crear la cuenta y entrar, pero el panel para publicar búsquedas todavía está en construcción. El modelo de datos —vacantes, etiquetas ocultas, postulaciones y eventos— ya está hecho; falta la pantalla que lo opera.",
+      "Podés crear la cuenta y ver tu panel con tus búsquedas y eventos. El formulario para publicar desde ahí todavía está en construcción: mientras tanto, la primera búsqueda la cargamos con vos desde Contacto.",
   },
 ];
 
 /**
  * Preguntas frecuentes.
  *
- * Cada una es un `<details>`: abre y cierra sin JavaScript, es enfocable con
- * teclado y un lector de pantalla la anuncia como lo que es. El primero viene
- * abierto para que la sección no se vea como una lista de títulos mudos.
+ * Cada una es un `<details>` (`DetallesSuaves`): abre y cierra sin
+ * JavaScript, es enfocable con teclado y un lector de pantalla la anuncia
+ * como lo que es. Con JavaScript, se despliega con transición.
  */
 export function PreguntasFrecuentes() {
   return (
-    <ul className="divide-y divide-filete border-y border-filete">
+    <div className="divide-y divide-filete border-y border-filete">
       {PREGUNTAS.map(({ pregunta, respuesta }, indice) => (
-        <li key={pregunta}>
-          <details open={indice === 0} className="group py-4">
-            <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-[16px] font-medium text-tinta [&::-webkit-details-marker]:hidden">
-              {pregunta}
-              <span
-                aria-hidden="true"
-                className="mt-1 shrink-0 text-[13px] text-apagado group-open:rotate-180"
-              >
-                ▾
-              </span>
-            </summary>
-            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-apagado">
-              {respuesta}
-            </p>
-          </details>
-        </li>
+        <DetallesSuaves
+          key={pregunta}
+          resumen={pregunta}
+          abiertoAlInicio={indice === 0}
+        >
+          <p className="max-w-[70ch] pb-5 text-[16px] leading-relaxed text-apagado">
+            {respuesta}
+          </p>
+        </DetallesSuaves>
       ))}
-    </ul>
+    </div>
   );
 }

@@ -51,14 +51,29 @@ export default function PaginaEmpresas() {
         ))}
       </div>
 
-      <section className="mt-12">
-        <h2 className="text-[20px] text-tinta">Qué está disponible hoy</h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-apagado">
-          El modelo de datos de la empresa —vacantes, etiquetas ocultas,
-          postulaciones y eventos— ya está construido, con sus reglas de acceso
-          escritas en la base. El panel para operarlo todavía no: es el próximo
-          tramo del proyecto. Si querés seguirlo o proponer algo, el código está
-          abierto.
+      <section id="publicar" className="mt-12 scroll-mt-24 space-y-3">
+        <h2 className="text-[24px] text-tinta">Publicar búsquedas</h2>
+        <p className="text-[16px] leading-relaxed text-apagado">
+          Creás una cuenta de empresa y ya podés ver tu panel. El formulario
+          para publicar desde ahí todavía no está: mientras tanto, la primera
+          búsqueda la cargamos con vos. Escribinos desde Contacto con el puesto,
+          lo que pide y cuántas posiciones tenés.
+        </p>
+        <div className="flex flex-wrap gap-3 pt-2">
+          <BotonEnlace href="/registro?tipo=empresa" variante="primario">
+            Crear cuenta de empresa
+          </BotonEnlace>
+          <BotonEnlace href="/contacto#empresas">Escribirnos</BotonEnlace>
+        </div>
+      </section>
+
+      <section id="planes" className="mt-12 scroll-mt-24 space-y-3">
+        <h2 className="text-[24px] text-tinta">Planes y publicidad</h2>
+        <p className="text-[16px] leading-relaxed text-apagado">
+          Durante el piloto, LinkYouth es gratis para las empresas: publicar,
+          recibir postulaciones y organizar eventos no tiene costo. No hay
+          planes pagos ni vendemos publicidad. Si te interesa auspiciar un
+          taller o una charla para jóvenes, contanos en Contacto.
         </p>
       </section>
 

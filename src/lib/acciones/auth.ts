@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
@@ -13,10 +14,13 @@ import {
 } from "@/lib/supabase/almacenamiento";
 import {
   PARAMETRO_SIGUIENTE,
+  avisoPorPestana,
+  conAviso,
   correspondeA,
   destinoSeguro,
 } from "@/lib/navegacion";
 import { createClient } from "@/lib/supabase/server";
+import { COOKIE_RECORDAR } from "@/lib/supabase/sesion";
 import type { Database } from "@/types/database";
 
 import { CLAVE_DUPLICADA, SIN_CONFIGURAR, type EstadoAccion } from "./tipos";
@@ -663,7 +667,23 @@ export async function iniciarSesion(
     };
   }
 
-  const supabase = await createClient();
+  // «Mantener la sesión iniciada» (ver `src/lib/supabase/sesion.ts`). Sin la
+  // casilla, una cookie de sesión marca que las de Supabase también lo sean.
+  const recordar = datos.get("recordar") === "1";
+  const cookieStore = await cookies();
+  if (recordar) {
+    cookieStore.delete(COOKIE_RECORDAR);
+  } else {
+    // Sin `maxAge`: es una cookie de sesión. Sin `secure`, igual que las de
+    // Supabase, porque la app también se sirve por HTTP en la red interna.
+    cookieStore.set(COOKIE_RECORDAR, "0", {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+    });
+  }
+
+  const supabase = await createClient({ recordar });
   if (!supabase) return SIN_CONFIGURAR;
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -716,14 +736,23 @@ export async function iniciarSesion(
       ? siguiente
       : inicio;
 
+  // La pestaña elegida («Busco trabajo» / «Soy empresa») no decide a dónde se
+  // entra (RF1.2): si no coincide con la cuenta, se entra igual a la sección
+  // que le toca, con un aviso que explica por qué.
+  const aviso = avisoPorPestana(
+    datos.get("tipo_elegido"),
+    inicio === "/empresa" ? "empresa" : "individual",
+  );
+
   revalidatePath("/", "layout");
-  redirect(destino);
+  redirect(conAviso(destino, aviso));
 }
 
 /** RF1.3.5 — Cerrar la sesión. */
 export async function cerrarSesion(): Promise<void> {
   const supabase = await createClient();
   if (supabase) await supabase.auth.signOut();
+  (await cookies()).delete(COOKIE_RECORDAR);
 
   revalidatePath("/", "layout");
   redirect("/login");

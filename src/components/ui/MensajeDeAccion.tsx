@@ -28,9 +28,9 @@ export function MensajeDeAccion({
   return (
     <p
       aria-live="polite"
-      className={`text-[13px] ${
+      className={`animate-[ly-aparecer_200ms_cubic-bezier(0.2,0.7,0.2,1)] text-[13.5px] ${
         esError
-          ? "border-l-2 border-tinta pl-2 font-medium text-tinta"
+          ? "border-l-2 border-alerta pl-2 font-medium text-alerta"
           : "text-apagado"
       } ${className}`}
     >

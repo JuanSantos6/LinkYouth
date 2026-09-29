@@ -208,3 +208,26 @@ export type Resultado<T> = {
   /** Mensaje del error de lectura, si lo hubo. */
   error?: string;
 };
+
+/**
+ * Lo que ve una empresa en su panel (RF7): sus búsquedas —activas o
+ * cerradas— con cuántas postulaciones tiene cada una, y sus eventos.
+ */
+export type PanelDeEmpresa = {
+  empresa: EmpresaResumen;
+  vacantes: {
+    id: string;
+    titulo: string;
+    tipo: TipoOportunidad;
+    posiciones: number;
+    estado: EstadoVacante;
+    creada_en: string;
+    postulaciones: number;
+  }[];
+  eventos: {
+    id: string;
+    titulo: string;
+    fecha_hora: string;
+    estado: EstadoEvento;
+  }[];
+};

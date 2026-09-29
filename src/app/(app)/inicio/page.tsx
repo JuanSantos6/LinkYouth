@@ -1,10 +1,9 @@
-import Link from "next/link";
-
 import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
 import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { TarjetaUsuario } from "@/components/perfil/TarjetaUsuario";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
+import { FiltroDeslizante } from "@/components/ui/FiltroDeslizante";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import {
   obtenerEventos,
@@ -26,33 +25,22 @@ type Vista = "empleos" | "eventos";
  * URL, se puede compartir y el navegador la recuerda al volver atrás.
  */
 function Pestanas({ activa }: { activa: Vista }) {
-  const pestanas: { vista: Vista; etiqueta: string }[] = [
-    { vista: "empleos", etiqueta: "Oportunidades" },
-    { vista: "eventos", etiqueta: "Eventos" },
-  ];
-
   return (
-    <div role="tablist" className="flex gap-6 border-b border-borde">
-      {pestanas.map(({ vista, etiqueta }) => {
-        const seleccionada = vista === activa;
-
-        return (
-          <Link
-            key={vista}
-            role="tab"
-            aria-selected={seleccionada}
-            href={vista === "empleos" ? "/inicio" : "/inicio?vista=eventos"}
-            className={`-mb-px border-b-2 pb-2.5 text-[15px] transition-colors duration-150 ${
-              seleccionada
-                ? "border-acento font-medium text-tinta"
-                : "border-transparent text-apagado hover:text-tinta"
-            }`}
-          >
-            {etiqueta}
-          </Link>
-        );
-      })}
-    </div>
+    <FiltroDeslizante
+      etiqueta="Qué querés ver"
+      opciones={[
+        {
+          etiqueta: "Oportunidades",
+          href: "/inicio",
+          activa: activa === "empleos",
+        },
+        {
+          etiqueta: "Eventos",
+          href: "/inicio?vista=eventos",
+          activa: activa === "eventos",
+        },
+      ]}
+    />
   );
 }
 
@@ -83,11 +71,11 @@ export default async function PaginaInicio({
   const resultado = activa === "empleos" ? vacantes : eventos;
 
   return (
-    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_286px]">
+    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_300px]">
       <div className="min-w-0 space-y-6">
         <Encabezado
           titulo={`Hola, ${perfil.datos.nombre}`}
-          descripcion="Las oportunidades y los eventos que mejor coinciden con lo que ya acreditaste."
+          descripcion="Las búsquedas y los eventos que mejor coinciden con tu ficha."
         />
 
         <AvisoOrigen resultado={resultado} />
@@ -130,7 +118,7 @@ export default async function PaginaInicio({
         )}
       </div>
 
-      <aside className="xl:sticky xl:top-20 xl:self-start">
+      <aside className="xl:sticky xl:top-24 xl:self-start">
         <TarjetaUsuario
           perfil={perfil.datos}
           postulaciones={postulaciones.datos.length}

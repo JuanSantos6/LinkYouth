@@ -1,11 +1,9 @@
 /**
  * Un tag o una habilidad.
  *
- * `coincide` marca lo que el perfil ya declara, con una marca de verificación
- * y más peso, nunca con color de relleno: en una vacante que pide seis cosas y
- * la persona tiene cinco, seis etiquetas pintadas dejan de ser una señal y
- * pasan a ser un fondo. El ámbar se reserva para lo que aparece una vez por
- * pantalla.
+ * `coincide` marca lo que el perfil ya declara: turquesa (el del logo, en su
+ * versión suave en tema claro) con una marca de verificación y un texto
+ * oculto para lectores de pantalla. El color nunca va solo (WCAG 1.4.1).
  */
 export function Etiqueta({
   children,
@@ -16,14 +14,14 @@ export function Etiqueta({
 }) {
   if (!coincide) {
     return (
-      <span className="inline-flex items-center rounded-control border border-borde px-2 py-0.5 text-[13px] text-apagado">
+      <span className="inline-flex items-center rounded-full border border-borde-control/60 bg-superficie px-2.5 py-0.5 text-[13px] text-tinta">
         {children}
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-control border border-tinta px-2 py-0.5 text-[13px] font-medium text-tinta">
+    <span className="inline-flex items-center gap-1 rounded-full border border-coincide-borde bg-coincide-fondo px-2.5 py-0.5 text-[13px] font-semibold text-sobre-turquesa">
       <span aria-hidden="true">✓</span>
       {children}
       <span className="sr-only"> (ya lo tenés)</span>

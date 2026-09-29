@@ -54,3 +54,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /blob-report/
+
+# Lámina de referencia del logo: no se versiona (ver docs/decisiones.md, 2026-09-27).
+/public/marca/LOGO_LINKYOUTH.jpg

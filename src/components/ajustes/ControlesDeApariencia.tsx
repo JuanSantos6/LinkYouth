@@ -3,123 +3,76 @@
 import { useEffect, useState } from "react";
 
 import { PreferenciasDeApariencia } from "@/lib/diseno/PreferenciasDeApariencia";
-import {
-  ACENTOS,
-  ACENTO_POR_DEFECTO,
-  NOMBRES_DE_ACENTO,
-  TEMA_POR_DEFECTO,
-  type NombreDeAcento,
-  type Tema,
-} from "@/lib/diseno/tokens";
+import { TEMAS, TEMA_POR_DEFECTO, type Tema } from "@/lib/diseno/tokens";
+
+const OPCIONES: Record<Tema, { etiqueta: string; ayuda: string }> = {
+  sistema: {
+    etiqueta: "Como el sistema",
+    ayuda: "Sigue la configuración de tu teléfono o computadora.",
+  },
+  claro: { etiqueta: "Claro", ayuda: "Fondo claro siempre." },
+  oscuro: { etiqueta: "Oscuro", ayuda: "Fondo oscuro siempre." },
+};
 
 /**
- * Switch de tema y selector de color.
+ * Elección de tema. Es la misma preferencia que cambia el botón del
+ * encabezado: los dos leen y escriben `PreferenciasDeApariencia`.
  *
- * El estado real vive en el elemento raíz, donde ya lo dejó el guion que corre
- * antes del primer pintado. Este componente lo lee al montarse y lo refleja:
- * si arrancara con su propio valor por defecto, el control diría «claro»
- * mientras la pantalla se ve oscura.
+ * El selector de color de la plataforma se sacó con el sistema «Recreo»: la
+ * paleta nace del logo y es una sola (ver `docs/decisiones.md`, 2026-09-27).
  */
 export function ControlesDeApariencia() {
-  const [preferencias, setPreferencias] =
-    useState<PreferenciasDeApariencia | null>(null);
   const [tema, setTema] = useState<Tema>(TEMA_POR_DEFECTO);
-  const [acento, setAcento] = useState<NombreDeAcento>(ACENTO_POR_DEFECTO);
+  const [listo, setListo] = useState(false);
 
   useEffect(() => {
-    const actuales = PreferenciasDeApariencia.delDocumento();
-    setPreferencias(actuales);
-    setTema(actuales.tema);
-    setAcento(actuales.acento);
+    setTema(PreferenciasDeApariencia.delDocumento().tema);
+    setListo(true);
   }, []);
 
-  const enOscuro = tema === "oscuro";
-
   return (
-    <div className="divide-y divide-filete">
-      <section className="flex flex-wrap items-center justify-between gap-4 py-5 first:pt-0">
-        <div>
-          <h2 className="text-[16px] font-semibold text-tinta">Modo oscuro</h2>
-          <p className="mt-1 max-w-md text-[14px] text-apagado">
-            Cambia el fondo y el texto de toda la aplicación. Se recuerda en
-            este navegador.
-          </p>
-        </div>
+    <fieldset>
+      <legend className="text-[17px] font-semibold text-tinta">Tema</legend>
+      <p className="mt-1 max-w-md text-[14px] text-apagado">
+        Cómo se ve LinkYouth en este navegador. También lo podés cambiar con el
+        botón del encabezado.
+      </p>
 
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enOscuro}
-          aria-label="Modo oscuro"
-          disabled={!preferencias}
-          onClick={() => setTema(preferencias?.alternarTema() ?? tema)}
-          className={`relative h-7 w-12 shrink-0 rounded-full border transition-colors duration-150 disabled:opacity-50 ${
-            enOscuro
-              ? "border-acento bg-acento"
-              : "border-borde-control bg-realce"
-          }`}
-        >
-          <span
-            aria-hidden="true"
-            className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full transition-[left] duration-150 ${
-              enOscuro ? "left-6 bg-sobre-acento" : "left-1 bg-apagado"
-            }`}
-          />
-        </button>
-      </section>
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {TEMAS.map((opcion) => {
+          const elegido = opcion === tema;
 
-      <section className="py-5 last:pb-0">
-        <h2 className="text-[16px] font-semibold text-tinta">
-          Color de la plataforma
-        </h2>
-        <p className="mt-1 max-w-md text-[14px] text-apagado">
-          Cambia los botones, los enlaces y los resaltados. El ámbar de lo
-          acreditado no cambia: es lo que te dice qué está validado.
-        </p>
-
-        <fieldset className="mt-4">
-          <legend className="sr-only">Elegí un color</legend>
-
-          <div className="flex flex-wrap gap-2">
-            {NOMBRES_DE_ACENTO.map((nombre) => {
-              const elegido = nombre === acento;
-
-              return (
-                <label
-                  key={nombre}
-                  className={`flex cursor-pointer items-center gap-2 rounded-control border px-3 py-2 text-[14px] transition-colors duration-150 ${
-                    elegido
-                      ? "border-tinta text-tinta"
-                      : "border-borde-control text-apagado hover:text-tinta"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="acento"
-                    value={nombre}
-                    checked={elegido}
-                    disabled={!preferencias}
-                    onChange={() => {
-                      preferencias?.cambiarAcento(nombre);
-                      setAcento(nombre);
-                    }}
-                    className="sr-only"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="h-4 w-4 rounded-full border border-borde-control"
-                    style={{
-                      backgroundColor:
-                        ACENTOS[nombre][enOscuro ? "oscuro" : "claro"],
-                    }}
-                  />
-                  {ACENTOS[nombre].etiqueta}
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-      </section>
-    </div>
+          return (
+            <label
+              key={opcion}
+              className={`flex cursor-pointer flex-col gap-0.5 rounded-ficha border px-4 py-3 transition-colors duration-150 ${
+                elegido
+                  ? "border-acento bg-lavanda"
+                  : "border-borde-control/70 hover:border-tinta"
+              }`}
+            >
+              <span className="flex items-center gap-2 text-[15px] font-semibold text-tinta">
+                <input
+                  type="radio"
+                  name="tema"
+                  value={opcion}
+                  checked={elegido}
+                  disabled={!listo}
+                  onChange={() => {
+                    PreferenciasDeApariencia.delDocumento().cambiarTema(opcion);
+                    setTema(opcion);
+                  }}
+                  className="accent-[var(--ly-violeta-texto)]"
+                />
+                {OPCIONES[opcion].etiqueta}
+              </span>
+              <span className="pl-6 text-[13px] text-apagado">
+                {OPCIONES[opcion].ayuda}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }

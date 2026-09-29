@@ -6,6 +6,116 @@ se eligió esa opción.
 
 ---
 
+## 2026-09-27 — Sistema de diseño «Recreo»: identidad a partir del logo oficial
+
+**Decisión.** Se reemplaza la dirección «ficha técnica» por el sistema
+«Recreo», aprobado sobre una página de muestras y una demo de portada:
+
+- **Paleta que nace del logo oficial (versión 3).** Violeta del logo
+  (`#8C66FA`) como color de marca; turquesa del logo (`#19DDD2`) para «esto ya
+  lo tenés»; mandarina (`#F25C1A`) solo en el botón principal. Neutros de base
+  (papel `#F7F6FB`, tinta `#1E1A38`). Donde el violeta o el turquesa se usan
+  como texto, van en versiones oscuras que cumplen AA (`#6541E0`, `#0A7A73`).
+  Contrastes medidos en `src/lib/diseno/tokens.ts`.
+- **Una sola paleta**: se saca el selector de cinco colores de Ajustes.
+- **Tipografía Red Hat** (Display para títulos, Text para leer).
+- **Tema**: sigue al sistema por defecto; un botón visible en el encabezado
+  lo cambia a mano (sistema → claro → oscuro) y se recuerda en el navegador.
+- **Navegación**: un solo menú por tipo de cuenta, sin barra lateral; en el
+  teléfono, pestañas abajo para el postulante. La empresa no ve Empleos ni
+  Eventos. El encabezado se vuelve una cápsula de vidrio al bajar.
+- **Movimiento**: 200 ms al abrir y 150 ms al cerrar en toda la app; cambio de
+  pantalla con `document.startViewTransition`; filtros con indicador que se
+  desliza; los anillos del isotipo se unen al postularse; esqueletos de carga.
+- **Portada narrativa** con GSAP 3.13 + ScrollTrigger + Lenis, solo en la
+  página principal.
+
+**Alternativas consideradas.**
+
+- *Mantener «ficha técnica» (verde pino y ámbar, casi sin radio).* Coherente,
+  pero se leía como una oficina de registro: distante para alguien de 19 años
+  y «hecha por IA» según el pedido.
+- *Rondas anteriores del equipo* (rama `docs/propuestas-diseno-v2-v6`): azul
+  cielo (no se distinguía de cualquier dashboard, y es el color de LinkedIn),
+  teal (competía con el verde de éxito), violeta con Space Grotesk (cansaba en
+  texto largo), crema con serif y terracota (el estilo más asociado al diseño
+  generado), celeste con IBM Plex (sobrio pero frío).
+- *Primera versión de «Recreo» con lima y un logo nuevo.* Se descartó al
+  aparecer el logo oficial: la paleta tenía que nacer de él, y el logo lo
+  decide el equipo.
+- *Transiciones con `experimental.viewTransition` de Next 15.5.* Es
+  experimental; `EnlaceTransicion` usa la API del navegador directamente y
+  navega normal donde no existe.
+- *Animaciones de CSS ligadas al scroll (`animation-timeline`) en la portada.*
+  Sin peso extra, pero no andan en Firefox ni en Safari que sigue en uso, y
+  fijar una sección mientras se transforma pide JavaScript. GSAP (28 KB),
+  ScrollTrigger (18 KB) y Lenis (5 KB) comprimidos se cargan con `import()`
+  solo en la portada.
+
+**Motivo.** El público son jóvenes y la plataforma tiene que ser creíble para
+las empresas: la calidez va en los acentos y en los detalles (el logo, los
+anillos, los textos cercanos), y la seriedad en los neutros, la jerarquía y
+la accesibilidad. Que la paleta salga del logo hace que marca y producto se
+lean como una sola cosa.
+
+**Consecuencias y cosas que quedan escritas acá a propósito.**
+
+- **El logo en SVG es una reconstrucción.** `public/marca/*.svg` se redibujó a
+  partir de la lámina `LOGO_LINKYOUTH.jpg` (versión 3), midiendo la geometría
+  y los colores sobre la imagen; el texto es Plus Jakarta Sans 800 convertida
+  a trazos (licencia OFL), la más parecida a la lámina. Si aparecen los
+  archivos originales del diseñador, reemplazan a estos. **La lámina JPG no
+  se versiona**: es una referencia.
+- **Las opiniones de la portada son de ejemplo.** No hay personas usando
+  LinkYouth todavía; cada tarjeta dice «Ejemplo · no es una opinión real» y
+  los nombres son «[Nombre de ejemplo]». Se reemplazan por opiniones
+  verdaderas, con permiso de quien las da.
+- **Fotos reales que faltan** (hoy son `FotoProvisional`, rotuladas):
+  jóvenes estudiando juntos en la universidad; el equipo de una empresa
+  uruguaya recibiendo a su pasante; un taller de LinkYouth en la Universidad
+  de Montevideo; el equipo de LinkYouth; una captura real de la ficha en el
+  teléfono; una persona joven mirando búsquedas en la computadora; un primer
+  día de trabajo; jóvenes en una feria de empleo. Nada de fotos de banco.
+- **El panel de empresa solo lee.** Muestra búsquedas, postulaciones
+  recibidas y eventos con las políticas de RLS existentes. Publicar (RF3.1) y
+  responder postulaciones (RF3.4) quedan pendientes en `docs/plan.md`.
+- **Contacto es honesto.** No hay casilla ni tabla para consultas: la página
+  lo dice y ofrece el repositorio como canal. Hace falta un correo del equipo.
+- **Redes**: el pie solo enlaza el repositorio, la única que existe.
+- **El encabezado progresivo usa `requestAnimationFrame` y no ScrollTrigger.**
+  Con ScrollTrigger habría que cargar GSAP en toda la app para un solo efecto;
+  un cálculo por cuadro que escribe `--p` hace lo mismo sin dependencias. El
+  progreso se deriva siempre de `window.scrollY`, así que no hay estado que
+  pueda quedar trabado.
+- **Los logos de la cinta «Quiénes publican» son de ejemplo.** Las empresas
+  de prueba no tienen logo y ninguna empresa real autorizó a mostrar el suyo:
+  la cinta dibuja una marca de ejemplo con las iniciales y lo dice debajo.
+  Alcanza con **una** marca provisoria para que el aviso aparezca, aunque
+  otras empresas ya tengan logo (2026-09-29): se descartó avisar solo cuando
+  todos son provisorios, porque dejaba marcas inventadas sin anunciar.
+  **Mostrar el logo real de una organización requiere su autorización
+  expresa**, por escrito, antes de cargarlo en `empresas.logo_url`.
+- **«Mantener la sesión iniciada» sin tocar Supabase.** `@supabase/ssr` escribe
+  las cookies de sesión con 400 días de duración. Sin la casilla, el login
+  deja una cookie de sesión `ly-recordar=0`, y mientras exista, el cliente del
+  servidor y el middleware escriben las cookies de Supabase sin `maxAge` ni
+  `expires` (`src/lib/supabase/sesion.ts`): se borran al cerrar el navegador,
+  también cuando el middleware renueva el token. Se descartó acortar la
+  duración del token en Supabase, porque afectaría a todas las cuentas por
+  igual, y guardar la preferencia en `localStorage`, porque el servidor no la
+  ve. La cookie no lleva `secure` porque la app también se sirve por HTTP en la
+  red interna, igual que las de Supabase.
+- **Las pestañas «Busco trabajo» y «Soy empresa» del login no deciden a dónde
+  se entra.** Lo decide `cuentas.tipo` (RF1.2). Si no coinciden, se entra
+  igual a la sección que corresponde, con un aviso (`avisoPorPestana`). Así la
+  pestaña no se puede usar para entrar a la mitad equivocada.
+- **Los visitantes sin sesión no ven el botón de tema**: siguen al sistema. El
+  botón es de la cuenta.
+- **El tema se recuerda por navegador**, no por persona. Para que siga a la
+  cuenta en todos los dispositivos habría que guardarlo en `perfiles`.
+
+---
+
 ## 2026-09-26 — Empleos y eventos se leen sin sesión; lo que piden los avisos se reabre
 
 **Decisión.** `/empleos`, el detalle `/empleos/[id]` y `/eventos` se leen sin

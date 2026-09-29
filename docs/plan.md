@@ -210,6 +210,13 @@ la empresa hace aparecer la notificación en la cuenta del postulante.
 
 ## Hito 6 — Panel de empresa (RF7)
 
+**Estado al 2026-09-27.** Con el rediseño «Recreo», `/empresa` ya muestra, en
+modo lectura, las búsquedas propias (activas y cerradas) con su cantidad de
+postulaciones y los eventos propios (`obtenerPanelDeEmpresa`). **Pendientes,
+para un PR aparte:** publicar y editar búsquedas desde el panel (RF3.1,
+RF3.2) y ver a quién se postuló y responder (RF3.4). El panel los muestra como
+«Lo que viene», sin botones que no hacen nada.
+
 **Qué entra**
 
 - Rutas propias de empresa, separadas de las del postulante.
