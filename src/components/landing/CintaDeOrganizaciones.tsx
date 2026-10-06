@@ -1,4 +1,4 @@
-import type { EmpresaResumen } from "@/lib/data/tipos";
+import type { Organizacion } from "@/datos/ejemplo";
 
 import { PausaDeCinta } from "./PausaDeCinta";
 
@@ -16,28 +16,18 @@ import { PausaDeCinta } from "./PausaDeCinta";
  * - Cada logo es solo una imagen: ni botón ni enlace. La segunda copia está
  *   oculta para lectores de pantalla, que leen cada organización una vez.
  *
- * Una empresa sin logo se muestra con una marca provisoria (sus iniciales).
- * Alcanza con un solo logo provisorio en la cinta para que se avise en
- * pantalla, aunque otras empresas ya hayan subido el suyo: ver
- * `docs/decisiones.md`.
+ * Una organización sin logo se muestra con una marca provisoria (sus
+ * iniciales). Debajo de la cinta, un aviso dice que son logos de ejemplo.
  */
 export function CintaDeOrganizaciones({
-  empresas,
-  deEjemplo,
+  organizaciones,
 }: {
-  empresas: EmpresaResumen[];
-  /** Las organizaciones mismas son de ejemplo, no salen de la base. */
-  deEjemplo: boolean;
+  organizaciones: Organizacion[];
 }) {
-  const provisorios = empresas.filter(
-    (empresa) => deEjemplo || !empresa.logo_url,
-  ).length;
+  // En la versión de presentación todas las organizaciones son de ejemplo.
   const aviso =
-    provisorios === 0
-      ? "Organizaciones que ya publican búsquedas o eventos."
-      : provisorios === empresas.length
-        ? "Logos de ejemplo: todavía no hay empresas con permiso para mostrar su marca."
-        : "Algunos logos son provisorios: esas empresas todavía no subieron su marca.";
+    "Logos de ejemplo: todavía no hay empresas con permiso para mostrar su marca.";
+  const empresas = organizaciones;
 
   // Cada tramo tiene que ser más ancho que la pantalla para que no se vea el
   // empalme: con pocas organizaciones, la lista se repite dentro del tramo.
@@ -65,7 +55,7 @@ export function CintaDeOrganizaciones({
                 }
                 className="cinta-logo shrink-0 px-8 sm:px-12"
               >
-                <Logo empresa={empresa} deEjemplo={deEjemplo} />
+                <Logo empresa={empresa} />
               </li>
             )),
           )}
@@ -73,40 +63,26 @@ export function CintaDeOrganizaciones({
       </div>
 
       <div className="mx-auto mt-2 flex max-w-[1180px] flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
-        <p
-          className="text-[13.5px] text-apagado"
-          data-aviso-cinta={provisorios > 0 ? "provisorios" : "reales"}
-        >
-          {aviso}
-        </p>
+        <p className="text-[13.5px] text-apagado">{aviso}</p>
         <PausaDeCinta />
       </div>
     </div>
   );
 }
 
-function Logo({
-  empresa,
-  deEjemplo,
-}: {
-  empresa: EmpresaResumen;
-  deEjemplo: boolean;
-}) {
-  if (empresa.logo_url) {
-    const nombre = deEjemplo
-      ? `Logo de ejemplo de ${empresa.razon_social}`
-      : `Logo de ${empresa.razon_social}`;
+function Logo({ empresa }: { empresa: Organizacion }) {
+  if (empresa.logo) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- logo en Supabase Storage, fuera del optimizador
+      // eslint-disable-next-line @next/next/no-img-element -- logo estático de ejemplo
       <img
-        src={empresa.logo_url}
-        alt={nombre}
+        src={empresa.logo}
+        alt={`Logo de ejemplo de ${empresa.nombre}`}
         className="h-10 w-auto max-w-[180px] object-contain"
       />
     );
   }
 
-  const iniciales = empresa.razon_social
+  const iniciales = empresa.nombre
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -118,7 +94,7 @@ function Logo({
   return (
     <svg
       role="img"
-      aria-label={`Logo provisorio de ${empresa.razon_social}`}
+      aria-label={`Logo provisorio de ${empresa.nombre}`}
       data-logo-provisorio
       viewBox="0 0 220 48"
       className="h-10 w-auto text-apagado"
@@ -152,7 +128,7 @@ function Logo({
         fill="currentColor"
         fontFamily="var(--fuente-titulo), sans-serif"
       >
-        {empresa.razon_social}
+        {empresa.nombre}
       </text>
     </svg>
   );

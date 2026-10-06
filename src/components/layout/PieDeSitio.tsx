@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-import { type Area, inicioDe } from "@/lib/navegacion";
+import { EnlaceDemo } from "@/components/EnlaceDemo";
 
 import { IconoCodigo } from "./Iconos";
 import { Marca } from "./Marca";
@@ -8,10 +6,9 @@ import { Marca } from "./Marca";
 /**
  * Pie del sitio, en columnas como cualquier sitio profesional.
  *
- * Ningún enlace lleva a una página vacía: las que no existían se crearon en
- * versión simple y honesta (`/contacto`, y las secciones de publicación y de
- * planes en `/empresas`). Todos son públicos, así que el pie es el mismo para
- * cualquier tipo de cuenta.
+ * En la versión de presentación solo existe la portada: los enlaces a sus
+ * propias secciones (`#nosotros`, `#preguntas`) funcionan, y los que irían a
+ * otras páginas son de demostración (`EnlaceDemo`): responden pero no navegan.
  *
  * Redes: la única que figura es el repositorio del proyecto, porque es la
  * única que existe. Sumar íconos de Instagram o LinkedIn que no llevan a
@@ -22,9 +19,9 @@ const COLUMNAS = [
   {
     titulo: "LinkYouth",
     enlaces: [
-      { href: "/#nosotros", etiqueta: "Nosotros" },
-      { href: "/como-funciona", etiqueta: "Cómo funciona" },
-      { href: "/#preguntas", etiqueta: "Preguntas frecuentes" },
+      { href: "#nosotros", etiqueta: "Nosotros" },
+      { href: "#como-funciona", etiqueta: "Cómo funciona" },
+      { href: "#preguntas", etiqueta: "Preguntas frecuentes" },
     ],
   },
   {
@@ -62,13 +59,13 @@ const REDES = [
   },
 ] as const;
 
-export function PieDeSitio({ area = "publico" }: { area?: Area }) {
+export function PieDeSitio() {
   return (
-    <footer className="mt-20 border-t border-borde bg-superficie pb-24 md:pb-0">
+    <footer className="mt-20 border-t border-borde bg-superficie">
       <div className="mx-auto max-w-[1180px] px-4 py-14 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_repeat(4,1fr)]">
           <div className="flex flex-col gap-4">
-            <Marca href={inicioDe(area)} alto={28} />
+            <Marca href="#arriba" alto={28} />
             <p className="max-w-xs text-[14px] leading-relaxed text-apagado">
               Primer empleo, pasantías y eventos para jóvenes en Uruguay. Tu
               ficha son tus habilidades, no un currículum.
@@ -83,12 +80,12 @@ export function PieDeSitio({ area = "publico" }: { area?: Area }) {
               <ul className="mt-3 space-y-2.5">
                 {columna.enlaces.map((enlace) => (
                   <li key={enlace.href}>
-                    <Link
+                    <EnlaceDemo
                       href={enlace.href}
                       className="text-[14px] text-apagado transition-colors duration-150 hover:text-tinta hover:underline"
                     >
                       {enlace.etiqueta}
-                    </Link>
+                    </EnlaceDemo>
                   </li>
                 ))}
               </ul>
@@ -107,6 +104,8 @@ export function PieDeSitio({ area = "publico" }: { area?: Area }) {
               <li key={href}>
                 <a
                   href={href}
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex items-center gap-2 rounded-full border border-borde-control/60 px-3 py-1.5 text-[13px] text-tinta transition-colors duration-150 hover:bg-realce"
                 >
                   <Icono className="h-4 w-4" />

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import { EnlaceDemo } from "@/components/EnlaceDemo";
 import { CintaDeOrganizaciones } from "@/components/landing/CintaDeOrganizaciones";
 import { PreguntasFrecuentes } from "@/components/landing/PreguntasFrecuentes";
 import { CabeceraGlobal } from "@/components/layout/CabeceraGlobal";
@@ -18,13 +18,7 @@ import {
 } from "@/components/portada/SliderBienvenida";
 import { TarjetasPasos, type Paso } from "@/components/portada/TarjetasPasos";
 import { Etiqueta } from "@/components/ui/Etiqueta";
-import {
-  obtenerEmpresas,
-  obtenerTipoCuenta,
-  obtenerVacantes,
-} from "@/lib/data/consultas";
-import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
-import { areaDe } from "@/lib/navegacion";
+import { BUSQUEDAS, ORGANIZACIONES } from "@/datos/ejemplo";
 
 export const metadata: Metadata = {
   title: "LinkYouth: tu primer trabajo empieza por lo que ya sabés hacer",
@@ -32,9 +26,21 @@ export const metadata: Metadata = {
     "Plataforma de primer empleo, pasantías y eventos para jóvenes en Uruguay. Tu ficha son tus habilidades, no un currículum.",
 };
 
-/** Lee las organizaciones y las búsquedas publicadas, que cambian sin recompilar. */
-export const dynamic = "force-dynamic";
+/*
+ * PORTADA DE LINKYOUTH — versión de presentación (primera entrega).
+ *
+ * Es la única página de esta versión. Todo lo visual es igual a la app
+ * completa; lo que cambia es de dónde salen los datos: las organizaciones y
+ * las búsquedas vienen de `src/datos/ejemplo.ts` (contenido de ejemplo), no
+ * de la base. Los botones que irían a otras páginas son `EnlaceDemo`:
+ * responden al clic pero no navegan.
+ *
+ * Orden de la página: cabecera → bienvenida (slider) → nosotros → cómo
+ * funciona → búsquedas (carrusel) → quiénes publican (cinta de logos) →
+ * opiniones (carrusel) → preguntas → llamado final → pie.
+ */
 
+/** Anclas del encabezado: cada una lleva a una sección de esta página. */
 const SECCIONES = [
   { href: "#nosotros", etiqueta: "Nosotros" },
   { href: "#como-funciona", etiqueta: "Cómo funciona" },
@@ -208,18 +214,11 @@ function TituloSeccion({
  * al scroll (`AnimacionesDePortada`). Todo el contenido se lee sin
  * JavaScript y con «reducir movimiento» queda quieto y completo.
  */
-export default async function Portada() {
-  const [empresas, tipo, vacantes] = await Promise.all([
-    obtenerEmpresas(),
-    obtenerTipoCuenta(),
-    obtenerVacantes({ limite: 8 }),
-  ]);
-  const area = areaDe(tipo);
-
+export default function Portada() {
   return (
     <div id="arriba" className="flex min-h-dvh flex-col">
       <AnimacionesDePortada />
-      <CabeceraGlobal area={area} secciones={SECCIONES} />
+      <CabeceraGlobal secciones={SECCIONES} />
 
       <main className="flex-1">
         <div className="relative">
@@ -360,40 +359,36 @@ export default async function Portada() {
                     </div>
                   }
                 >
-                  {vacantes.datos.map((vacante) => (
-                    <Link
-                      key={vacante.id}
-                      href={`/empleos/${vacante.id}`}
+                  {BUSQUEDAS.map((busqueda) => (
+                    <EnlaceDemo
+                      key={busqueda.id}
+                      href={`/empleos/${busqueda.id}`}
                       className="grid w-[min(320px,80vw)] shrink-0 snap-start content-start gap-2.5 rounded-[20px] border border-borde bg-superficie p-5 text-tinta transition-transform duration-200 hover:-translate-y-0.5"
                     >
                       <span className="flex flex-wrap gap-x-3 text-[13px] text-apagado">
-                        <span>{vacante.empresa.razon_social}</span>
-                        <span>{etiquetaTipo(vacante.tipo)}</span>
-                        <span>{tiempoRelativo(vacante.creada_en)}</span>
+                        <span>{busqueda.organizacion}</span>
+                        <span>{busqueda.tipo}</span>
+                        <span>{busqueda.publicada}</span>
                       </span>
                       <span className="font-titulo text-[19px] leading-snug font-bold">
-                        {vacante.titulo}
+                        {busqueda.titulo}
                       </span>
                       <span className="flex flex-wrap gap-1.5">
-                        {[...vacante.habilidades, ...vacante.tags]
-                          .slice(0, 2)
-                          .map((requisito) => (
-                            <Etiqueta key={requisito}>{requisito}</Etiqueta>
-                          ))}
+                        {busqueda.requisitos.map((requisito) => (
+                          <Etiqueta key={requisito}>{requisito}</Etiqueta>
+                        ))}
                       </span>
                       <span className="text-[14px] font-semibold text-acento underline decoration-2 underline-offset-4">
                         Ver la búsqueda
                       </span>
-                    </Link>
+                    </EnlaceDemo>
                   ))}
                 </Carrusel>
                 <RotuloFotoProvisional que="jóvenes en una feria de empleo" />
-                {vacantes.origen === "ejemplo" && (
-                  <p className="text-[13.5px] text-[#E6E3F2]">
-                    Estas búsquedas son de demostración: todavía no hay empresas
-                    publicando.
-                  </p>
-                )}
+                <p className="text-[13.5px] text-[#E6E3F2]">
+                  Estas búsquedas son de demostración: todavía no hay empresas
+                  publicando.
+                </p>
               </div>
             </div>
           </div>
@@ -410,22 +405,17 @@ export default async function Portada() {
               titulo="Quiénes publican"
               bajada="Organizaciones que buscan perfiles junior y organizan instancias de formación."
             />
-            {empresas.origen === "ejemplo" && (
-              <p className="mb-4 border-l-2 border-borde-control pl-3 text-[14px] text-apagado">
-                <span className="font-semibold text-tinta">
-                  Contenido de demostración.
-                </span>{" "}
-                Todavía no hay base cargada, así que estas organizaciones son de
-                ejemplo.
-              </p>
-            )}
+            <p className="mb-4 border-l-2 border-borde-control pl-3 text-[14px] text-apagado">
+              <span className="font-semibold text-tinta">
+                Contenido de demostración.
+              </span>{" "}
+              Todavía no hay base cargada, así que estas organizaciones son de
+              ejemplo.
+            </p>
           </div>
           {/* La cinta ocupa todo el ancho de la página, fuera del contenedor. */}
           <div data-revelar>
-            <CintaDeOrganizaciones
-              empresas={empresas.datos}
-              deEjemplo={empresas.origen === "ejemplo"}
-            />
+            <CintaDeOrganizaciones organizaciones={ORGANIZACIONES} />
           </div>
         </section>
 
@@ -520,21 +510,21 @@ export default async function Portada() {
               <p className="max-w-[60ch] text-[17px] text-papel/85">
                 Armá tu ficha en cinco minutos y mirá qué búsquedas coinciden
                 con vos. ¿Tenés una consulta?{" "}
-                <Link
+                <EnlaceDemo
                   href="/contacto"
                   className="font-semibold text-papel underline underline-offset-4"
                 >
                   Escribinos
-                </Link>
+                </EnlaceDemo>
                 .
               </p>
               <div className="flex flex-wrap gap-3">
-                <Link
+                <EnlaceDemo
                   href="/registro"
                   className="rounded-control bg-mandarina px-5 py-3 text-[15px] font-semibold text-sobre-mandarina transition-[filter] duration-150 hover:brightness-[0.94]"
                 >
                   Crear mi cuenta
-                </Link>
+                </EnlaceDemo>
                 <a
                   href="#arriba"
                   className="rounded-control border-[1.5px] border-papel/50 px-5 py-3 text-[15px] font-semibold text-papel transition-colors duration-150 hover:bg-papel/10"
@@ -547,7 +537,7 @@ export default async function Portada() {
         </section>
       </main>
 
-      <PieDeSitio area={area} />
+      <PieDeSitio />
     </div>
   );
 }

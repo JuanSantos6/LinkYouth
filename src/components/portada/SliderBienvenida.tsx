@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+
+import { EnlaceDemo } from "@/components/EnlaceDemo";
 
 import { FotoProvisional } from "./FotoProvisional";
 
@@ -121,21 +122,21 @@ export function SliderBienvenida({
                 <div className="mt-1 flex flex-wrap gap-2.5">
                   {diapositiva.acciones.map((accion) =>
                     accion.primaria ? (
-                      <Link
+                      <EnlaceDemo
                         key={accion.href}
                         href={accion.href}
                         className="rounded-control bg-mandarina px-4 py-2.5 text-[15px] font-semibold text-[#1E1A38] transition-[filter] duration-150 hover:brightness-[0.94]"
                       >
                         {accion.etiqueta}
-                      </Link>
+                      </EnlaceDemo>
                     ) : (
-                      <a
+                      <EnlaceDemo
                         key={accion.href}
                         href={accion.href}
                         className="rounded-control border-[1.5px] border-white/60 bg-white/10 px-4 py-2.5 text-[15px] font-semibold text-white transition-colors duration-150 hover:bg-white/20"
                       >
                         {accion.etiqueta}
-                      </a>
+                      </EnlaceDemo>
                     ),
                   )}
                 </div>

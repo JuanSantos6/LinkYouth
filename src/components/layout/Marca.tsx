@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 type Variante = "horizontal" | "apilado" | "isotipo";
 
 /** Proporción ancho / alto de cada archivo de `public/marca/`. */
@@ -20,8 +18,8 @@ const PROPORCION: Record<Variante, number> = {
  * logo pueda aparecer dos veces en la misma página —cabecera y pie— sin
  * repetir los ids de sus degradados.
  *
- * El destino es obligatorio: sin sesión, la portada; con sesión,
- * `inicioDe(area)` de `src/lib/navegacion.ts`.
+ * En la versión de presentación el logo lleva al principio de la portada
+ * (`#arriba`).
  */
 export function Marca({
   href,
@@ -37,7 +35,7 @@ export function Marca({
   const oscuro = variante === "isotipo" ? "isotipo" : `logo-${variante}-oscuro`;
 
   return (
-    <Link href={href} className="flex shrink-0 items-center rounded-control">
+    <a href={href} className="flex shrink-0 items-center rounded-control">
       {/* eslint-disable-next-line @next/next/no-img-element -- SVG estático, no necesita el optimizador */}
       <img
         src={`/marca/${archivo}.svg`}
@@ -54,6 +52,6 @@ export function Marca({
         height={alto}
         className="logo-oscuro"
       />
-    </Link>
+    </a>
   );
 }

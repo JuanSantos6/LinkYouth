@@ -286,28 +286,6 @@
     display: none;
   }
 
-  /* El número grande —compatibilidad, día del evento— es un elemento gráfico. */
-  .cifra {
-    font-family: var(--font-titulo);
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-  }
-
-  /* Esqueleto de carga: la silueta de lo que viene, con un brillo suave. */
-  .esqueleto {
-    border-radius: 8px;
-    background: linear-gradient(
-      90deg,
-      var(--ly-esqueleto) 0%,
-      var(--ly-esqueleto-brillo) 50%,
-      var(--ly-esqueleto) 100%
-    );
-    background-size: 200% 100%;
-    animation: ly-brillo 1.4s linear infinite;
-  }
-
   /*
    * Panel que se despliega (preguntas frecuentes, «Ver más»): la altura crece
    * con una transición de grilla, sin medir nada con JavaScript.
@@ -380,7 +358,6 @@
  */
 .cabecera-flotante {
   --p: 0;
-  view-transition-name: cabecera;
   padding: calc(10px * var(--p)) calc(12px * var(--p)) 0;
   pointer-events: none;
 }
@@ -433,45 +410,6 @@
 ) {
   .cabecera-flotante .cabecera-barra {
     background-color: var(--ly-superficie);
-  }
-}
-
-::view-transition-old(cabecera),
-::view-transition-new(cabecera),
-::view-transition-old(pestanas),
-::view-transition-new(pestanas) {
-  animation: none;
-}
-
-/* Los anillos que se unen al postularse. */
-.conexion-anillos .anillo-1,
-.conexion-anillos .anillo-2 {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ly-anillo 250ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-.conexion-anillos .anillo-2 {
-  animation-delay: 450ms;
-}
-
-.conexion-anillos .barra {
-  animation: ly-conectar 450ms 120ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-@keyframes ly-anillo {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-}
-
-@keyframes ly-conectar {
-  from {
-    stroke-dashoffset: 40;
-  }
-  to {
-    stroke-dashoffset: 0;
   }
 }
 
@@ -595,40 +533,37 @@ html.lenis body {
   }
 }
 
-@keyframes ly-brillo {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: -100% 0;
-  }
-}
-
-@keyframes ly-aparecer {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-@keyframes ly-desvanecer {
-  to {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
 /*
- * Cambio de pantalla con la View Transitions API: la vieja se desvanece y la
- * nueva entra subiendo. Solo el contenido principal; cabecera y pie quedan
- * quietos (`view-transition-name` propio).
+ * Versión de presentación: los enlaces a otras páginas no navegan
+ * (`EnlaceDemo`). Al hacer clic, el botón late una vez para mostrar que
+ * respondió. Dos animaciones iguales con distinto nombre para que un segundo
+ * clic seguido la vuelva a empezar.
  */
-::view-transition-old(root) {
-  animation: 150ms cubic-bezier(0.4, 0, 1, 1) both ly-desvanecer;
+@layer components {
+  /* En capa para que `hidden` o `block` de Tailwind le ganen. */
+  .enlace-demo {
+    display: inline-block;
+  }
 }
 
-::view-transition-new(root) {
-  animation: 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both ly-aparecer;
+.enlace-demo[data-latido="a"] {
+  animation: ly-latido-a 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.enlace-demo[data-latido="b"] {
+  animation: ly-latido-b 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes ly-latido-a {
+  40% {
+    transform: scale(0.94);
+  }
+}
+
+@keyframes ly-latido-b {
+  40% {
+    transform: scale(0.94);
+  }
 }
 
 /* Movimiento: para quien pide menos, ninguno. Todo queda en su estado final. */
@@ -644,10 +579,5 @@ html.lenis body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
-  }
-
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
   }
 }

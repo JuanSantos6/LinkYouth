@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 /** Recorrido de scroll en el que el encabezado pasa de barra a cápsula. */
@@ -19,7 +18,7 @@ const curva = (t: number) => 1 - Math.pow(1 - t, 3);
  * El progreso (0 a 1) se calcula **siempre desde la posición real del
  * scroll** y se escribe en la variable CSS `--p` (`globals.css` hace el
  * resto). Se recalcula al hacer scroll (un solo `requestAnimationFrame` por
- * cuadro), al montar, al cambiar de pantalla, al volver con el botón atrás
+ * cuadro), al montar, al volver con el botón atrás
  * (también desde la caché del navegador) y al cambiar el tamaño de la
  * ventana: no hay estado guardado que pueda quedar trabado.
  *
@@ -32,7 +31,6 @@ export function EncabezadoFlotante({
   children: React.ReactNode;
 }) {
   const encabezado = useRef<HTMLElement>(null);
-  const ruta = usePathname();
 
   useEffect(() => {
     const elemento = encabezado.current;
@@ -77,17 +75,6 @@ export function EncabezadoFlotante({
       reducido.removeEventListener("change", programar);
     };
   }, []);
-
-  // Al cambiar de pantalla, Next restaura o pone el scroll arriba después de
-  // pintar: se recalcula en el cuadro siguiente, desde la posición real.
-  useEffect(() => {
-    const elemento = encabezado.current;
-    if (!elemento) return;
-    const pedido = requestAnimationFrame(() =>
-      window.dispatchEvent(new Event("scroll")),
-    );
-    return () => cancelAnimationFrame(pedido);
-  }, [ruta]);
 
   return (
     <>
