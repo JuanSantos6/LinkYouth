@@ -13,6 +13,15 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-06 — Informe de publicación y auditoría de seguridad
+
+- **Nuevo [`publicacion-y-seguridad.md`](./publicacion-y-seguridad.md).** Antes
+  de publicar LinkYouth en internet con Tailscale Funnel se auditó la
+  instalación: secretos, gateway, RLS, puertos y auth. El hallazgo principal
+  (H1: cualquier usuario con sesión lee los datos de todos los jóvenes) bloquea
+  la publicación de la app hasta corregirlo. Solo documentación; no cambia
+  código ni esquema.
+
 ## 2026-09-29 — Aviso de logos provisorios en la cinta
 
 - **La cinta avisa en cuanto hay un logo provisorio, no solo cuando lo son
