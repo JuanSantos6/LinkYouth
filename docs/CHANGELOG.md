@@ -13,6 +13,18 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-06 — Datos de jóvenes cerrados entre usuarios (H1, H6, H13)
+
+- **Cada joven ve sus intereses, habilidades y formaciones; una empresa, los
+  de quienes se postularon a sus vacantes.** Antes cualquiera con sesión los
+  leía todos, y el registro es abierto. Migración 003, aplicada el 2026-10-06.
+  Ver [`decisiones.md`](./decisiones.md).
+- **`perfiles_publicos` expone solo `id` y `nombre_usuario` y es de solo
+  lectura.** Tenía nombre, apellido, bio y foto a la vista sin sesión, y por
+  los privilegios por defecto dejaba modificar perfiles sin sesión.
+- **`verificar-raspado-anonimo.sh` prueba también que `anon` no escriba por la
+  vista**, que es lo que dejó pasar H13 sin que nadie lo notara.
+
 ## 2026-09-29 — Aviso de logos provisorios en la cinta
 
 - **La cinta avisa en cuanto hay un logo provisorio, no solo cuando lo son

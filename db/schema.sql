@@ -346,12 +346,33 @@ $$;
 -- `where` de la vista.
 -- ============================================================
 
-create view perfiles_publicos as
-select id, nombre_usuario, nombre, apellido, pais, bio, foto_url, creado_en
+-- Desde el 2026-10-06 (H6 y H13, migración 003) expone solo lo que usa el
+-- registro: `id` y `nombre_usuario`. Antes llevaba nombre, apellido, país,
+-- bio y foto, que cualquiera podía descargar sin sesión. Y como la vista es
+-- actualizable y su dueño saltea RLS, los privilegios por defecto de
+-- Supabase (todos, para `anon` y `authenticated`) dejaban modificar perfiles
+-- ajenos sin sesión: por eso el `revoke all` antes del `grant select`.
+create view perfiles_publicos
+  with (security_barrier = true)
+as
+select id, nombre_usuario
 from perfiles
 where cuenta_activa(id);
 
+revoke all on perfiles_publicos from public, anon, authenticated;
 grant select on perfiles_publicos to anon, authenticated;
+
+-- Institución y título de todas las formaciones, sin `perfil_id`: la ficha de
+-- institución agrupa las de todos y `formaciones` ya no se lee entera (H1).
+-- Solo con sesión. Misma razón para el `revoke all`.
+create view formaciones_publicas
+  with (security_barrier = true)
+as
+select institucion, titulo
+from formaciones;
+
+revoke all on formaciones_publicas from public, anon, authenticated;
+grant select on formaciones_publicas to authenticated;
 
 -- ============================================================
 -- ÍNDICES

@@ -6,6 +6,41 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-06 — Los datos de cada joven los ven él y las empresas a las que se postuló
+
+**Decisión.** `perfil_tags`, `perfil_habilidades` y `formaciones` dejan de
+leerse con `using (true)`: cada joven ve lo suyo, y una empresa ve los de un
+joven solo mientras tenga una postulación no cancelada a una vacante suya
+(`es_postulante_de_mi_empresa`). `resenias` la leen quien la escribió y la
+empresa reseñada. `perfiles_publicos` queda en `id` y `nombre_usuario`, de
+solo lectura. Para la ficha de institución se agrega `formaciones_publicas`
+(institución y título, sin `perfil_id`). Migración
+`db/migraciones/003-h1-datos-de-jovenes.sql`; hallazgos H1, H6 y H13 de
+`docs/publicacion-y-seguridad.md`.
+
+**Por qué ahora.** La app se publica en internet y el registro está abierto
+y se autoconfirma: "con sesión" equivalía a "cualquiera". La auditoría
+encontró además que, con los privilegios por defecto de Supabase, la vista
+`perfiles_publicos` dejaba modificar perfiles sin sesión (H13).
+
+**Alternativas consideradas.**
+
+- *Mantener la lectura entre usuarios (RF2.5) y la de reseñas (RF8.2).* Es lo
+  que pedía la especificación, pero ninguna pantalla actual muestra datos de
+  otro joven ni reseñas, así que cerrar no rompe nada y abrir expone a todos.
+  Cuando exista la pantalla, se abre lo que esa pantalla necesite.
+- *Que la empresa vea a quien se postuló aunque haya cancelado.* Descartado:
+  cancelar es retirar la postulación, y con ella el permiso de verlo.
+- *Darle a la empresa también la fila de `perfiles` del postulante.* Ninguna
+  pantalla la usa todavía (el panel solo cuenta postulaciones); se agrega con
+  la lista de postulantes.
+- *Reemplazar `perfiles_publicos` por una función `nombre_usuario_ocupado()`.*
+  Expone menos (ni ids ni nombres de usuario), pero cambia el código del
+  registro. Queda como mejora; mientras Supabase no se publique, la vista
+  mínima alcanza.
+
+---
+
 ## 2026-09-27 — Sistema de diseño «Recreo»: identidad a partir del logo oficial
 
 **Decisión.** Se reemplaza la dirección «ficha técnica» por el sistema
