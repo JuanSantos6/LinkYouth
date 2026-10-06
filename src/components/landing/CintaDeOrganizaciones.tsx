@@ -1,6 +1,7 @@
 import type { EmpresaResumen } from "@/lib/data/tipos";
 
 import { PausaDeCinta } from "./PausaDeCinta";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 /**
  * Cinta de logos de las organizaciones que publican, de borde a borde, que
@@ -99,7 +100,7 @@ function Logo({
     return (
       // eslint-disable-next-line @next/next/no-img-element -- logo en Supabase Storage, fuera del optimizador
       <img
-        src={empresa.logo_url}
+        src={rutaDeImagen(empresa.logo_url) ?? undefined}
         alt={nombre}
         className="h-10 w-auto max-w-[180px] object-contain"
       />

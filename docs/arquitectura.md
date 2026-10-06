@@ -166,6 +166,12 @@ de RLS: la acompaña. Quien decide es la base.
 hace falta que se cuide de hacerlo: la política de RLS ya se los niega a
 cualquier sesión que no sea la empresa dueña de la vacante (RF3.1.6, RNF5).
 
+**Las fotos.** El navegador nunca le habla a Supabase: Supabase no se publica
+en internet. Las fotos y logos se guardan y se muestran como rutas relativas
+(`/storage/v1/object/public/avatars/…`, ver `rutaDeImagen`) y la propia app las
+trae de Storage por la red interna con el `rewrite` de `next.config.ts`. El
+middleware deja pasar esas rutas sin pedir sesión.
+
 **Los alias de tipo.** El esquema usa `text` + `check` en vez de enums de
 Postgres, así que `supabase gen types` devuelve esas columnas como `string`.
 Los alias (`TipoOportunidad`, `EstadoPostulacion`, `EstadoFormacion`…) viven
@@ -228,6 +234,16 @@ Devuelve `null` si falta cualquiera de las dos, en vez de lanzar.
 
 Es el único punto del código que toca esas variables. Que devuelva `null` en
 lugar de fallar es lo que sostiene la regla §2.3.
+
+### 5.1b `src/lib/supabase/rutaDeImagen.ts`
+
+#### `rutaDeImagen(url): string | null`
+
+Convierte la URL de una imagen pública de Storage en ruta relativa, mirando el
+camino y no el origen: sirve también para las URLs absolutas que ya estaban
+guardadas (`http://<ip interna>:8000/…`). Lo que no es de Storage —una vista
+previa `blob:`, un logo en otro sitio— vuelve tal cual. La usan `Avatar`,
+`CintaDeOrganizaciones`, `TarjetaEvento` y `subirImagenDePerfil`.
 
 ### 5.2 `src/lib/supabase/server.ts`
 

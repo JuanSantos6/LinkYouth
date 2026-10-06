@@ -13,6 +13,21 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-06 — La app, lista para publicarse con Tailscale Funnel
+
+- **Las fotos las sirve la app, no Supabase.** `rewrite` de
+  `/storage/v1/object/public/*` hacia `127.0.0.1:8000` y rutas relativas al
+  guardar y al mostrar (`rutaDeImagen`): Supabase no se publica en internet y
+  una URL `http://100.79.143.69:8000/…` no la abre nadie de afuera.
+  `NEXT_PUBLIC_SUPABASE_URL` no cambia.
+- **Cabeceras:** se suman `Permissions-Policy`, `Strict-Transport-Security` y
+  `X-Robots-Tag: noindex`, más `robots.txt` con `Disallow: /`, y se quita
+  `X-Powered-By` (H8).
+- **La ficha de institución lee `formaciones_publicas`**, porque desde H1
+  `formaciones` ya no se lee entera.
+- **Migración 004:** el bucket `avatars` acepta hasta 2 MB y solo JPG, PNG y
+  WebP (H7). La app ya lo validaba, pero se salteaba llamando a Storage directo.
+
 ## 2026-10-06 — Datos de jóvenes cerrados entre usuarios (H1, H6, H13)
 
 - **Cada joven ve sus intereses, habilidades y formaciones; una empresa, los
