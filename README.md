@@ -12,6 +12,25 @@ publican oportunidades.
 
 La especificación funcional completa está en [`docs/`](./docs).
 
+> **Rama `presentacion/primera-entrega` — no mergear.** Esta rama es la
+> versión que se muestra en la primera entrega: solo la portada, sin base de
+> datos ni sesión. Para levantarla:
+>
+> ```bash
+> npm install
+> npm run build
+> npm run start -- -p 3002
+> ```
+>
+> No necesita `.env.local`. Qué se cambió y dónde está cada cosa:
+>
+> - `src/app/page.tsx` — la portada, la única página.
+> - `src/datos/ejemplo.ts` — organizaciones y búsquedas de ejemplo.
+> - `src/components/EnlaceDemo.tsx` — botones que responden pero no navegan.
+> - `presentacion/` — base de datos básica y recursos de trabajo con Claude.
+>
+> El resto de este README describe la app completa, que vive en `main`.
+
 ## Stack
 
 | Capa                 | Tecnología                                |

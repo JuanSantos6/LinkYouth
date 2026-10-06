@@ -13,6 +13,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-06 — Versión de presentación (rama `presentacion/primera-entrega`)
+
+- **Solo la portada, sin backend, para la primera entrega del 8 de octubre.**
+  Esta rama no se mergea: es la versión que se muestra en la presentación.
+  Se quitaron Supabase, el middleware, las acciones y todas las rutas salvo
+  `/`. Las organizaciones y búsquedas salen de `src/datos/ejemplo.ts`, y los
+  enlaces a otras páginas son `EnlaceDemo` (responden al clic, no navegan).
+
 ## 2026-09-29 — Aviso de logos provisorios en la cinta
 
 - **La cinta avisa en cuanto hay un logo provisorio, no solo cuando lo son
