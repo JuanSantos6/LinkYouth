@@ -1,4 +1,5 @@
 import { iniciales } from "@/lib/formato";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 type AvatarProps = {
   nombre: string;
@@ -34,13 +35,15 @@ export function Avatar({
   const radio = forma === "redondo" ? "rounded-full" : "rounded-ficha";
   const clases = `${TAMANOS[tamano]} ${radio} shrink-0 border border-borde bg-lavanda object-cover`;
 
-  if (url) {
+  const src = rutaDeImagen(url);
+
+  if (src) {
     // Los logos y las fotos viven en Supabase Storage, con dominios variables:
     // no pasan por el optimizador de imágenes de Next.
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={url}
+        src={src}
         alt={nombre}
         width={LADOS[tamano]}
         height={LADOS[tamano]}

@@ -187,8 +187,10 @@ export const config = {
     /*
      * Se aplica a todas las rutas salvo:
      * - _next/static y _next/image (assets internos de Next.js)
-     * - favicon.ico y los archivos de imagen
+     * - favicon.ico, robots.txt y los archivos de imagen
+     * - /storage/v1/object/public/: las fotos de Storage, que sirve el
+     *   `rewrite` de next.config.ts sin pedir sesión
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|storage/v1/object/public/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

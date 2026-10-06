@@ -95,6 +95,26 @@ abierta eventos               no "/eventos queda vacío sin sesión"
 abierta evento_tags           no "los eventos se ven sin sus temas"
 
 echo
+echo "=== Escritura por vistas: anon nunca escribe (H13)"
+# El filtro no coincide con ninguna fila, así que aunque el permiso estuviera
+# abierto no se modifica nada. Lo que se mira es el código: sin permiso,
+# PostgREST responde 401 (42501); con permiso, 204 o 200 y cero filas.
+solo_lectura() {
+  local vista="$1" codigo
+  codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X PATCH \
+    "$URL/rest/v1/$vista?id=eq.00000000-0000-0000-0000-000000000000" \
+    -H "apikey: $ANON" -H "Content-Type: application/json" \
+    -d '{"nombre_usuario":"verificacion"}')
+  if [ "$codigo" = "401" ] || [ "$codigo" = "403" ]; then
+    printf '  %-24s HTTP %s   solo lectura, como corresponde\n' "$vista" "$codigo"
+  else
+    printf '  %-24s HTTP %s   ESCRIBIBLE por anon: tiene que ser solo lectura\n' "$vista" "$codigo"
+    fallas=$((fallas + 1))
+  fi
+}
+solo_lectura perfiles_publicos
+
+echo
 if [ "$fallas" -eq 0 ]; then
   echo "Todo lo que se pudo medir está como tiene que estar. Para las tablas"
   echo "vacías, la respuesta la dan las dos consultas de abajo."

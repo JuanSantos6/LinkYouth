@@ -5,6 +5,7 @@ import { Tarjeta } from "@/components/ui/Tarjeta";
 import { cancelarInscripcion, inscribirse } from "@/lib/acciones/eventos";
 import type { Evento } from "@/lib/data/tipos";
 import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 /**
  * Tarjeta de evento institucional.
@@ -45,7 +46,7 @@ export function TarjetaEvento({
         // La imagen del evento vive en Supabase Storage, fuera del optimizador.
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={evento.imagen_url}
+          src={rutaDeImagen(evento.imagen_url) ?? undefined}
           alt=""
           className="h-36 w-full border-b border-borde object-cover"
         />

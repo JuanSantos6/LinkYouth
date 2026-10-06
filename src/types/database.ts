@@ -637,36 +637,17 @@ export type Database = {
       }
     }
     Views: {
+      formaciones_publicas: {
+        Row: {
+          institucion: string | null
+          titulo: string | null
+        }
+        Relationships: []
+      }
       perfiles_publicos: {
         Row: {
-          apellido: string | null
-          bio: string | null
-          creado_en: string | null
-          foto_url: string | null
           id: string | null
-          nombre: string | null
           nombre_usuario: string | null
-          pais: string | null
-        }
-        Insert: {
-          apellido?: string | null
-          bio?: string | null
-          creado_en?: string | null
-          foto_url?: string | null
-          id?: string | null
-          nombre?: string | null
-          nombre_usuario?: string | null
-          pais?: string | null
-        }
-        Update: {
-          apellido?: string | null
-          bio?: string | null
-          creado_en?: string | null
-          foto_url?: string | null
-          id?: string | null
-          nombre?: string | null
-          nombre_usuario?: string | null
-          pais?: string | null
         }
         Relationships: [
           {

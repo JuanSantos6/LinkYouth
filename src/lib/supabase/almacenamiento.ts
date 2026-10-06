@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 import type { Database } from "@/types/database";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 /**
  * Bucket de fotos de perfil y logos. Se crea con
@@ -72,7 +73,11 @@ export async function subirImagenDePerfil(
 
   const { data } = supabase.storage.from(BUCKET_IMAGENES).getPublicUrl(camino);
 
-  return { url: data.publicUrl, problema: null };
+  // Se guarda la ruta relativa: ver `rutaDeImagen`.
+  return {
+    url: rutaDeImagen(data.publicUrl) ?? data.publicUrl,
+    problema: null,
+  };
 }
 
 /**
