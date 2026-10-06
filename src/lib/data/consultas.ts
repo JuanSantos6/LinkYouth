@@ -558,15 +558,24 @@ export async function obtenerInstitucion(
   const supabase = await createClient();
   if (!supabase) return ejemplo(null, SIN_CREDENCIALES);
 
+  // `formaciones_publicas` y no `formaciones`: desde H1 cada sesión lee solo
+  // las formaciones propias (y una empresa, las de sus postulantes). La vista
+  // trae institución y título de todas, sin decir de quién son.
   const { data, error } = await supabase
-    .from("formaciones")
+    .from("formaciones_publicas")
     .select("institucion, titulo");
 
   if (error) return ejemplo(null, error.message);
 
-  const suyas = (data ?? []).filter((formacion) =>
-    new Institucion(formacion.institucion).correspondeA(id),
-  );
+  // Las columnas de una vista llegan anulables en los tipos, aunque en la
+  // tabla no lo sean.
+  const suyas = (data ?? [])
+    .flatMap(({ institucion, titulo }) =>
+      institucion !== null && titulo !== null ? [{ institucion, titulo }] : [],
+    )
+    .filter((formacion) =>
+      new Institucion(formacion.institucion).correspondeA(id),
+    );
 
   if (suyas.length === 0) return { datos: null, origen: "supabase" };
 

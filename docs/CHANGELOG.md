@@ -13,14 +13,32 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
-## 2026-10-06 — Informe de publicación y auditoría de seguridad
+## 2026-10-06 — La app, lista para publicarse con Tailscale Funnel
 
-- **Nuevo [`publicacion-y-seguridad.md`](./publicacion-y-seguridad.md).** Antes
-  de publicar LinkYouth en internet con Tailscale Funnel se auditó la
-  instalación: secretos, gateway, RLS, puertos y auth. El hallazgo principal
-  (H1: cualquier usuario con sesión lee los datos de todos los jóvenes) bloquea
-  la publicación de la app hasta corregirlo. Solo documentación; no cambia
-  código ni esquema.
+- **Las fotos las sirve la app, no Supabase.** `rewrite` de
+  `/storage/v1/object/public/*` hacia `127.0.0.1:8000` y rutas relativas al
+  guardar y al mostrar (`rutaDeImagen`): Supabase no se publica en internet y
+  una URL `http://100.79.143.69:8000/…` no la abre nadie de afuera.
+  `NEXT_PUBLIC_SUPABASE_URL` no cambia.
+- **Cabeceras:** se suman `Permissions-Policy`, `Strict-Transport-Security` y
+  `X-Robots-Tag: noindex`, más `robots.txt` con `Disallow: /`, y se quita
+  `X-Powered-By` (H8).
+- **La ficha de institución lee `formaciones_publicas`**, porque desde H1
+  `formaciones` ya no se lee entera.
+- **Migración 004:** el bucket `avatars` acepta hasta 2 MB y solo JPG, PNG y
+  WebP (H7). La app ya lo validaba, pero se salteaba llamando a Storage directo.
+
+## 2026-10-06 — Datos de jóvenes cerrados entre usuarios (H1, H6, H13)
+
+- **Cada joven ve sus intereses, habilidades y formaciones; una empresa, los
+  de quienes se postularon a sus vacantes.** Antes cualquiera con sesión los
+  leía todos, y el registro es abierto. Migración 003, aplicada el 2026-10-06.
+  Ver [`decisiones.md`](./decisiones.md).
+- **`perfiles_publicos` expone solo `id` y `nombre_usuario` y es de solo
+  lectura.** Tenía nombre, apellido, bio y foto a la vista sin sesión, y por
+  los privilegios por defecto dejaba modificar perfiles sin sesión.
+- **`verificar-raspado-anonimo.sh` prueba también que `anon` no escriba por la
+  vista**, que es lo que dejó pasar H13 sin que nadie lo notara.
 
 ## 2026-09-29 — Aviso de logos provisorios en la cinta
 
