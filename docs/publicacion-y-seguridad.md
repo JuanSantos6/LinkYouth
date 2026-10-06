@@ -1,7 +1,12 @@
 # Publicación en internet y auditoría de seguridad
 
 Qué se publicó de LinkYouth en internet, cómo, qué riesgos encontró la
-auditoría del 2026-10-06 y qué se va a hacer con cada uno.
+auditoría del 2026-10-06 y qué se hizo o se va a hacer con cada uno.
+
+> **Actualización del 2026-10-06 (tarde).** Cambio de plan: la demo del jueves
+> 8/10 también tiene que poder abrirse por la dirección pública. Se corrigió
+> H1 (y H6, H7, H13 y parte de H8) en el PR #11, se desplegó `main` y la app
+> quedó publicada en `https://misvcl.<tailnet>.ts.net/`. Ver §1, §5 y §6.
 
 Este documento **no contiene contraseñas, claves ni tokens**. El nombre de la
 tailnet se reemplaza por `<tailnet>`: la dirección real del servidor es
@@ -13,14 +18,14 @@ tailnet se reemplaza por `<tailnet>`: la dirección real del servidor es
 
 | | Estado |
 |---|---|
-| Presentación (puerto 4000) | **Pendiente**: se publica con Tailscale Funnel en `https://misvcl.<tailnet>.ts.net:10000/` en cuanto la tailnet tenga Funnel y los certificados HTTPS habilitados (ver §3) |
-| App LinkYouth (puerto 3000) | **No publicada.** Se publica después del jueves 8/10, desde `main`, y solo con el hallazgo H1 corregido |
-| Supabase (puerto 8000) | **No se publica nunca.** Las fotos las va a servir la app (§6.1) |
-| Demo del jueves 8/10 | Se hace por Tailscale (`http://100.79.143.69:3000`), como hasta ahora. No depende de Funnel |
+| Presentación (puerto 4000) | **Publicada** en `https://misvcl.<tailnet>.ts.net:10000/`. La diapositiva de demo (enlace y QR) abre la app publicada |
+| App LinkYouth (puerto 3000) | **Publicada** en `https://misvcl.<tailnet>.ts.net/` (443), desde `main` (PR #11), con H1 corregido |
+| Supabase (puerto 8000) | **No se publica nunca.** Las fotos las sirve la app con un `rewrite` (§6.1, hecho) |
+| Demo del jueves 8/10 | Por la dirección pública. Si Funnel o la conexión fallan, sigue funcionando por Tailscale (`http://100.79.143.69:3000`): la app no depende de Funnel |
 
-Regla hasta después de la presentación: **no se modifica la app, Supabase,
-sus contraseñas ni sus contenedores.** Antes del jueves solo se publica la
-presentación y se restringieron los permisos de los archivos de secretos.
+Lo que se cambió en la app, la base y el bucket está en §5. Las contraseñas y
+los contenedores de Supabase siguen intactos hasta después de la presentación
+(H3, H9, H11 y H4 quedan para después, §6).
 
 ---
 
@@ -48,43 +53,47 @@ Límites que hay que tener presentes:
 
 ---
 
-## 3. Lo publicado (fase 1)
+## 3. Lo publicado
 
-> **Estado al 2026-10-06:** pendiente. `tailscale funnel` responde que Funnel
-> no está habilitado en la tailnet y el nodo no tiene certificados HTTPS
-> (`CertDomains` vacío). Hay que habilitar **HTTPS Certificates** (Admin
-> console → DNS) y el atributo `funnel` para el nodo (Access controls →
-> `nodeAttrs`). Después se ejecuta el comando de abajo.
+| Público | Local | Servicio | Desde |
+|---|---|---|---|
+| `https://misvcl.<tailnet>.ts.net:10000/` | `http://127.0.0.1:4000` | Presentación (PM2 `presentacion`, Next.js, 20 diapositivas) | 2026-10-06 |
+| `https://misvcl.<tailnet>.ts.net/` | `http://127.0.0.1:3000` | App LinkYouth (PM2 `linkyouth`, `main`) | 2026-10-06 |
 
-| Público | Local | Servicio |
-|---|---|---|
-| `https://misvcl.<tailnet>.ts.net:10000/` | `http://127.0.0.1:4000` | Presentación (PM2 `presentacion`, Next.js, 20 diapositivas) |
-
-Comando usado:
+Comandos usados:
 
 ```bash
 tailscale funnel --bg --https=10000 4000
+tailscale funnel --bg 3000          # puerto público 443
 ```
 
 `--bg` deja la configuración guardada en Tailscale: sobrevive a reinicios del
-servidor sin ningún servicio extra.
+servidor sin ningún servicio extra. Para habilitarlo se activaron en la
+tailnet **HTTPS Certificates** y el atributo `funnel` del nodo, y se ejecutó
+`sudo tailscale set --operator=claw` para que el usuario del servidor pueda
+manejar Funnel sin `sudo`.
+
+El puerto 8443 queda libre. Se usó un rato, el 2026-10-06, para probar la app
+desde la dirección pública antes del merge, y se apagó.
 
 ### Arquitectura actual
 
 ```mermaid
 flowchart LR
-  V["Visitante en internet"] -->|"HTTPS :10000"| F["Tailscale Funnel<br/>misvcl.&lt;tailnet&gt;.ts.net"]
+  V["Visitante en internet"] -->|"HTTPS :10000 y :443"| F["Tailscale Funnel<br/>misvcl.&lt;tailnet&gt;.ts.net"]
   F -->|"túnel cifrado"| TS["tailscaled en misvcl"]
   TS -->|"http://127.0.0.1:4000"| P["Presentación<br/>PM2 presentacion"]
 
-  E["Equipo en la tailnet"] -->|"http://100.79.143.69:3000"| A["LinkYouth<br/>PM2 linkyouth"]
-  A -->|"http://100.79.143.69:8000<br/>(solo desde el servidor)"| G["Gateway Envoy<br/>Supabase"]
+  F -->|"HTTPS :443"| TS
+  TS -->|"http://127.0.0.1:3000"| A["LinkYouth<br/>PM2 linkyouth"]
+  E["Equipo en la tailnet"] -->|"http://100.79.143.69:3000"| A
+  A -->|"red interna: auth · rest · storage<br/>+ rewrite de las fotos"| G["Gateway Envoy<br/>Supabase (no publicado)"]
   G --> DB[("Postgres")]
 
   classDef pub fill:#e8f1ff,stroke:#2f6fde
   classDef priv fill:#f4f4f4,stroke:#888
   class V,F pub
-  class A,G,DB,E priv
+  class G,DB,E priv
 ```
 
 ---
@@ -131,17 +140,18 @@ Rutas que expone el gateway y qué piden:
 
 | # | Gravedad | Hallazgo | Estado |
 |---|---|---|---|
-| H1 | **Alta** | **Cualquier usuario con sesión lee los datos de todos los jóvenes.** `perfil_tags`, `perfil_habilidades`, `formaciones` y `resenias` tienen `select … to authenticated using (true)`. Como el registro está abierto y se autoconfirma, "tener sesión" equivale a "cualquiera". Si se publicara la API, se podría descargar todo con un script. | Pendiente (§6.3). **La app no se publica mientras siga abierto** |
+| H1 | **Alta** | **Cualquier usuario con sesión lee los datos de todos los jóvenes.** `perfil_tags`, `perfil_habilidades`, `formaciones` y `resenias` tienen `select … to authenticated using (true)`. Como el registro está abierto y se autoconfirma, "tener sesión" equivale a "cualquiera". Si se publicara la API, se podría descargar todo con un script. | **Corregido** el 2026-10-06 (migración 003, PR #11, §6.3) |
 | H2 | **Alta** (si se publicara Supabase) | **Publicar `/auth/v1` y `/rest/v1` abre la API a internet** y hace que la app dependa de Funnel para cada consulta: si Funnel o la conexión fallan, también se cae la demo por Tailscale. | Resuelto por diseño: Supabase no se publica (§6.1) |
 | H3 | **Alta** (operativo) | **Cambiar `POSTGRES_PASSWORD` en `.env` no cambia la contraseña de la base**, que ya está inicializada: hay que cambiarla en cada rol interno. Si queda desalineada, se caen auth, storage, rest o el pooler. | Pendiente (§6.2) |
 | H4 | Media | **Postgres, el pooler y el gateway escuchan en todas las interfaces** (`0.0.0.0:5432`, `6543` y `8000`): son accesibles desde la red local (Wi-Fi de la casa). Docker publica sus puertos por fuera de ufw. No llegan a internet salvo que el router los redirija. | Pendiente (§6.5) |
 | H5 | Media | **Todos los inicios de sesión comparten un mismo límite de intentos.** Como las llamadas de auth salen del servidor de Next, GoTrue probablemente ve una sola IP, y no hay límites configurados (`RATE_LIMIT_*`). Un ataque de fuerza bruta agotaría el límite de todos, y la app no limita intentos por su cuenta. | Pendiente (§6.5) |
-| H6 | Media | **La vista `perfiles_publicos`** (nombre, apellido, país, bio y foto de los jóvenes con cuenta activa) se lee sin sesión. Es a propósito, para el registro, pero a través de una API pública se descargaría entera. | Mitigado si Supabase no se publica. Revisar columnas en §6.3 |
-| H7 | Media | **El bucket `avatars` acepta cualquier archivo**: es público, sin límite de tamaño ni de tipo. Un usuario con sesión puede subir HTML o archivos grandes a su carpeta. | Pendiente (§6.5) |
-| H8 | Baja | **Faltan cabeceras.** La app manda `X-Frame-Options`, `nosniff` y `Referrer-Policy`, pero no `Strict-Transport-Security`, `Content-Security-Policy`, `Permissions-Policy` ni `noindex`, y anuncia `X-Powered-By: Next.js`. La presentación no manda ninguna cabecera de seguridad. | Pendiente (§6.4) |
+| H6 | Media | **La vista `perfiles_publicos`** (nombre, apellido, país, bio y foto de los jóvenes con cuenta activa) se lee sin sesión. Es a propósito, para el registro, pero a través de una API pública se descargaría entera. | **Corregido** el 2026-10-06: la vista expone solo `id` y `nombre_usuario` (migración 003) |
+| H7 | Media | **El bucket `avatars` acepta cualquier archivo**: es público, sin límite de tamaño ni de tipo. Un usuario con sesión puede subir HTML o archivos grandes a su carpeta. | **Corregido** el 2026-10-06: 2 MB y JPG/PNG/WebP (migración 004) |
+| H8 | Baja | **Faltan cabeceras.** La app manda `X-Frame-Options`, `nosniff` y `Referrer-Policy`, pero no `Strict-Transport-Security`, `Content-Security-Policy`, `Permissions-Policy` ni `noindex`, y anuncia `X-Powered-By: Next.js`. La presentación no manda ninguna cabecera de seguridad. | **Corregido en parte** el 2026-10-06 (PR #11): HSTS, `Permissions-Policy`, `noindex` y sin `X-Powered-By`. Faltan la CSP y las cabeceras de la presentación (§6.4) |
 | H9 | Baja | **Registro por teléfono activado y autoconfirmado** (`ENABLE_PHONE_SIGNUP`, `ENABLE_PHONE_AUTOCONFIRM`), aunque la app no lo usa. | Pendiente (§6.5) |
 | H10 | Baja | **Los archivos de secretos los podían leer otros usuarios del servidor** (`~/supabase-project/.env` y `~/LinkYouth/.env.local`, permisos 664). | **Corregido** el 2026-10-06: permisos 600 |
 | H11 | Baja | **El usuario del panel de Studio es el de ejemplo** (`supabase`). | Pendiente (§6.5) |
+| H13 | **Crítica** | **Sin sesión se podían modificar perfiles a través de la vista `perfiles_publicos`.** La vista es actualizable, su dueño (`postgres`) saltea RLS y los privilegios por defecto de Supabase le daban `INSERT`, `UPDATE` y `DELETE` a `anon`. Se encontró al revisar H1: con el rol `anon`, 9 perfiles modificables (prueba dentro de una transacción deshecha). No llegó a internet porque Supabase no se publica, pero el puerto 8000 está abierto en la red local (H4). | **Corregido** el 2026-10-06 (migración 003): `revoke all` y `grant select`. `db/verificar-raspado-anonimo.sh` ahora lo prueba |
 | H12 | Baja | **Se puede consultar si una cuenta está activa sin sesión.** La función `cuenta_activa(uuid)` es `SECURITY DEFINER`, se puede llamar como RPC con `anon` y responde un booleano. | Mitigado si Supabase no se publica |
 
 Las demás tablas con `using (true)` son catálogos o datos que se muestran sin
@@ -153,25 +163,53 @@ como están.
 
 ## 5. Lo hecho antes del jueves 8/10
 
-1. **Presentación:** se publica en `https://misvcl.<tailnet>.ts.net:10000/`
-   cuando Funnel quede habilitado en la tailnet (§3).
-2. **Permisos 600** en `~/supabase-project/.env` y `~/LinkYouth/.env.local`
+1. **Permisos 600** en `~/supabase-project/.env` y `~/LinkYouth/.env.local`
    (H10). Docker Compose y PM2 corren como el mismo usuario y los siguen
    leyendo.
+2. **Presentación publicada** en `https://misvcl.<tailnet>.ts.net:10000/`.
+3. **H1, H6 y H13 corregidos** con la migración
+   `db/migraciones/003-h1-datos-de-jovenes.sql`, aplicada el 2026-10-06:
+   - Cada joven ve sus `perfil_tags`, `perfil_habilidades` y `formaciones`; una
+     empresa, los de quienes tienen una postulación no cancelada a sus
+     vacantes. `resenias`: quien la escribió y la empresa reseñada.
+   - `perfiles_publicos` queda en `id` y `nombre_usuario`, de solo lectura.
+   - `formaciones_publicas` (institución y título, sin `perfil_id`) para la
+     ficha de institución.
+   - Probado con `db/verificar-raspado-anonimo.sh` y con un joven y una
+     empresa de prueba: un usuario no lee los datos de otro, y la empresa deja
+     de ver al postulante cuando cancela. Los usuarios de prueba se borraron.
+4. **H7 corregido** con la migración `004-limites-bucket-avatars.sql`: 2 MB y
+   JPG/PNG/WebP. Probado: un HTML y una imagen de más de 2 MB se rechazan.
+5. **App lista para publicarse** (PR #11, mergeado): `rewrite` de las fotos y
+   rutas relativas (§6.1), cabeceras y `noindex` (§6.4, sin la CSP).
+6. **Despliegue:** `main` compilado y reiniciado en `:3000`, y
+   `tailscale funnel --bg 3000`.
+7. **Pruebas de punta a punta** (Playwright) por Tailscale y por la dirección
+   pública: portada, registro y login de postulante y de empresa, paneles,
+   perfil, ficha de institución, fotos y vuelta a la portada. Desde internet,
+   los puertos 8000 y 5432 no responden.
+8. **Presentación:** el enlace y el QR de la diapositiva de demo abren
+   `https://misvcl.<tailnet>.ts.net/` (QR verificado decodificándolo).
 
-Respaldos en el servidor: `~/respaldos/2026-10-06-publicacion/`, con la
-configuración de Funnel anterior (vacía) y los permisos anteriores.
+Respaldos en el servidor (permisos restringidos):
 
-Nada más. La app, Supabase, sus contraseñas y sus contenedores quedan
-intactos hasta después de la presentación.
+- `~/respaldos/2026-10-06-publicacion/`: configuración de Funnel y permisos
+  anteriores a la publicación de la presentación.
+- `~/respaldos/2026-10-06-h1/`: políticas RLS y esquema anteriores a la
+  migración 003, y configuración anterior del bucket.
+- `~/respaldos/2026-10-06-despliegue/`: el build anterior de la app (`.next`),
+  la rama y el commit que corrían, y la configuración de Funnel antes del 443.
 
 ---
 
-## 6. Plan aprobado para después del jueves
+## 6. Plan: lo hecho y lo que queda para después del jueves
 
 Orden sugerido: §6.3 (H1) es el que bloquea la publicación de la app.
 
 ### 6.1 Supabase sin publicar; la app sirve las fotos
+
+> **Hecho** el 2026-10-06 (PR #11). Las 2 URLs absolutas guardadas no se
+> reescribieron: se corrigen al mostrarlas.
 
 La app ya habla con Supabase solo desde el servidor, así que Supabase no
 necesita estar en internet. Lo único que el navegador le pide son las fotos
@@ -228,6 +266,13 @@ En una ventana sin uso, con la app avisada:
 
 ### 6.3 Corregir H1: políticas de lectura de datos de jóvenes
 
+> **Hecho** el 2026-10-06 (migración 003, PR #11; ver §5). Queda como mejora
+> reemplazar `perfiles_publicos` por una función `nombre_usuario_ocupado()`,
+> que no expone ni ids ni nombres de usuario, y sumar los casos a
+> `db/verificar-politicas.sh`. Lo que decide cada pantalla futura (por
+> ejemplo, la lista de postulantes) se abre cuando exista. Ver
+> `docs/decisiones.md`.
+
 En una rama con PR hacia `main`. Hoy:
 
 ```sql
@@ -262,6 +307,9 @@ using (
 
 ### 6.4 Cabeceras y `noindex` (H8)
 
+> **Hecho en parte** el 2026-10-06 (PR #11). Falta: la CSP (primero como
+> `Report-Only`) y las cabeceras y el `noindex` de la presentación.
+
 En la misma rama o en otra, con PR hacia `main`, en `next.config.ts`:
 
 - `Strict-Transport-Security: max-age=31536000` (Funnel ya sirve HTTPS).
@@ -279,12 +327,14 @@ La presentación (otro proyecto) también debería llevar `noindex`.
 |---|---|
 | H11 + panel | Rotar `DASHBOARD_PASSWORD` y cambiar `DASHBOARD_USERNAME` en `~/supabase-project/.env`; recrear solo el gateway (`docker compose up -d api-gw`). |
 | H9 | `ENABLE_PHONE_SIGNUP=false` y `ENABLE_PHONE_AUTOCONFIRM=false`; recrear `auth`. |
-| H7 | En `storage.buckets` (`avatars`): `file_size_limit` (por ejemplo 2 MB) y `allowed_mime_types` (`image/jpeg`, `image/png` y `image/webp`). |
+| H7 | **Hecho** el 2026-10-06 (migración 004). |
 | H5 | Confirmar qué IP ve GoTrue. Limitar intentos de inicio de sesión y registro en la app (por IP del visitante, que Funnel manda en `X-Forwarded-For`) y ajustar los `GOTRUE_RATE_LIMIT_*`. |
 | H8 | CSP aplicada (después del modo Report-Only). |
 | H4 | Que 5432, 6543 y 8000 escuchen solo en la IP de Tailscale o en `127.0.0.1`, o filtrarlos en la cadena `DOCKER-USER` de iptables (requiere sudo). Cuidado: si el puerto queda atado a la IP de Tailscale y Tailscale no arrancó todavía, el contenedor no levanta. Verificar además que el router no redirija puertos a `192.168.1.8`. |
 
 ### 6.6 Publicar la app
+
+> **Hecho** el 2026-10-06, antes de lo previsto. Ver §5.
 
 Solo con H1 corregido, y con los cambios de §6.1, §6.3 y §6.4 mergeados en
 `main` y probados:
@@ -327,10 +377,11 @@ flowchart LR
 tailscale funnel status
 ```
 
-**Apagar una sola publicación** (por ejemplo, la presentación):
+**Apagar una sola publicación:**
 
 ```bash
-tailscale funnel --https=10000 off
+tailscale funnel --https=443 off      # la app
+tailscale funnel --https=10000 off    # la presentación
 ```
 
 **Apagar todo lo publicado:**
@@ -342,7 +393,21 @@ tailscale funnel reset
 Los servicios siguen funcionando por Tailscale; solo dejan de verse desde
 internet.
 
-**Volver al estado anterior a esta publicación:**
+**Volver atrás lo del 2026-10-06 (tarde):**
+
+1. **App en internet:** `tailscale funnel --https=443 off`. Sigue andando
+   por Tailscale.
+2. **Código:** `git revert -m 1 <merge del PR #11>` en `main`, `npm run build`
+   y `pm2 restart linkyouth`. Si hay apuro, restaurar el build anterior desde
+   `~/respaldos/2026-10-06-despliegue/next-antes.tar.gz` y reiniciar.
+3. **Políticas:** las definiciones anteriores están en
+   `~/respaldos/2026-10-06-h1/politicas-antes.sql`. No se recomienda volver:
+   reabre H1 y H13.
+4. **Bucket:** el `update` inverso está en el encabezado de la migración 004.
+5. **Presentación:** `git revert` del último commit en `~/presentacion`,
+   compilar con `pnpm exec next build --webpack` y `pm2 restart presentacion`.
+
+**Volver al estado anterior a la publicación de la presentación:**
 
 1. Ejecutar `tailscale funnel reset`. La configuración previa estaba vacía; hay copia en
    `~/respaldos/2026-10-06-publicacion/tailscale-serve-antes.json`.
