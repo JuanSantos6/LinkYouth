@@ -10,6 +10,7 @@ import {
   destinoSeguro,
   esExplorable,
 } from "@/lib/navegacion";
+import { generarNonce, politicaDeContenido } from "@/lib/seguridad/csp";
 import { leerCredenciales } from "@/lib/supabase/config";
 import {
   COOKIE_RECORDAR,
@@ -76,7 +77,7 @@ async function areaDe(
  * hay sesión posible y la aplicación tiene que poder recorrerse igual con los
  * datos de ejemplo (§2.3 de `docs/arquitectura.md`).
  */
-export async function middleware(request: NextRequest) {
+async function controlDeAcceso(request: NextRequest) {
   const credenciales = leerCredenciales();
   if (!credenciales) return NextResponse.next({ request });
 
@@ -179,6 +180,23 @@ export async function middleware(request: NextRequest) {
   if (pideEmpresa && area !== AREA_EMPRESA) return redirigirA("/inicio");
   if (!pideEmpresa && area === AREA_EMPRESA) return redirigirA(AREA_EMPRESA);
 
+  return response;
+}
+
+/**
+ * Envuelve `controlDeAcceso` con la Content-Security-Policy (`src/lib/seguridad/csp.ts`).
+ *
+ * El nonce viaja en el header `Content-Security-Policy` del request: Next lo
+ * lee de ahí y se lo pone a sus `<script>`. El mismo header se agrega a la
+ * respuesta, sea cual sea la salida de `controlDeAcceso` (página, redirección
+ * o la vía sin credenciales), así ninguna queda sin política.
+ */
+export async function middleware(request: NextRequest) {
+  const politica = politicaDeContenido(generarNonce());
+  request.headers.set("Content-Security-Policy", politica);
+
+  const response = await controlDeAcceso(request);
+  response.headers.set("Content-Security-Policy", politica);
   return response;
 }
 
