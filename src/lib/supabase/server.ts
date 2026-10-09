@@ -1,9 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import type { Database } from "@/types/database";
 import { leerCredenciales } from "./config";
-import { COOKIE_RECORDAR, opcionesDeCookie, recuerdaSesion } from "./sesion";
+import {
+  COOKIE_RECORDAR,
+  esConexionSegura,
+  opcionesDeCookie,
+  recuerdaSesion,
+} from "./sesion";
 
 /**
  * Cliente de Supabase para Server Components, Route Handlers y Server Actions.
@@ -25,6 +30,7 @@ export async function createClient(opciones: { recordar?: boolean } = {}) {
   const recordar =
     opciones.recordar ??
     recuerdaSesion(cookieStore.get(COOKIE_RECORDAR)?.value);
+  const segura = esConexionSegura((await headers()).get("x-forwarded-proto"));
 
   return createServerClient<Database>(credenciales.url, credenciales.anonKey, {
     cookies: {
@@ -34,7 +40,11 @@ export async function createClient(opciones: { recordar?: boolean } = {}) {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, opcionesDeCookie(options, recordar)),
+            cookieStore.set(
+              name,
+              value,
+              opcionesDeCookie(options, recordar, segura),
+            ),
           );
         } catch {
           // Un Server Component no puede escribir cookies.

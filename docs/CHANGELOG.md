@@ -13,6 +13,27 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-09 — Lo que ve el navegador (Fase 3 del incidente 2026-10-08) · `c99a405`
+
+Revisión de lo que expone la app en las DevTools; el detalle está en
+[`seguridad.md`](./seguridad.md).
+
+- **Cookies de sesión `HttpOnly`, `SameSite=Lax` y `Secure` por HTTPS.**
+  `@supabase/ssr` las dejaba legibles desde JavaScript (un XSS se llevaba la
+  sesión) y ningún código del navegador las necesita. `Secure` solo cuando el
+  request llegó por HTTPS, porque la tailnet entra por `http://`. Ver
+  [`decisiones.md`](./decisiones.md).
+- **`SUPABASE_URL` y `SUPABASE_ANON_KEY` sin `NEXT_PUBLIC_`.** El navegador no
+  habla con Supabase; con el prefijo, Next las incrustaría en el JavaScript
+  del cliente si algún componente las nombrara. Hay que renombrarlas en
+  `.env.local` al desplegar. `.env.local.example` ya no trae una clave real.
+- **`logo_url` del alta de empresa solo acepta un archivo propio de Storage**
+  (`logoDeLaCuenta`), y `rutaDeImagen` devuelve `null` para URLs de otros
+  sitios: una empresa podía poner como logo una URL ajena y la portada
+  pública se la pedía a ese sitio en nombre de cada visitante.
+- **`productionBrowserSourceMaps: false` explícito** en `next.config.ts` (ya
+  era el valor por defecto).
+
 ## 2026-10-06 — La app, lista para publicarse con Tailscale Funnel
 
 - **Las fotos las sirve la app, no Supabase.** `rewrite` de

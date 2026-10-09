@@ -12,8 +12,13 @@ export type CredencialesSupabase = {
 };
 
 export function leerCredenciales(): CredencialesSupabase | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Sin prefijo `NEXT_PUBLIC_`: ningún código del navegador habla con
+  // Supabase (todo pasa por el servidor de Next), así que estas variables no
+  // tienen por qué viajar en los chunks de `/_next/static`. Con el prefijo,
+  // Next las incrusta en cualquier componente de cliente que las nombre.
+  // Ver `docs/seguridad.md`.
+  const url = process.env.SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) return null;
 

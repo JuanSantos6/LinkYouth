@@ -13,6 +13,7 @@ import {
 import { leerCredenciales } from "@/lib/supabase/config";
 import {
   COOKIE_RECORDAR,
+  esConexionSegura,
   opcionesDeCookie,
   recuerdaSesion,
 } from "@/lib/supabase/sesion";
@@ -100,11 +101,14 @@ export async function middleware(request: NextRequest) {
           const recordar = recuerdaSesion(
             request.cookies.get(COOKIE_RECORDAR)?.value,
           );
+          const segura =
+            request.nextUrl.protocol === "https:" ||
+            esConexionSegura(request.headers.get("x-forwarded-proto"));
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(
               name,
               value,
-              opcionesDeCookie(options, recordar),
+              opcionesDeCookie(options, recordar, segura),
             ),
           );
         },
