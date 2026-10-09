@@ -11,23 +11,28 @@ const PREFIJO_PUBLICO = "/storage/v1/object/public/";
  * (`http://<ip interna>:8000/…`) no le sirve a un visitante de afuera.
  *
  * Acepta también las URLs absolutas que ya están guardadas en la base, de
- * cualquier origen: lo que se mira es el camino. Lo que no es de Storage —una
- * vista previa `blob:`, un logo en otro sitio— vuelve tal cual.
+ * cualquier origen: lo que se mira es el camino. La vista previa `blob:` (la
+ * foto elegida antes de subirla) vuelve tal cual.
+ *
+ * Cualquier otra cosa devuelve `null`: un `logo_url` apuntando a otro sitio
+ * haría que cada visitante de la portada le pida la imagen a ese sitio (y le
+ * entregue su IP). Ver `docs/seguridad.md`.
  */
 export function rutaDeImagen(url: string | null | undefined): string | null {
   if (!url) return null;
   if (url.startsWith(PREFIJO_PUBLICO)) return url;
+  if (url.startsWith("blob:")) return url;
 
   let analizada: URL;
   try {
     analizada = new URL(url);
   } catch {
-    return url;
+    return null;
   }
 
   const esHttp =
     analizada.protocol === "http:" || analizada.protocol === "https:";
-  if (!esHttp || !analizada.pathname.startsWith(PREFIJO_PUBLICO)) return url;
+  if (!esHttp || !analizada.pathname.startsWith(PREFIJO_PUBLICO)) return null;
 
   return analizada.pathname + analizada.search;
 }

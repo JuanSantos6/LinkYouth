@@ -1028,3 +1028,24 @@ La verificación previa lee a través de `perfiles_lectura_publica`, que filtra
 por `cuenta_activa(id)`. Un nombre tomado por una cuenta dada de baja no
 aparece, así que la verificación lo da por libre y el choque vuelve a caer en
 el índice único. Es el mismo caso raro de siempre, con la misma defensa.
+
+## 2026-10-09 — Cookies de sesión: `Secure` solo cuando el request llegó por HTTPS
+
+**Decisión.** Las cookies de Supabase y `ly-recordar` se escriben siempre con
+`HttpOnly` y `SameSite=Lax`, y con `Secure` solo si el request llegó por HTTPS
+(`X-Forwarded-Proto: https`, que pone Tailscale Funnel y conserva el WAF).
+
+**Alternativas consideradas.**
+
+- `Secure` siempre.
+- `Secure` nunca (como estaba).
+- Prefijo `__Host-` en el nombre de la cookie.
+
+**Motivo.** La app se usa por dos caminos: HTTPS por el Funnel y `http://` por
+la tailnet. Con `Secure` siempre, el navegador descarta la cookie en el acceso
+por `http://` y no se puede entrar; sin `Secure`, la cookie podría viajar en
+claro si alguien forzara una URL `http://` del dominio público. `__Host-`
+exige `Secure` y tiene el mismo problema. `X-Forwarded-Proto` lo pueden
+falsificar desde la tailnet, pero lo único que logran es que su propia cookie
+salga `Secure` en HTTP: se perjudican solos. Ver `docs/seguridad.md`.
+

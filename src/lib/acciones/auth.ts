@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
@@ -11,6 +11,7 @@ import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 import {
   leerArchivo,
   subirImagenDePerfil,
+  BUCKET_IMAGENES,
 } from "@/lib/supabase/almacenamiento";
 import {
   PARAMETRO_SIGUIENTE,
@@ -19,8 +20,9 @@ import {
   correspondeA,
   destinoSeguro,
 } from "@/lib/navegacion";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 import { createClient } from "@/lib/supabase/server";
-import { COOKIE_RECORDAR } from "@/lib/supabase/sesion";
+import { COOKIE_RECORDAR, esConexionSegura } from "@/lib/supabase/sesion";
 import type { Database } from "@/types/database";
 
 import { CLAVE_DUPLICADA, SIN_CONFIGURAR, type EstadoAccion } from "./tipos";
@@ -282,6 +284,26 @@ async function guardarImagen(
  * `validar_tipo_cuenta` de `db/schema.sql` exige que la fila de `cuentas` ya
  * exista con `tipo = 'empresa'` antes de aceptar la de `empresas`.
  */
+/**
+ * El logo que se guarda al dar de alta una empresa.
+ *
+ * `logo_url` llega del formulario o de `user_metadata`, y las dos cosas las
+ * controla quien se registra (la metadata se reescribe con
+ * `auth.updateUser`). Sin este filtro, una empresa podía guardar como logo
+ * una URL de otro sitio, y la portada —pública— se la pedía a ese sitio en
+ * nombre de cada visitante. Solo se acepta un archivo de Storage dentro de la
+ * carpeta de esta misma cuenta, que es lo que deja `subirImagenDePerfil`.
+ * Ver `docs/seguridad.md`.
+ */
+function logoDeLaCuenta(url: string, usuarioId: string): string | null {
+  const ruta = rutaDeImagen(url);
+  return ruta?.startsWith(
+    `/storage/v1/object/public/${BUCKET_IMAGENES}/${usuarioId}/`,
+  )
+    ? ruta
+    : null;
+}
+
 async function completarAltaEmpresa(
   supabase: SupabaseClient<Database>,
   user: User,
@@ -305,7 +327,7 @@ async function completarAltaEmpresa(
       rut: datos.rut || null,
       rubro: datos.rubro,
       descripcion: datos.descripcion || null,
-      logo_url: datos.logo_url || null,
+      logo_url: logoDeLaCuenta(datos.logo_url, user.id),
     },
     { onConflict: "id", ignoreDuplicates: true },
   );
@@ -674,11 +696,13 @@ export async function iniciarSesion(
   if (recordar) {
     cookieStore.delete(COOKIE_RECORDAR);
   } else {
-    // Sin `maxAge`: es una cookie de sesión. Sin `secure`, igual que las de
-    // Supabase, porque la app también se sirve por HTTP en la red interna.
+    // Sin `maxAge`: es una cookie de sesión. `secure` solo por HTTPS, igual
+    // que las de Supabase (`opcionesDeCookie`): por HTTP en la tailnet el
+    // navegador no la guardaría.
     cookieStore.set(COOKIE_RECORDAR, "0", {
       httpOnly: true,
       sameSite: "lax",
+      secure: esConexionSegura((await headers()).get("x-forwarded-proto")),
       path: "/",
     });
   }

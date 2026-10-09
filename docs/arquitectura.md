@@ -229,7 +229,8 @@ Cada entrada dice qué hace la función y, cuando no es obvio, por qué existe.
 
 #### `leerCredenciales(): CredencialesSupabase | null`
 
-Lee `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` del entorno.
+Lee `SUPABASE_URL` y `SUPABASE_ANON_KEY` del entorno (sin `NEXT_PUBLIC_`: el
+navegador no habla con Supabase; ver `docs/seguridad.md`).
 Devuelve `null` si falta cualquiera de las dos, en vez de lanzar.
 
 Es el único punto del código que toca esas variables. Que devuelva `null` en
@@ -241,9 +242,12 @@ lugar de fallar es lo que sostiene la regla §2.3.
 
 Convierte la URL de una imagen pública de Storage en ruta relativa, mirando el
 camino y no el origen: sirve también para las URLs absolutas que ya estaban
-guardadas (`http://<ip interna>:8000/…`). Lo que no es de Storage —una vista
-previa `blob:`, un logo en otro sitio— vuelve tal cual. La usan `Avatar`,
-`CintaDeOrganizaciones`, `TarjetaEvento` y `subirImagenDePerfil`.
+guardadas (`http://<ip interna>:8000/…`). La vista previa `blob:` vuelve tal
+cual; cualquier otra URL —un logo en otro sitio— devuelve `null`, para que la
+portada no le pida imágenes a terceros en nombre de cada visitante (Fase 3 del
+incidente 2026-10-08, `docs/seguridad.md`). La usan `Avatar`,
+`CintaDeOrganizaciones`, `TarjetaEvento`, `subirImagenDePerfil` y
+`logoDeLaCuenta` (alta de empresa).
 
 ### 5.2 `src/lib/supabase/server.ts`
 
@@ -257,10 +261,13 @@ false` en el mismo request del login), escribe las cookies de Supabase sin
 
 #### `sesion.ts`
 
-`COOKIE_RECORDAR`, `recuerdaSesion(valor)` y `opcionesDeCookie(opciones,
-recordar)`, que usan el cliente del servidor y el middleware para que las
-cookies renovadas respeten la preferencia. Solo importa tipos: corre también
-en Edge.
+`COOKIE_RECORDAR`, `recuerdaSesion(valor)`, `esConexionSegura(protocolo)` y
+`opcionesDeCookie(opciones, recordar, segura)`, que usan el cliente del
+servidor y el middleware para que las cookies renovadas respeten la
+preferencia. `opcionesDeCookie` además las marca siempre `httpOnly` y
+`sameSite: "lax"`, y `secure` cuando el request llegó por HTTPS
+(`X-Forwarded-Proto`, que ponen el Funnel y el WAF). Solo importa tipos: corre
+también en Edge.
 
 Es `async` porque en Next.js 15 `cookies()` pasó a ser asíncrono. El `setAll`
 está envuelto en `try/catch` a propósito: un Server Component no puede

@@ -51,7 +51,7 @@ import {
 type ClienteSupabase = NonNullable<Awaited<ReturnType<typeof createClient>>>;
 
 const SIN_CREDENCIALES =
-  "Faltan NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY en .env.local";
+  "Faltan SUPABASE_URL o SUPABASE_ANON_KEY en .env.local";
 
 const TABLA_VACIA = "La base respondió, pero todavía no tiene datos cargados";
 
