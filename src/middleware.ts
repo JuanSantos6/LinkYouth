@@ -10,7 +10,11 @@ import {
   destinoSeguro,
   esExplorable,
 } from "@/lib/navegacion";
-import { generarNonce, politicaDeContenido } from "@/lib/seguridad/csp";
+import {
+  CABECERA_NONCE,
+  generarNonce,
+  politicaDeContenido,
+} from "@/lib/seguridad/csp";
 import { leerCredenciales } from "@/lib/supabase/config";
 import {
   COOKIE_RECORDAR,
@@ -192,8 +196,10 @@ async function controlDeAcceso(request: NextRequest) {
  * o la vía sin credenciales), así ninguna queda sin política.
  */
 export async function middleware(request: NextRequest) {
-  const politica = politicaDeContenido(generarNonce());
+  const nonce = generarNonce();
+  const politica = politicaDeContenido(nonce);
   request.headers.set("Content-Security-Policy", politica);
+  request.headers.set(CABECERA_NONCE, nonce);
 
   const response = await controlDeAcceso(request);
   response.headers.set("Content-Security-Policy", politica);

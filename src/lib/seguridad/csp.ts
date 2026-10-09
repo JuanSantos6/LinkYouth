@@ -21,6 +21,13 @@
  * Sin `upgrade-insecure-requests`: la aplicación también se abre por
  * `http://` desde la tailnet, y esa directiva rompería esos accesos.
  */
+/**
+ * Header interno con el que el middleware le pasa el nonce a los Server
+ * Components (lo lee el `layout.tsx` para su script de tema). Solo viaja dentro
+ * del servidor, en el request: el navegador no lo ve.
+ */
+export const CABECERA_NONCE = "x-nonce";
+
 export function generarNonce(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
