@@ -13,7 +13,7 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
-## 2026-10-09 — Lo que ve el navegador (Fase 3 del incidente 2026-10-08) · `c99a405`
+## 2026-10-09 — Lo que ve el navegador (Fase 3 del incidente 2026-10-08) · `445042e`
 
 Revisión de lo que expone la app en las DevTools; el detalle está en
 [`seguridad.md`](./seguridad.md).
