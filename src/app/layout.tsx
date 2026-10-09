@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Red_Hat_Display, Red_Hat_Text } from "next/font/google";
+import { headers } from "next/headers";
 
 import { ProveedorDeTransiciones } from "@/components/navegacion/Transiciones";
 import { CLAVE_TEMA } from "@/lib/diseno/tokens";
+import { CABECERA_NONCE } from "@/lib/seguridad/csp";
 
 import "./globals.css";
 
@@ -41,14 +43,19 @@ export const metadata: Metadata = {
  * Sin elección guardada no escribe nada y el CSS sigue al sistema. Va en línea
  * y sin `defer` a propósito: si esperara a la hidratación, la pantalla
  * arrancaría en un tema y saltaría al otro a la vista de todos.
+ *
+ * Lleva el nonce de la Content-Security-Policy (`src/lib/seguridad/csp.ts`):
+ * sin él, el navegador no ejecuta ningún script en línea.
  */
 const GUION_DE_TEMA = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
   CLAVE_TEMA,
 )});if(t==="claro"||t==="oscuro"){document.documentElement.dataset.tema=t;}}catch(e){}})()`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get(CABECERA_NONCE) ?? undefined;
+
   return (
     <html
       lang="es"
@@ -56,7 +63,10 @@ export default function RootLayout({
       className={`${display.variable} ${texto.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: GUION_DE_TEMA }} />
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{ __html: GUION_DE_TEMA }}
+        />
       </head>
       {/*
         Las variables de las fuentes van en <html>: los tokens de `@theme` se
