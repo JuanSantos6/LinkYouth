@@ -13,7 +13,7 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
-## 2026-10-09 — Content-Security-Policy con nonce (Fase 3 del incidente 2026-10-08)
+## 2026-10-09 — Content-Security-Policy con nonce (Fase 3 del incidente 2026-10-08) · `67d6a8c`, `368c005`
 
 - **La CSP que faltaba desde la auditoría del 2026-09-12 (CN-002).** El
   middleware genera un nonce por request; Next se lo pone a sus scripts y
