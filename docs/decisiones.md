@@ -1028,3 +1028,25 @@ La verificación previa lee a través de `perfiles_lectura_publica`, que filtra
 por `cuenta_activa(id)`. Un nombre tomado por una cuenta dada de baja no
 aparece, así que la verificación lo da por libre y el choque vuelve a caer en
 el índice único. Es el mismo caso raro de siempre, con la misma defensa.
+
+## 2026-10-09 — CSP con nonce por request, no con `'unsafe-inline'` ni hashes
+
+**Decisión.** La Content-Security-Policy se arma en el middleware con un nonce
+nuevo en cada request y `'strict-dynamic'`. Next lee el nonce del header del
+request y se lo pone a sus propios scripts; el script de tema de `layout.tsx`
+lo toma de `x-nonce`. Los estilos quedan con `'unsafe-inline'`.
+
+**Alternativas consideradas.**
+
+- `script-src 'self' 'unsafe-inline'`: no rompe nada, pero no frena un XSS,
+  que es para lo que existe la CSP.
+- Hashes de los scripts en línea: Next genera scripts distintos en cada
+  página (los datos de RSC), así que no hay una lista fija de hashes.
+- Empezar con `Content-Security-Policy-Report-Only`: es lo que proponía la
+  auditoría del 2026-09-12. Se descartó porque la política se probó antes en
+  Chromium real sobre todas las pantallas, sin violaciones.
+
+**Motivo.** Todas las rutas ya eran dinámicas (`ƒ` en el build), así que el
+nonce no le cuesta caché a ninguna página. Los estilos en línea no ejecutan
+código, y React escribe atributos `style` que no admiten nonce.
+

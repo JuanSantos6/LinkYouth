@@ -13,6 +13,16 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-09 — Content-Security-Policy con nonce (Fase 3 del incidente 2026-10-08)
+
+- **La CSP que faltaba desde la auditoría del 2026-09-12 (CN-002).** El
+  middleware genera un nonce por request; Next se lo pone a sus scripts y
+  cualquier script inyectado (XSS) no se ejecuta. Sin `'unsafe-inline'` para
+  scripts. Probada en Chromium: 20 pantallas sin violaciones y un `onerror`
+  inyectado queda bloqueado. Ver [`decisiones.md`](./decisiones.md).
+- **El script de tema de `layout.tsx` lleva el nonce**, porque si no la CSP lo
+  bloqueaba y se perdía el tema guardado.
+
 ## 2026-10-06 — La app, lista para publicarse con Tailscale Funnel
 
 - **Las fotos las sirve la app, no Supabase.** `rewrite` de
