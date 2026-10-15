@@ -213,6 +213,59 @@ $$;
 revoke all on function public.es_postulante_de_mi_empresa(uuid) from public, anon;
 grant execute on function public.es_postulante_de_mi_empresa(uuid) to authenticated;
 
+-- Los datos que una empresa ve de quien se postuló a una de sus búsquedas (sin
+-- haber cancelado) o se inscribió a uno de sus eventos (migración 005).
+--
+-- `perfiles` solo deja leer la fila propia y `perfiles_publicos` expone solo
+-- `id` y `nombre_usuario`: sin esto, la empresa sabe que alguien se postuló
+-- pero no quién es. Una política sobre `perfiles` no sirve, porque RLS decide
+-- filas y no columnas, y abriría también `fecha_nacimiento`. La función
+-- devuelve la lista exacta de columnas.
+--
+-- `security definer` para leer `perfiles` por encima de su RLS: por eso la
+-- condición sobre la empresa está escrita adentro y no se apoya en ninguna
+-- otra política. Con `anon` no se puede llamar.
+create or replace function public.candidatos_de_mi_empresa(ids uuid[])
+returns table (
+  id uuid,
+  nombre_usuario text,
+  nombre text,
+  apellido text,
+  pais text,
+  bio text,
+  foto_url text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, p.nombre_usuario, p.nombre, p.apellido, p.pais, p.bio, p.foto_url
+  from public.perfiles p
+  where p.id = any (ids)
+    and public.cuenta_activa(p.id)
+    and (
+      exists (
+        select 1
+        from public.postulaciones po
+        join public.vacantes v on v.id = po.vacante_id
+        where po.perfil_id = p.id
+          and v.empresa_id = (select auth.uid())
+          and po.estado <> 'cancelada'
+      )
+      or exists (
+        select 1
+        from public.inscripciones_evento i
+        join public.eventos e on e.id = i.evento_id
+        where i.perfil_id = p.id
+          and e.empresa_id = (select auth.uid())
+      )
+    );
+$$;
+
+revoke all on function public.candidatos_de_mi_empresa(uuid[]) from public, anon;
+grant execute on function public.candidatos_de_mi_empresa(uuid[]) to authenticated;
+
 alter table perfil_tags enable row level security;
 alter table perfil_habilidades enable row level security;
 
@@ -342,6 +395,23 @@ create policy "vacantes_edito_las_mias"
 on vacantes for update
 using (empresa_id = auth.uid());
 
+-- Borrar una búsqueda solo si nadie se postuló (migración 005).
+-- `postulaciones` borra en cascada desde `vacantes`, y las postulaciones no se
+-- borran nunca: con postulaciones, la búsqueda solo se puede cerrar.
+-- `vacantes.id` va calificado: dentro de la subconsulta, un `id` suelto sería
+-- el de `postulaciones` y la condición quedaría siempre falsa.
+drop policy if exists "vacantes_borro_las_mias_sin_postulaciones" on vacantes;
+
+create policy "vacantes_borro_las_mias_sin_postulaciones"
+on vacantes for delete
+to authenticated
+using (
+  empresa_id = (select auth.uid())
+  and not exists (
+    select 1 from postulaciones p where p.vacante_id = vacantes.id
+  )
+);
+
 -- ============================================================
 -- VACANTE_TAGS_PUBLICOS / VACANTE_HABILIDADES
 -- Visibles para todos. Solo la empresa dueña de la vacante
@@ -421,7 +491,8 @@ using (
 -- El postulante ve y crea las propias. La empresa ve las de sus
 -- vacantes. Las transiciones de estado están acotadas: el
 -- postulante solo puede cancelar (RF3.8); la empresa solo puede
--- mover a en_revision/aceptada/rechazada (RF3.4.3). Nunca se borran.
+-- mover a en_revision/entrevista/aceptada/rechazada (RF3.4.3, y
+-- `entrevista` desde la migración 005). Nunca se borran.
 -- ============================================================
 
 alter table postulaciones enable row level security;
@@ -444,8 +515,11 @@ with check (
   and exists (select 1 from vacantes v where v.id = vacante_id and v.estado = 'activa')
 );
 
+drop policy if exists "postulaciones_transiciones_permitidas" on postulaciones;
+
 create policy "postulaciones_transiciones_permitidas"
 on postulaciones for update
+to authenticated
 using (
   perfil_id = auth.uid()
   or exists (select 1 from vacantes v where v.id = vacante_id and v.empresa_id = auth.uid())
@@ -454,7 +528,7 @@ with check (
   (perfil_id = auth.uid() and estado = 'cancelada')
   or (
     exists (select 1 from vacantes v where v.id = vacante_id and v.empresa_id = auth.uid())
-    and estado in ('en_revision', 'aceptada', 'rechazada')
+    and estado in ('en_revision', 'entrevista', 'aceptada', 'rechazada')
   )
 );
 
@@ -527,12 +601,19 @@ using (
 
 drop policy if exists "inscripciones_me_inscribo_yo" on inscripciones_evento;
 
+-- Desde la migración 005, además, solo a un evento activo y que todavía no
+-- pasó: antes, con el id de uno cancelado o vencido, la inscripción entraba
+-- igual por la API.
 create policy "inscripciones_me_inscribo_yo"
 on inscripciones_evento for insert
 to authenticated
 with check (
   perfil_id = auth.uid()
   and exists (select 1 from perfiles where id = auth.uid())
+  and exists (
+    select 1 from eventos e
+    where e.id = evento_id and e.estado = 'activo' and e.fecha_hora > now()
+  )
 );
 
 create policy "inscripciones_cancelo_la_mia"
