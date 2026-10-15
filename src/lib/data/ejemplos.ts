@@ -487,7 +487,7 @@ export const POSTULACIONES_RECIBIDAS_EJEMPLO: Record<
 export const EVENTOS_DE_EMPRESA_EJEMPLO: EventoDeEmpresa[] = [
   {
     id: "ejemplo-evento-propio-1",
-    titulo: "Taller: tu primer repositorio en GitHub",
+    titulo: "Taller: tu primer repositorio con Git",
     descripcion:
       "Dos horas para crear un repositorio, subir un proyecto y presentarlo bien. Traé tu computadora.",
     fecha_hora: enDias(9, 18, 30),

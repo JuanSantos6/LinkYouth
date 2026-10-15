@@ -20,6 +20,19 @@ export class ResumenDePanel {
     private readonly ahora: Date = new Date(),
   ) {}
 
+  /**
+   * Lo que le falta al perfil de la empresa para que un joven sepa quién
+   * publica: logo, descripción y sitio web. Vacío si está completo.
+   */
+  get faltaEnElPerfil(): string[] {
+    const { empresa } = this.panel;
+    return [
+      !empresa.logo_url && "el logo",
+      !empresa.descripcion?.trim() && "una descripción",
+      !empresa.sitio_web && "el sitio web",
+    ].filter((falta): falta is string => Boolean(falta));
+  }
+
   get busquedasActivas(): BusquedaResumen[] {
     return this.panel.busquedas.filter((b) => b.estado === "activa");
   }

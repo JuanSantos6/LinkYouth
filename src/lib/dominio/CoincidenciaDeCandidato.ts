@@ -43,6 +43,23 @@ export class CoincidenciaDeCandidato {
     return this.declaradas.has(habilidad.trim().toLowerCase());
   }
 
+  /** Si la búsqueda pide esa habilidad. */
+  pide(habilidad: string): boolean {
+    const buscada = habilidad.trim().toLowerCase();
+    return this.pedidas.some((h) => h.trim().toLowerCase() === buscada);
+  }
+
+  /** Si ese interés es uno de los intereses clave (tags ocultos) de la búsqueda. */
+  esInteresClave(tag: string): boolean {
+    const buscado = tag.trim().toLowerCase();
+    return this.clave.some((t) => t.trim().toLowerCase() === buscado);
+  }
+
+  /** Las habilidades que pide la búsqueda y la persona no declara. */
+  get habilidadesQueNoDeclara(): string[] {
+    return this.pedidas.filter((h) => !this.declara(h));
+  }
+
   get habilidadesCubiertas(): number {
     return this.pedidas.filter((h) => this.declara(h)).length;
   }
@@ -89,5 +106,37 @@ export class CoincidenciaDeCandidato {
     if (clave !== 0) return clave;
 
     return a.fecha.localeCompare(b.fecha);
+  }
+
+  /**
+   * Las postulaciones de una búsqueda, cada una con su coincidencia, de más a
+   * menos coincidencia. Quienes se retiraron van al final: no hay nada que
+   * evaluar de ellos.
+   */
+  static ordenar<
+    P extends {
+      habilidades: string[];
+      tags: string[];
+      creada_en: string;
+      estado: string;
+    },
+  >(
+    busqueda: { habilidades: string[]; tagsOcultos: string[] },
+    postulaciones: P[],
+  ): { postulacion: P; coincidencia: CoincidenciaDeCandidato }[] {
+    return postulaciones
+      .map((postulacion) => ({
+        postulacion,
+        coincidencia: CoincidenciaDeCandidato.entre(busqueda, postulacion),
+      }))
+      .sort((a, b) => {
+        const retiroA = a.postulacion.estado === "cancelada";
+        const retiroB = b.postulacion.estado === "cancelada";
+        if (retiroA !== retiroB) return retiroA ? 1 : -1;
+        return CoincidenciaDeCandidato.comparar(
+          { coincidencia: a.coincidencia, fecha: a.postulacion.creada_en },
+          { coincidencia: b.coincidencia, fecha: b.postulacion.creada_en },
+        );
+      });
   }
 }
