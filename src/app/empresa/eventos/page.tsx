@@ -87,6 +87,7 @@ export default async function PaginaEventos({
 
       {resultado.datos.length === 0 ? (
         <EstadoVacio
+          nivel={2}
           titulo="Todavía no creaste eventos"
           descripcion="Contá de qué se trata, cuándo y dónde. Los jóvenes lo ven en Eventos y se inscriben desde ahí."
           accion={
@@ -103,6 +104,7 @@ export default async function PaginaEventos({
 
           {eventos.length === 0 ? (
             <EstadoVacio
+              nivel={2}
               titulo={VACIO[momento].titulo}
               descripcion={VACIO[momento].texto}
             />

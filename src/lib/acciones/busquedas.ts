@@ -86,14 +86,12 @@ async function sincronizarPuentes(
           )
       : null,
     datos.tagsOcultos.length
-      ? supabase
-          .from("vacante_tags_ocultos")
-          .insert(
-            datos.tagsOcultos.map((tag_id) => ({
-              vacante_id: vacanteId,
-              tag_id,
-            })),
-          )
+      ? supabase.from("vacante_tags_ocultos").insert(
+          datos.tagsOcultos.map((tag_id) => ({
+            vacante_id: vacanteId,
+            tag_id,
+          })),
+        )
       : null,
   ]);
   const errorAlInsertar = insertados.find((r) => r?.error)?.error;

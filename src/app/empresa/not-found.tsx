@@ -11,6 +11,7 @@ export default function NoEncontrado() {
   return (
     <div className="mx-auto max-w-xl">
       <EstadoVacio
+        nivel={1}
         titulo="No encontramos lo que buscabas"
         descripcion="Puede que se haya eliminado, que el enlace esté incompleto o que no sea de tu empresa."
         accion={

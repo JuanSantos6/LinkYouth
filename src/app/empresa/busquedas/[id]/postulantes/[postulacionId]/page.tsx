@@ -88,6 +88,7 @@ export default async function PaginaPostulante({
 
       {!persona ? (
         <EstadoVacio
+          nivel={1}
           titulo="Esta persona se retiró del proceso"
           descripcion="Cuando alguien retira su postulación deja de compartir sus datos con la empresa. La postulación queda en el historial de la búsqueda."
           accion={

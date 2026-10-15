@@ -55,6 +55,7 @@ export default async function PaginaCandidatos({
 
       {candidatos.length === 0 ? (
         <EstadoVacio
+          nivel={2}
           titulo="Todavía no tenés candidatos"
           descripcion="Cuando alguien se postule a una de tus búsquedas, aparece acá con sus intereses y sus habilidades declaradas."
           accion={
@@ -118,6 +119,7 @@ export default async function PaginaCandidatos({
 
           {visibles.length === 0 ? (
             <EstadoVacio
+              nivel={2}
               titulo="Nadie tiene todos esos intereses"
               descripcion="Sacá alguno de los filtros para ver más personas."
               accion={

@@ -8,11 +8,19 @@ export function EstadoVacio({
   titulo,
   descripcion,
   accion,
+  nivel = 3,
 }: {
   titulo: string;
   descripcion: string;
   accion?: React.ReactNode;
+  /**
+   * Nivel del título. 3 dentro de una sección con su `h2`; 2 cuando la lista
+   * vacía cuelga directo del `h1` de la pantalla, para no saltear niveles.
+   */
+  nivel?: 1 | 2 | 3;
 }) {
+  const Titulo = `h${nivel}` as const;
+
   return (
     <div className="rounded-tarjeta border border-dashed border-borde-control/70 bg-superficie px-6 py-12 text-center">
       <svg
@@ -32,7 +40,7 @@ export function EstadoVacio({
           strokeWidth="3"
         />
       </svg>
-      <h3 className="text-[16px] font-semibold text-tinta">{titulo}</h3>
+      <Titulo className="text-[16px] font-semibold text-tinta">{titulo}</Titulo>
       <p className="mx-auto mt-2 max-w-md text-[14px] text-apagado">
         {descripcion}
       </p>
