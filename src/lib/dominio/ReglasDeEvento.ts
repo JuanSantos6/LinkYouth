@@ -13,6 +13,9 @@ export type DatosDeEvento = {
   tags: string[];
 };
 
+export const MOMENTOS_DE_EVENTO = ["proximo", "pasado", "cancelado"] as const;
+export type MomentoDeEvento = (typeof MOMENTOS_DE_EVENTO)[number];
+
 /**
  * Zona de los eventos. Todos son en Uruguay, y la interfaz ya los muestra en
  * esta zona (`src/lib/formato.ts`): si el formulario interpretara la hora en la
@@ -173,6 +176,18 @@ export class ReglasDeEvento {
       return `https://www.openstreetmap.org/search?query=${encodeURIComponent(evento.direccion.trim())}`;
     }
     return null;
+  }
+
+  /**
+   * En qué grupo de «Mis eventos» cae un evento: cancelado (aunque su fecha
+   * no haya llegado), pasado o próximo.
+   */
+  static momento(
+    evento: { estado: string; fecha_hora: string },
+    ahora = new Date(),
+  ): MomentoDeEvento {
+    if (evento.estado === "cancelado") return "cancelado";
+    return new Date(evento.fecha_hora) > ahora ? "proximo" : "pasado";
   }
 
   /** Se edita y se cancela mientras esté activo y no haya pasado. */
