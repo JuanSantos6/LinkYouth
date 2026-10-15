@@ -13,12 +13,20 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-15 — Sin la IP de Tailscale en la documentación
+
+- **La entrada del 2026-10-06 nombraba la IP del servidor en la tailnet.** Se
+  cambió por `localhost`, que dice lo mismo —esa URL no la abre nadie de
+  afuera— sin publicar una dirección interna. Es parte de la revisión previa a
+  hacer público el repositorio. La IP sigue en el historial de git: el cambio
+  limpia la versión vigente, no los commits anteriores.
+
 ## 2026-10-06 — La app, lista para publicarse con Tailscale Funnel
 
 - **Las fotos las sirve la app, no Supabase.** `rewrite` de
   `/storage/v1/object/public/*` hacia `127.0.0.1:8000` y rutas relativas al
   guardar y al mostrar (`rutaDeImagen`): Supabase no se publica en internet y
-  una URL `http://100.79.143.69:8000/…` no la abre nadie de afuera.
+  una URL `http://localhost:8000/…` no la abre nadie de afuera.
   `NEXT_PUBLIC_SUPABASE_URL` no cambia.
 - **Cabeceras:** se suman `Permissions-Policy`, `Strict-Transport-Security` y
   `X-Robots-Tag: noindex`, más `robots.txt` con `Disallow: /`, y se quita
