@@ -558,7 +558,7 @@ validan con la clase de dominio que corresponde antes de escribir.
 
 | Función | Qué hace | Requisito |
 | --- | --- | --- |
-| `guardarBusqueda` (`busquedas.ts`) | Crea o edita una búsqueda con habilidades, áreas y tags ocultos. Comprueba el título repetido entre las activas antes de escribir (el índice único es la defensa final). Una nueva se crea pausada, se cargan las tablas puente y recién ahí se activa: nadie ve una búsqueda a medio cargar. Redirige al detalle. | RF3.1, RF3.1.2, RF3.1.6, RF3.2 |
+| `guardarBusqueda` (`busquedas.ts`) | Crea o edita una búsqueda con habilidades, áreas y tags ocultos. Comprueba el título repetido entre las activas antes de escribir (el índice único es la defensa final). Una nueva se crea pausada, se cargan las tablas puente y recién ahí se activa: nadie ve una búsqueda a medio cargar. Una vez creada, nunca vuelve al formulario (reintentar la duplicaría): redirige al detalle, con `falto=` si algo quedó sin hacer. | RF3.1, RF3.1.2, RF3.1.6, RF3.2 |
 | `cambiarEstadoBusqueda` | Pausar, reactivar o cerrar, según `ReglasDeBusqueda`. Cerrar es final y la base rechaza las pendientes (RF3.3.3). | RF3.3 |
 | `eliminarBusqueda` | Borra una búsqueda sin postulaciones; con postulaciones la política no lo deja y el mensaje propone cerrarla. | — |
 | `cambiarEstadoPostulacion` | Lleva una postulación al estado siguiente, solo hacia adelante (`EstadoParaEmpresa`). La base avisa a la persona. | RF3.4.3, RF6.2 |

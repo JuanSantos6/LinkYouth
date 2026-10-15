@@ -53,9 +53,9 @@ export default async function PaginaBusqueda({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ estado?: string; guardada?: string }>;
+  searchParams: Promise<{ estado?: string; guardada?: string; falto?: string }>;
 }) {
-  const [{ id }, { estado, guardada }] = await Promise.all([
+  const [{ id }, { estado, guardada, falto }] = await Promise.all([
     params,
     searchParams,
   ]);
@@ -111,6 +111,8 @@ export default async function PaginaBusqueda({
             : "Listo: se guardaron los cambios."}
         </AvisoDeResultado>
       )}
+
+      {falto && <AvisoDeResultado tono="error">{falto}</AvisoDeResultado>}
 
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">

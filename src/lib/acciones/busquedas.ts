@@ -132,34 +132,9 @@ export async function guardarBusqueda(
     posiciones: datos.posiciones,
   };
 
-  // RF3.1.2 — El índice de la base es la defensa final; esto es para avisar
-  // antes, con un mensaje sobre el campo, en el caso común.
-  const { data: repetida } = await supabase
-    .from("vacantes")
-    .select("id")
-    .eq("empresa_id", usuarioId)
-    .eq("estado", "activa")
-    // `ilike` sin comodines: `%` y `_` del título se escapan para que
-    // «Pasantía 100%» compare como texto y no como patrón.
-    .ilike(
-      "titulo",
-      fila.titulo.replace(/[\\%_]/g, (c) => `\\${c}`),
-    )
-    .neq("id", id || "00000000-0000-0000-0000-000000000000")
-    .limit(1);
-
-  if (repetida?.length) {
-    return conValores({
-      estado: "error",
-      mensaje: "Revisá los campos marcados.",
-      campos: { titulo: TITULO_REPETIDO },
-    });
-  }
-
-  let vacanteId = id;
-
+  // Editar: solo si es de la empresa y no está cerrada.
+  let estadoActual: string | null = null;
   if (id) {
-    // Editar: solo si es de la empresa y no está cerrada.
     const { data: actual } = await supabase
       .from("vacantes")
       .select("estado")
@@ -179,7 +154,41 @@ export async function guardarBusqueda(
         mensaje: "Una búsqueda cerrada ya no se edita.",
       });
     }
+    estadoActual = actual.estado;
+  }
 
+  // RF3.1.2 — El título no se repite entre las activas. Solo importa si esta
+  // búsqueda va a quedar activa: una nueva, o una activa que se edita. El
+  // índice de la base es la defensa final; esto es para avisar antes, con un
+  // mensaje sobre el campo, en el caso común.
+  const quedaraActiva = !id || estadoActual === "activa";
+  const { data: repetida } = !quedaraActiva
+    ? { data: null }
+    : await supabase
+        .from("vacantes")
+        .select("id")
+        .eq("empresa_id", usuarioId)
+        .eq("estado", "activa")
+        // `ilike` sin comodines: `%` y `_` del título se escapan para que
+        // «Pasantía 100%» compare como texto y no como patrón.
+        .ilike(
+          "titulo",
+          fila.titulo.replace(/[\\%_]/g, (c) => `\\${c}`),
+        )
+        .neq("id", id || "00000000-0000-0000-0000-000000000000")
+        .limit(1);
+
+  if (repetida?.length) {
+    return conValores({
+      estado: "error",
+      mensaje: "Revisá los campos marcados.",
+      campos: { titulo: TITULO_REPETIDO },
+    });
+  }
+
+  let vacanteId = id;
+
+  if (id) {
     const { error } = await supabase.from("vacantes").update(fila).eq("id", id);
     if (error) {
       return conValores({
@@ -211,36 +220,36 @@ export async function guardarBusqueda(
     vacanteId = data.id;
   }
 
+  // Desde acá la búsqueda ya existe. Si algo falla, no se vuelve al
+  // formulario —reintentar crearía otra igual—: se va al detalle y se dice
+  // qué faltó, como en `guardarEvento`.
+  let falto = "";
   const problema = await sincronizarPuentes(guardia.sesion, vacanteId, datos);
   if (problema) {
-    return conValores({
-      estado: "error",
-      mensaje: id
-        ? `Se guardaron los datos, pero no los requisitos: ${problema}`
-        : `La búsqueda quedó guardada como pausada, sin publicar: ${problema}`,
-    });
-  }
-
-  if (!id) {
+    falto = id
+      ? `Se guardaron los datos, pero no los requisitos: ${problema}`
+      : `Quedó guardada como pausada, sin publicar, porque no se pudieron cargar los requisitos: ${problema}`;
+  } else if (!id) {
     const { error } = await supabase
       .from("vacantes")
       .update({ estado: "activa" })
       .eq("id", vacanteId);
 
     if (error) {
-      return conValores({
-        estado: "error",
-        mensaje:
-          error.code === CLAVE_DUPLICADA
-            ? `La búsqueda quedó guardada como pausada. ${TITULO_REPETIDO}`
-            : `La búsqueda quedó guardada como pausada: ${mensajeDeError(error)}`,
-      });
+      falto =
+        error.code === CLAVE_DUPLICADA
+          ? `Quedó guardada como pausada. ${TITULO_REPETIDO}`
+          : `Quedó guardada como pausada: ${mensajeDeError(error)}`;
     }
   }
 
   revalidatePath("/empresa", "layout");
   revalidatePath("/empleos");
-  redirect(`/empresa/busquedas/${vacanteId}?guardada=1`);
+  redirect(
+    falto
+      ? `/empresa/busquedas/${vacanteId}?falto=${encodeURIComponent(falto)}`
+      : `/empresa/busquedas/${vacanteId}?guardada=1`,
+  );
 }
 
 /** RF3.3.1 — Pausar, reactivar o cerrar una búsqueda. */
