@@ -4,7 +4,7 @@ import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Insignia } from "@/components/ui/Insignia";
-import { obtenerPanelDeEmpresa } from "@/lib/data/consultas";
+import { obtenerPanelDeEmpresa } from "@/lib/data/empresa";
 import { ResumenDePanel } from "@/lib/dominio/ResumenDePanel";
 import {
   etiquetaTipo,
@@ -31,7 +31,7 @@ export default async function PaginaEmpresa() {
   const metricas = [
     { valor: resumen.busquedasActivas.length, texto: "búsquedas activas" },
     { valor: resumen.posicionesAbiertas, texto: "posiciones abiertas" },
-    { valor: resumen.postulacionesRecibidas, texto: "postulaciones recibidas" },
+    { valor: resumen.postulantesNuevos, texto: "postulantes nuevos" },
     { valor: resumen.eventosProximos.length, texto: "eventos próximos" },
   ];
 
@@ -65,7 +65,7 @@ export default async function PaginaEmpresa() {
           Tus búsquedas
         </h2>
 
-        {panel.vacantes.length === 0 ? (
+        {panel.busquedas.length === 0 ? (
           <EstadoVacio
             titulo="Todavía no publicaste búsquedas"
             descripcion="Por ahora las búsquedas se cargan con el equipo de LinkYouth. Escribinos desde Contacto y la publicamos con vos."
@@ -102,7 +102,7 @@ export default async function PaginaEmpresa() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-filete">
-                {panel.vacantes.map((vacante) => (
+                {panel.busquedas.map((vacante) => (
                   <tr key={vacante.id}>
                     <th
                       scope="row"
