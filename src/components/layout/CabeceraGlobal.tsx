@@ -14,7 +14,13 @@ import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
 import { cerrarSesion } from "@/lib/acciones/auth";
 import { type Area, inicioDe } from "@/lib/navegacion";
 
-import { IconoAjustes, IconoAvisos, IconoPerfil, IconoSalir } from "./Iconos";
+import {
+  IconoAjustes,
+  IconoAvisos,
+  IconoPerfil,
+  IconoResenias,
+  IconoSalir,
+} from "./Iconos";
 import { Marca } from "./Marca";
 
 /**
@@ -38,11 +44,13 @@ const SECCIONES: Record<Area, readonly Seccion[]> = {
     { href: "/eventos", etiqueta: "Eventos" },
     { href: "/postulaciones", etiqueta: "Mis postulaciones" },
   ],
+  // Sin «Cómo funciona»: es la presentación para quien todavía no tiene
+  // cuenta, y una empresa con sesión ya está adentro (Etapa 2).
   empresa: [
     { href: "/empresa", etiqueta: "Panel" },
-    { href: "/empresa#busquedas", etiqueta: "Mis búsquedas" },
-    { href: "/empresa#eventos", etiqueta: "Mis eventos" },
-    { href: "/como-funciona", etiqueta: "Cómo funciona" },
+    { href: "/empresa/busquedas", etiqueta: "Mis búsquedas" },
+    { href: "/empresa/eventos", etiqueta: "Mis eventos" },
+    { href: "/empresa/candidatos", etiqueta: "Candidatos" },
   ],
 };
 
@@ -131,13 +139,22 @@ function MenuCuenta({ area }: { area: "postulante" | "empresa" }) {
           </EnlaceTransicion>
         </>
       ) : (
-        <EnlaceTransicion
-          href="/empresa"
-          role="menuitem"
-          className={OPCION_MENU}
-        >
-          <IconoPerfil className="h-4 w-4" /> Panel de empresa
-        </EnlaceTransicion>
+        <>
+          <EnlaceTransicion
+            href="/empresa/perfil"
+            role="menuitem"
+            className={OPCION_MENU}
+          >
+            <IconoPerfil className="h-4 w-4" /> Perfil de la empresa
+          </EnlaceTransicion>
+          <EnlaceTransicion
+            href="/empresa/resenias"
+            role="menuitem"
+            className={OPCION_MENU}
+          >
+            <IconoResenias className="h-4 w-4" /> Reseñas recibidas
+          </EnlaceTransicion>
+        </>
       )}
       <hr className="mx-2 my-1 border-borde" />
       <form action={cerrarSesion}>
