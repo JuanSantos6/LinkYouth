@@ -43,6 +43,7 @@ export function BotonAccion({
   hecho = false,
   esEjemplo = false,
   celebrar = false,
+  extras = {},
 }: {
   accion: (
     estadoPrevio: EstadoAccion,
@@ -59,6 +60,8 @@ export function BotonAccion({
   esEjemplo?: boolean;
   /** Al salir bien, los anillos del isotipo se unen (postularse, inscribirse). */
   celebrar?: boolean;
+  /** Más campos ocultos, para acciones que necesitan algo además del id. */
+  extras?: Record<string, string>;
 }) {
   const [estado, enviar, enCurso] = useActionState(accion, ACCION_INICIAL);
 
@@ -77,6 +80,9 @@ export function BotonAccion({
       <form action={enviar} className="flex items-center gap-2">
         {celebrar && estado.estado === "ok" && <ConexionAnillos />}
         <input type="hidden" name={campo} value={valor} />
+        {Object.entries(extras).map(([nombre, contenido]) => (
+          <input key={nombre} type="hidden" name={nombre} value={contenido} />
+        ))}
         <Boton
           type="submit"
           variante={variante}
