@@ -21,17 +21,26 @@ type Tabla<T extends keyof Database["public"]["Tables"]> =
 export const TIPOS_OPORTUNIDAD = ["empleo", "pasantia"] as const;
 export type TipoOportunidad = (typeof TIPOS_OPORTUNIDAD)[number];
 
-export const ESTADOS_VACANTE = ["activa", "cerrada"] as const;
+/**
+ * `pausada` (migración 005): la búsqueda sigue siendo de la empresa, pero no
+ * se ve ni recibe postulaciones.
+ */
+export const ESTADOS_VACANTE = ["activa", "pausada", "cerrada"] as const;
 export type EstadoVacante = (typeof ESTADOS_VACANTE)[number];
 
 export const ESTADOS_POSTULACION = [
   "pendiente",
   "en_revision",
+  "entrevista",
   "aceptada",
   "rechazada",
   "cancelada",
 ] as const;
 export type EstadoPostulacion = (typeof ESTADOS_POSTULACION)[number];
+
+/** Dónde se trabaja (migración 005). Opcional en la base, obligatoria al publicar. */
+export const MODALIDADES = ["presencial", "remota", "hibrida"] as const;
+export type Modalidad = (typeof MODALIDADES)[number];
 
 export const ESTADOS_FORMACION = ["en_curso", "finalizado"] as const;
 export type EstadoFormacion = (typeof ESTADOS_FORMACION)[number];
@@ -67,6 +76,10 @@ export const comoEstadoVacante = (valor: string): EstadoVacante =>
 
 export const comoEstadoPostulacion = (valor: string): EstadoPostulacion =>
   estrechar(ESTADOS_POSTULACION, valor, "pendiente");
+
+/** `null` cuando la búsqueda es anterior a la migración 005 y no la tiene. */
+export const comoModalidad = (valor: string | null): Modalidad | null =>
+  valor === null ? null : estrechar(MODALIDADES, valor, "presencial");
 
 export const comoEstadoFormacion = (valor: string): EstadoFormacion =>
   estrechar(ESTADOS_FORMACION, valor, "en_curso");
@@ -107,6 +120,8 @@ export type Vacante = {
   tipo: TipoOportunidad;
   posiciones: number;
   estado: EstadoVacante;
+  modalidad: Modalidad | null;
+  ubicacion: string | null;
   creada_en: string;
   empresa: EmpresaResumen;
   tags: string[];
@@ -120,6 +135,9 @@ export type Evento = {
   fecha_hora: string;
   imagen_url: string | null;
   estado: EstadoEvento;
+  direccion: string | null;
+  latitud: number | null;
+  longitud: number | null;
   empresa: EmpresaResumen;
   tags: string[];
 };
@@ -209,25 +227,125 @@ export type Resultado<T> = {
   error?: string;
 };
 
+// --- Lado de la empresa (Etapa 2) -------------------------------------------
+
+/** El perfil propio de una empresa, completo, para verlo y editarlo. */
+export type PerfilDeEmpresa = Pick<
+  Tabla<"empresas">,
+  | "id"
+  | "razon_social"
+  | "rut"
+  | "rubro"
+  | "descripcion"
+  | "logo_url"
+  | "sitio_web"
+>;
+
+/** Una búsqueda en el listado de «Mis búsquedas». */
+export type BusquedaResumen = {
+  id: string;
+  titulo: string;
+  tipo: TipoOportunidad;
+  modalidad: Modalidad | null;
+  ubicacion: string | null;
+  posiciones: number;
+  estado: EstadoVacante;
+  creada_en: string;
+  /** Todas las postulaciones, en cualquier estado. */
+  postulaciones: number;
+  /** Las que todavía nadie miró (`pendiente`). */
+  nuevas: number;
+};
+
 /**
- * Lo que ve una empresa en su panel (RF7): sus búsquedas —activas o
- * cerradas— con cuántas postulaciones tiene cada una, y sus eventos.
+ * Una búsqueda completa, para el detalle y el formulario de edición.
+ *
+ * Los ids viajan porque son lo que se guarda en las tablas puente; los nombres,
+ * porque son lo que se muestra. `tagsOcultos` solo llega acá: lo lee la
+ * empresa dueña y nadie más (RF3.1.6, RNF5).
  */
+export type BusquedaCompleta = BusquedaResumen & {
+  descripcion: string;
+  habilidades: OpcionCatalogo[];
+  tags: OpcionCatalogo[];
+  tagsOcultos: OpcionCatalogo[];
+};
+
+/** Lo que la empresa ve de una persona que se postuló o se inscribió. */
+export type DatosDeCandidato = {
+  id: string;
+  nombre_usuario: string;
+  nombre: string;
+  apellido: string;
+  pais: string;
+  bio: string | null;
+  foto_url: string | null;
+};
+
+/**
+ * Una postulación recibida, con lo que la persona declara.
+ *
+ * `persona` es `null` cuando la postulación está cancelada: quien se retira de
+ * un proceso deja de compartir sus datos con esa empresa (ver
+ * `candidatos_de_mi_empresa` en `db/politicas.sql`).
+ */
+export type PostulacionRecibida = {
+  id: string;
+  estado: EstadoPostulacion;
+  creada_en: string;
+  actualizada_en: string;
+  persona: DatosDeCandidato | null;
+  /** Habilidades declaradas, no acreditadas: la plataforma no acredita todavía. */
+  habilidades: string[];
+  tags: string[];
+  formaciones: Formacion[];
+};
+
+/** Un evento de la empresa, para su listado, detalle y edición. */
+export type EventoDeEmpresa = {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  fecha_hora: string;
+  imagen_url: string | null;
+  estado: EstadoEvento;
+  direccion: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  tags: OpcionCatalogo[];
+  inscriptos: number;
+};
+
+/** Quién se inscribió a un evento. */
+export type Inscripto = {
+  persona: DatosDeCandidato;
+  creada_en: string;
+};
+
+/** Una reseña recibida (RF7.4). Anónima: ver `obtenerReseniasRecibidas`. */
+export type ReseniaRecibida = {
+  id: string;
+  calificacion: number;
+  comentario: string;
+  creada_en: string;
+};
+
+/**
+ * Un postulante recomendado en el panel: una postulación propia, con la
+ * búsqueda a la que se postuló, ordenada por coincidencia.
+ */
+export type Recomendado = {
+  postulacion: PostulacionRecibida;
+  busqueda: Pick<
+    BusquedaCompleta,
+    "id" | "titulo" | "habilidades" | "tagsOcultos"
+  >;
+};
+
+/** Lo que ve una empresa en su panel (RF7). */
 export type PanelDeEmpresa = {
-  empresa: EmpresaResumen;
-  vacantes: {
-    id: string;
-    titulo: string;
-    tipo: TipoOportunidad;
-    posiciones: number;
-    estado: EstadoVacante;
-    creada_en: string;
-    postulaciones: number;
-  }[];
-  eventos: {
-    id: string;
-    titulo: string;
-    fecha_hora: string;
-    estado: EstadoEvento;
-  }[];
+  empresa: PerfilDeEmpresa;
+  busquedas: BusquedaResumen[];
+  eventos: EventoDeEmpresa[];
+  recomendados: Recomendado[];
 };

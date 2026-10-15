@@ -57,7 +57,7 @@ export function FiltroDeslizante({
           key={href}
           href={href}
           aria-current={activa ? "page" : undefined}
-          className={`relative z-10 rounded-full px-4 py-1.5 text-[14px] transition-colors duration-200 ${
+          className={`relative z-10 rounded-full px-4 py-1.5 text-[14px] whitespace-nowrap transition-colors duration-200 ${
             activa
               ? `font-bold text-papel ${marca ? "" : "bg-tinta"}`
               : "font-medium text-tinta hover:bg-realce"

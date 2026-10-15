@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, ComponentPropsWithRef } from "react";
 import Link from "next/link";
 
 type Variante = "primario" | "secundario" | "fantasma";
@@ -30,11 +30,12 @@ const VARIANTES: Record<Variante, string> = {
 const BASE =
   "inline-flex items-center justify-center gap-2 rounded-control px-4 py-2.5 text-[15px] font-medium leading-tight transition-[color,background-color,border-color,filter,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:border-borde disabled:bg-realce disabled:text-apagado disabled:brightness-100 disabled:translate-y-0";
 
+/** En React 19 `ref` es una prop más: llega al `<button>` con el resto. */
 export function Boton({
   variante = "primario",
   className = "",
   ...resto
-}: { variante?: Variante } & ComponentPropsWithoutRef<"button">) {
+}: { variante?: Variante } & ComponentPropsWithRef<"button">) {
   return (
     <button
       className={`${BASE} ${VARIANTES[variante]} ${className}`}

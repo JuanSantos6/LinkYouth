@@ -13,6 +13,15 @@ export type Seccion = { href: string; etiqueta: string };
 export function NavPrincipal({ secciones }: { secciones: readonly Seccion[] }) {
   const ruta = usePathname();
 
+  // La sección activa es la de dirección más larga que contiene a la ruta:
+  // en `/empresa/busquedas` coinciden «Panel» (`/empresa`) y «Mis búsquedas»,
+  // y marcar las dos diría que se está en dos lugares a la vez.
+  const baseActiva = secciones
+    .filter(({ href }) => !href.includes("#"))
+    .map(({ href }) => href)
+    .filter((base) => ruta === base || ruta.startsWith(`${base}/`))
+    .sort((a, b) => b.length - a.length)[0];
+
   return (
     <nav
       aria-label="Secciones de LinkYouth"
@@ -21,9 +30,7 @@ export function NavPrincipal({ secciones }: { secciones: readonly Seccion[] }) {
       <ul className="flex items-center gap-1">
         {secciones.map(({ href, etiqueta }) => {
           const base = href.split("#")[0];
-          const activa =
-            !href.includes("#") &&
-            (ruta === base || ruta.startsWith(`${base}/`));
+          const activa = !href.includes("#") && base === baseActiva;
 
           // Anclas de la misma página (la portada): un `<a>` común, que desplaza
           // suave con Lenis o con `scroll-behavior`, y deja la marca en el historial.
