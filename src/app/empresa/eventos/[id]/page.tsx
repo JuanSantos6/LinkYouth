@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AvisoDeResultado } from "@/components/empresa/AvisoDeResultado";
-import { EnlaceAlMapa } from "@/components/eventos/EnlaceAlMapa";
 import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { BotonEnlace } from "@/components/ui/Boton";
@@ -83,7 +82,6 @@ export default async function PaginaEvento({
           <span className="text-[14.5px] text-apagado">
             {evento.direccion ?? "Sin dirección cargada"}
           </span>
-          <EnlaceAlMapa evento={evento} />
         </div>
 
         {modificable && (
