@@ -321,6 +321,26 @@ Si no hay credenciales, deja pasar el request intacto en vez de romper toda la
 navegación: sin Supabase no hay sesión posible y la aplicación tiene que poder
 recorrerse igual con los datos de ejemplo (§2.3).
 
+Todo eso vive en `controlDeAcceso(request)`. `middleware` lo envuelve: genera
+un nonce, se lo pasa a Next en el header `Content-Security-Policy` del request
+(Next se lo pone a sus `<script>`) y en `x-nonce` (lo lee `layout.tsx` para su
+script de tema), y agrega la misma política a la respuesta, sea cual sea la
+salida —página, redirección o la vía sin credenciales—.
+
+### 5.3b `src/lib/seguridad/csp.ts`
+
+#### `generarNonce(): string` · `politicaDeContenido(nonce): string` · `CABECERA_NONCE`
+
+`generarNonce` devuelve 16 bytes aleatorios en base64, uno por request.
+`politicaDeContenido` arma la CSP: scripts solo con ese nonce más
+`'strict-dynamic'` (sin `'unsafe-inline'`), estilos con `'unsafe-inline'`
+(React escribe atributos `style`), imágenes del mismo origen más `data:` y
+`blob:`, `connect-src 'self'` (el navegador no habla con Supabase),
+`frame-ancestors 'none'`. En desarrollo suma `'unsafe-eval'` y `ws:` para el
+refresco en caliente. `CABECERA_NONCE` (`x-nonce`) es el header interno con el
+que el middleware le pasa el nonce a los Server Components; no sale al
+navegador. Ver `docs/decisiones.md`, 2026-10-09.
+
 #### `ENTRADA` · `INFORMATIVAS` · `EXPLORABLES`
 
 Tres listas. `ENTRADA` (`/login`, `/registro`) es pública sin sesión y deja de
