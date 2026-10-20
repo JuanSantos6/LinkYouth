@@ -101,20 +101,20 @@ export function IconoAvisos(props: IconoProps) {
   );
 }
 
+export function IconoResenias(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <path d="m12 3.5 2.6 5.3 5.9.9-4.25 4.1 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.7l5.9-.9Z" />
+    </Base>
+  );
+}
+
 export function IconoAjustes(props: IconoProps) {
   return (
     <Base {...props}>
       <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
       <circle cx="15" cy="7" r="2.25" />
       <circle cx="9" cy="17" r="2.25" />
-    </Base>
-  );
-}
-
-export function IconoCodigo(props: IconoProps) {
-  return (
-    <Base {...props}>
-      <path d="m9 8-4 4 4 4M15 8l4 4-4 4" />
     </Base>
   );
 }

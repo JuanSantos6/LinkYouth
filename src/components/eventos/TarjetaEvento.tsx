@@ -2,6 +2,8 @@ import { AccionConCuenta } from "@/components/auth/InvitacionACuenta";
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+
+import { EnlaceAlMapa } from "./EnlaceAlMapa";
 import { cancelarInscripcion, inscribirse } from "@/lib/acciones/eventos";
 import type { Evento } from "@/lib/data/tipos";
 import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
@@ -79,6 +81,15 @@ export function TarjetaEvento({
             </time>
             <span className="ml-4">{hora(evento.fecha_hora)}</span>
           </p>
+
+          {(evento.direccion || evento.latitud !== null) && (
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-apagado">
+              {evento.direccion && <span>{evento.direccion}</span>}
+              <span className="relative z-10">
+                <EnlaceAlMapa evento={evento} />
+              </span>
+            </p>
+          )}
 
           {evento.tags.length > 0 && (
             <ul className="mt-3 flex flex-wrap gap-1.5">

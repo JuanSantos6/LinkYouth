@@ -6,6 +6,19 @@ import { Institucion } from "@/lib/dominio/Institucion";
 import { createClient } from "@/lib/supabase/server";
 
 import {
+  type ClienteSupabase,
+  ejemplo,
+  nombresDe,
+  resolverUsuarioId,
+  SIN_CREDENCIALES,
+  SIN_SESION,
+  TABLA_VACIA,
+} from "./comun";
+
+// Sigue saliendo de acá para no tocar a quien ya lo importa de este módulo.
+export { obtenerUsuarioId } from "./comun";
+
+import {
   AVISOS_EJEMPLO,
   EMPRESAS_EJEMPLO,
   CATALOGOS_EJEMPLO,
@@ -20,11 +33,11 @@ import {
   comoEstadoFormacion,
   comoEstadoPostulacion,
   comoEstadoVacante,
+  comoModalidad,
   comoTipoCuenta,
   comoTipoOportunidad,
   type Aviso,
   type EmpresaResumen,
-  type PanelDeEmpresa,
   type FichaDeInstitucion,
   type TipoCuenta,
   type Evento,
@@ -47,71 +60,6 @@ import {
  * RNF5). Tampoco hace falta que lo evite a mano: la política de RLS ya se lo
  * impide a cualquier sesión que no sea la empresa dueña de la vacante.
  */
-
-type ClienteSupabase = NonNullable<Awaited<ReturnType<typeof createClient>>>;
-
-const SIN_CREDENCIALES =
-  "Faltan SUPABASE_URL o SUPABASE_ANON_KEY en .env.local";
-
-const TABLA_VACIA = "La base respondió, pero todavía no tiene datos cargados";
-
-const SIN_SESION = "No hay una sesión iniciada";
-
-function ejemplo<T>(datos: T, error: string): Resultado<T> {
-  return { datos, origen: "ejemplo", error };
-}
-
-/** Aplana `tabla_puente ( catalogo ( nombre ) )` a una lista de nombres. */
-function nombresDe<C extends string>(
-  filas: { [K in C]: { nombre: string } | null }[] | null,
-  catalogo: C,
-): string[] {
-  return (filas ?? [])
-    .map((fila) => fila[catalogo]?.nombre)
-    .filter((nombre): nombre is string => Boolean(nombre))
-    .sort((a, b) => a.localeCompare(b, "es"));
-}
-
-/**
- * Id del usuario de la sesión, o `null` si no hay ninguna.
- *
- * Cada llamada a `auth.getUser()` es un viaje de red al servidor de auth
- * (~240 ms medidos). Una pantalla que pide varias lecturas las pagaba todas:
- * `/inicio` hacía cinco validaciones de la misma sesión para una sola
- * navegación. Las páginas resuelven el usuario una vez con esta función y se lo
- * pasan a las consultas.
- */
-export async function obtenerUsuarioId(): Promise<string | null> {
-  const supabase = await createClient();
-  if (!supabase) return null;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return user?.id ?? null;
-}
-
-/**
- * Devuelve el id recibido, o lo resuelve contra el servidor de auth si no vino.
- *
- * El parámetro es opcional a propósito: las consultas se llaman también desde
- * pantallas que solo necesitan una, donde resolver la sesión por su cuenta es
- * lo correcto y ahorra ceremonia. Quien pide varias lo resuelve una vez y lo
- * pasa.
- */
-async function resolverUsuarioId(
-  supabase: ClienteSupabase,
-  usuarioId?: string,
-): Promise<string | null> {
-  if (usuarioId) return usuarioId;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return user?.id ?? null;
-}
 
 /**
  * En qué mitad de la aplicación vive la sesión, o `null` si no hay ninguna.
@@ -186,7 +134,8 @@ function consultarVacantes(supabase: ClienteSupabase) {
   return supabase
     .from("vacantes")
     .select(
-      `id, titulo, descripcion, tipo, posiciones, estado, creada_en,
+      `id, titulo, descripcion, tipo, posiciones, estado, modalidad, ubicacion,
+       creada_en,
        ${EMPRESA},
        vacante_tags_publicos ( tags ( nombre ) ),
        vacante_habilidades ( habilidades ( nombre ) )`,
@@ -210,6 +159,8 @@ function comoVacante(fila: FilaVacante): Vacante | null {
     tipo: comoTipoOportunidad(fila.tipo),
     posiciones: fila.posiciones,
     estado: comoEstadoVacante(fila.estado),
+    modalidad: comoModalidad(fila.modalidad),
+    ubicacion: fila.ubicacion,
     creada_en: fila.creada_en,
     empresa: fila.empresas,
     tags: nombresDe(fila.vacante_tags_publicos, "tags"),
@@ -293,6 +244,7 @@ export async function obtenerEventos(
     .from("eventos")
     .select(
       `id, titulo, descripcion, fecha_hora, imagen_url, estado,
+       direccion, latitud, longitud,
        ${EMPRESA},
        evento_tags ( tags ( nombre ) )`,
     )
@@ -317,6 +269,10 @@ export async function obtenerEventos(
         fecha_hora: fila.fecha_hora,
         imagen_url: fila.imagen_url,
         estado: comoEstadoEvento(fila.estado),
+        direccion: fila.direccion,
+        // `numeric` llega como número o como texto según el driver: se fija.
+        latitud: fila.latitud === null ? null : Number(fila.latitud),
+        longitud: fila.longitud === null ? null : Number(fila.longitud),
         empresa: fila.empresas,
         tags: nombresDe(fila.evento_tags, "tags"),
       },
@@ -587,83 +543,5 @@ export async function obtenerInstitucion(
       titulos: [...new Set(suyas.map((formacion) => formacion.titulo))].sort(),
     },
     origen: "supabase",
-  };
-}
-
-// --- Panel de empresa -------------------------------------------------------
-
-/**
- * RF7.1 y RF3.4.1 (lectura) — Lo que tiene publicado la empresa de la sesión.
- *
- * Solo lee: publicar búsquedas (RF3.1) y responder postulaciones (RF3.4) son
- * pendientes, anotados en `docs/plan.md`. No hace falta filtrar a mano por
- * dueño para ver datos ajenos: `vacantes_lectura_activas_o_propias` y
- * `postulaciones_veo_las_mias_o_de_mi_empresa` ya lo acotan, y el filtro por
- * `empresa_id` es para no traer las búsquedas activas de las demás.
- *
- * El conteo de postulaciones sale de PostgREST (`postulaciones(count)`), así
- * que nunca viajan las filas —ni los datos de quién se postuló— al panel.
- */
-export async function obtenerPanelDeEmpresa(
-  usuarioId?: string,
-): Promise<Resultado<PanelDeEmpresa>> {
-  const vacio: PanelDeEmpresa = {
-    empresa: { id: "", razon_social: "Tu empresa", rubro: "", logo_url: null },
-    vacantes: [],
-    eventos: [],
-  };
-
-  const supabase = await createClient();
-  if (!supabase) return ejemplo(vacio, SIN_CREDENCIALES);
-
-  const id = await resolverUsuarioId(supabase, usuarioId);
-  if (!id) redirect("/login");
-
-  const [empresa, vacantes, eventos] = await Promise.all([
-    supabase
-      .from("empresas")
-      .select("id, razon_social, rubro, logo_url")
-      .eq("id", id)
-      .maybeSingle(),
-    supabase
-      .from("vacantes")
-      .select(
-        "id, titulo, tipo, posiciones, estado, creada_en, postulaciones(count)",
-      )
-      .eq("empresa_id", id)
-      .order("creada_en", { ascending: false }),
-    supabase
-      .from("eventos")
-      .select("id, titulo, fecha_hora, estado")
-      .eq("empresa_id", id)
-      .order("fecha_hora", { ascending: true }),
-  ]);
-
-  const error = empresa.error ?? vacantes.error ?? eventos.error;
-  if (error) return ejemplo(vacio, error.message);
-  if (!empresa.data)
-    return ejemplo(vacio, "La sesión todavía no tiene empresa creada");
-
-  return {
-    origen: "supabase",
-    datos: {
-      empresa: empresa.data,
-      vacantes: (vacantes.data ?? []).map((fila) => ({
-        id: fila.id,
-        titulo: fila.titulo,
-        tipo: comoTipoOportunidad(fila.tipo),
-        posiciones: fila.posiciones,
-        estado: comoEstadoVacante(fila.estado),
-        creada_en: fila.creada_en,
-        postulaciones:
-          (fila.postulaciones as unknown as { count: number }[])[0]?.count ?? 0,
-      })),
-      eventos: (eventos.data ?? []).map((fila) => ({
-        id: fila.id,
-        titulo: fila.titulo,
-        fecha_hora: fila.fecha_hora,
-        estado: comoEstadoEvento(fila.estado),
-      })),
-    },
   };
 }

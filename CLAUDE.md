@@ -31,11 +31,15 @@ docs/CHANGELOG.md      Qué cambió y por qué.
 docs/plan.md           Hoja de ruta hasta el MVP.
 docs/decisiones.md     Decisiones técnicas con sus alternativas.
 docs/01_preamble.md    SRS.
-src/app/(app)/         Pantallas de la aplicación (inicio, empleos, eventos,
+docs/prueba-etapa2.md  Cómo aplicar la migración 005 y probar en el servidor.
+src/app/(app)/         Pantallas del joven (inicio, empleos, eventos,
                        postulaciones, perfil).
-src/components/        ui/ primitivas · layout/ estructura · empleos/ eventos/
-                       perfil/ por dominio.
-src/lib/data/          Lectura: tipos.ts, ejemplos.ts, consultas.ts.
+src/app/empresa/       Pantallas de la empresa (panel, búsquedas, eventos,
+                       candidatos, perfil, reseñas).
+src/components/        ui/ primitivas · layout/ estructura · empleos/ empresa/
+                       eventos/ perfil/ por dominio.
+src/lib/data/          Lectura: tipos.ts, ejemplos.ts, comun.ts, consultas.ts
+                       (joven y público), empresa.ts (panel de empresa).
 src/lib/acciones/      Escritura: acciones de servidor.
 src/lib/dominio/       Reglas de negocio: Compatibilidad, FeedDeVacantes,
                        ProcesoDePostulacion.

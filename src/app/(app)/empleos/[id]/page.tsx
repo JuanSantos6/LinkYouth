@@ -18,6 +18,7 @@ import {
 } from "@/lib/data/consultas";
 import { Compatibilidad } from "@/lib/dominio/Compatibilidad";
 import { ETAPAS } from "@/lib/dominio/ProcesoDePostulacion";
+import { ETIQUETA_MODALIDAD } from "@/lib/dominio/ReglasDeBusqueda";
 import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
 
 export const dynamic = "force-dynamic";
@@ -108,6 +109,10 @@ export default async function PaginaVacante({ params }: Props) {
               >
                 {etiquetaTipo(vacante.tipo)}
               </Insignia>
+              {vacante.modalidad && (
+                <span>{ETIQUETA_MODALIDAD[vacante.modalidad]}</span>
+              )}
+              {vacante.ubicacion && <span>{vacante.ubicacion}</span>}
               <span>
                 {vacante.posiciones === 1
                   ? "1 posición"

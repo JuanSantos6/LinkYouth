@@ -41,6 +41,12 @@ export async function subirImagenDePerfil(
   supabase: SupabaseClient<Database>,
   usuarioId: string,
   archivo: File,
+  /**
+   * Nombre dentro de la carpeta del usuario, sin extensión: `perfil` para la
+   * foto o el logo, `eventos/<id>` para la imagen de un evento. Siempre debajo
+   * de `<usuarioId>/`, que es lo único que la política del bucket deja escribir.
+   */
+  nombre = "perfil",
 ): Promise<SubidaDeImagen> {
   const problema = ReglasDeRegistro.problemaDeImagen(archivo);
   if (problema) return { url: null, problema };
@@ -50,7 +56,7 @@ export async function subirImagenDePerfil(
     return { url: null, problema: "La imagen tiene que ser JPG, PNG o WebP." };
   }
 
-  const camino = `${usuarioId}/perfil.${extension}`;
+  const camino = `${usuarioId}/${nombre}.${extension}`;
 
   const { error } = await supabase.storage
     .from(BUCKET_IMAGENES)

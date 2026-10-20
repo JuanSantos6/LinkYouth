@@ -13,26 +13,39 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
-## 2026-10-09 — Lo que ve el navegador (Fase 3 del incidente 2026-10-08) · `445042e`
+## 2026-10-15 — Etapa 2: el lado de la empresa
 
-Revisión de lo que expone la app en las DevTools; el detalle está en
-[`seguridad.md`](./seguridad.md).
+Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
+2026-10-15; guion de prueba en el servidor en
+[`prueba-etapa2.md`](./prueba-etapa2.md).
 
-- **Cookies de sesión `HttpOnly`, `SameSite=Lax` y `Secure` por HTTPS.**
-  `@supabase/ssr` las dejaba legibles desde JavaScript (un XSS se llevaba la
-  sesión) y ningún código del navegador las necesita. `Secure` solo cuando el
-  request llegó por HTTPS, porque la tailnet entra por `http://`. Ver
-  [`decisiones.md`](./decisiones.md).
-- **`SUPABASE_URL` y `SUPABASE_ANON_KEY` sin `NEXT_PUBLIC_`.** El navegador no
-  habla con Supabase; con el prefijo, Next las incrustaría en el JavaScript
-  del cliente si algún componente las nombrara. Hay que renombrarlas en
-  `.env.local` al desplegar. `.env.local.example` ya no trae una clave real.
-- **`logo_url` del alta de empresa solo acepta un archivo propio de Storage**
-  (`logoDeLaCuenta`), y `rutaDeImagen` devuelve `null` para URLs de otros
-  sitios: una empresa podía poner como logo una URL ajena y la portada
-  pública se la pedía a ese sitio en nombre de cada visitante.
-- **`productionBrowserSourceMaps: false` explícito** en `next.config.ts` (ya
-  era el valor por defecto).
+- **Migración 005** (`300216c`): modalidad, ubicación y pausa de búsquedas,
+  título único entre las activas (RF3.1.2), etapa «entrevista», dirección y
+  coordenadas de eventos, sitio web de la empresa, borrado de búsquedas sin
+  postulaciones, `candidatos_de_mi_empresa`, cierre automático al cubrir
+  posiciones (RF3.3.2), rechazo de pendientes al cerrar (RF3.3.3), aviso de
+  evento cancelado (RF4.3.2) y aviso al joven con el título de la búsqueda.
+  Porque el esquema no tenía cómo publicar ni gestionar nada desde la empresa.
+- **Inscribirse solo a eventos activos y futuros**: la política lo exige; antes
+  se podía por API a uno cancelado o pasado.
+- **`db/verificar-etapa2.sql`**: 25 comprobaciones de RLS y disparadores que no
+  dejan datos (terminan en `rollback`).
+- **Capa de datos y acciones de empresa** (`f59964b`): `empresa.ts`,
+  `comun.ts`, `busquedas.ts`, `eventosDeEmpresa.ts`, `perfilDeEmpresa.ts` y las
+  clases de dominio que validan y ordenan.
+- **Sin «Cómo funciona» ni GitHub para la empresa** (`3739200`): menú, pie,
+  middleware; Contacto, Legales y el pie muestran un correo. El formulario de
+  consultas se sacó porque no entregaba los mensajes.
+- **Pantallas** (`a11a5ca`…`0001089`): panel con datos reales; Mis búsquedas
+  (crear, editar, pausar, cerrar, eliminar, postulantes ordenados por
+  coincidencia, ficha y cambio de estado); Mis eventos (crear, editar,
+  cancelar, inscriptos, mapa); Candidatos por intereses (RF7.3); Perfil de la
+  empresa; Reseñas recibidas (RF7.4); carga, error y «no encontrado».
+- **Del lado del joven** (`e949587`): modalidad y ubicación en las vacantes,
+  dirección y «Ver en el mapa» en los eventos.
+- **Componentes nuevos**: `SelectorDeOpciones` (lo usa también el registro),
+  `BotonConfirmado`; `Campo` muestra errores por campo y `Etiqueta` suma la
+  marca en violeta.
 
 ## 2026-10-06 — La app, lista para publicarse con Tailscale Funnel
 

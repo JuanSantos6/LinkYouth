@@ -6,6 +6,94 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-15 — Etapa 2: el lado de la empresa
+
+Migración `db/migraciones/005-etapa2-empresa.sql`, ya incluida en
+`db/schema.sql` y `db/politicas.sql`. Seis decisiones con alternativas reales.
+
+### 1. Los datos de una persona, por una función y no abriendo `perfiles`
+
+**Decisión.** La empresa lee nombre, usuario, país, bio y foto de una persona
+con `candidatos_de_mi_empresa(ids)`, `security definer`, que devuelve solo a
+quienes se postularon (sin retirarse) o se inscribieron a algo suyo.
+
+**Alternativas.** *Una política de select sobre `perfiles` para la empresa*:
+abre la fila entera, incluida la fecha de nacimiento, y una política sobre
+`perfiles` que consulte `postulaciones` arriesga recursión con las políticas
+de esa tabla. *Una vista*: hereda los privilegios de su dueño y es justo lo
+que en H13 dejó modificar perfiles sin sesión.
+
+**Por qué.** La función expone siete columnas y nada más, y la condición
+queda escrita en un solo lugar.
+
+### 2. Borrar una búsqueda solo si nadie se postuló
+
+**Decisión.** Política `vacantes_borro_las_mias_sin_postulaciones`. Con
+postulaciones, la búsqueda se cierra.
+
+**Alternativas.** *No permitir borrar nunca*: una búsqueda publicada por error
+quedaría para siempre en el listado. *Borrar con sus postulaciones*: contradice
+la regla de no borrar nunca filas de `postulaciones`.
+
+### 3. Cerrar una búsqueda rechaza solo las pendientes
+
+**Decisión.** El disparador de RF3.3.3 pasa a `rechazada` las postulaciones
+`pendiente` y avisa. Las que están en revisión o entrevista siguen.
+
+**Alternativas.** *Rechazar todas*: la empresa puede cerrar la búsqueda
+porque ya eligió entre quienes entrevistó, y rechazar en bloque a esas
+personas les mandaría un «no fuiste seleccionada» antes de tiempo. *No tocar
+ninguna*: quien se postuló y nadie miró quedaría esperando una respuesta que
+no llega.
+
+### 4. Recomendados entre los postulantes propios (opción «a»)
+
+**Decisión.** El panel recomienda, entre quienes se postularon a búsquedas
+activas y siguen en proceso, a los que declaran más habilidades pedidas
+(`ResumenDePanel.recomendados`). Candidatos (RF7.3) busca en el mismo
+conjunto.
+
+**Alternativa descartada por ahora (opción «b»).** Recomendar a cualquier
+joven de la plataforma. Exige que la empresa lea datos de quien no se
+postuló, que es lo que cerró H1. Para hacerlo bien hace falta que cada joven
+acepte ser visible (una columna de consentimiento en `perfiles` y una política
+que la mire). Queda como mejora futura (`arquitectura.md` §7.11).
+
+### 5. «Habilidades declaradas», en violeta
+
+**Decisión.** En las pantallas de empresa las habilidades se llaman
+«habilidades declaradas» y se marcan con `Etiqueta marcada` (violeta, ✓). La
+coincidencia se muestra como dos cuentas («3 de 4 habilidades pedidas · 1 de 2
+intereses clave»), sin porcentaje.
+
+**Alternativas.** *El turquesa del joven*: en «Recreo» el turquesa dice «ya lo
+tenés», y frente a una empresa se leería como habilidad comprobada; la
+plataforma no comprueba ninguna. *Un porcentaje combinado*: esconde cuánto
+pesa cada parte.
+
+### 6. Mapa con un enlace a OpenStreetMap, coordenadas guardadas
+
+**Decisión.** El evento guarda `direccion`, `latitud` y `longitud`; la
+pantalla muestra «Ver en el mapa», un enlace a OpenStreetMap (con el punto si
+hay coordenadas, buscando la dirección si no).
+
+**Alternativas.** *Un mapa embebido (Leaflet, Google Maps)*: obliga a abrir la
+política de contenido y hace que el navegador de cada visitante le pida datos
+a un tercero; Google Maps además pide clave y facturación. *Solo dirección,
+sin coordenadas*: no alcanza para el mapa único de eventos del joven, que es
+la mejora siguiente.
+
+### Además
+
+- **El formulario de consultas se sacó** y el canal es un correo
+  (`src/lib/contacto.ts`): un formulario que parece enviar y no envía deja a
+  alguien esperando. Se sacaron también los enlaces a GitHub del pie, Contacto
+  y Legales.
+- **«Cómo funciona» no se le muestra a la empresa con sesión** (menú, pie,
+  middleware): es la presentación para quien todavía no tiene cuenta.
+- **Interfaz: «Recreo»**, por coherencia con las pantallas del joven, aunque
+  el pedido original describía la paleta anterior.
+
 ## 2026-10-06 — Los datos de cada joven los ven él y las empresas a las que se postuló
 
 **Decisión.** `perfil_tags`, `perfil_habilidades` y `formaciones` dejan de

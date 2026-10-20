@@ -7,6 +7,7 @@ import { Insignia } from "@/components/ui/Insignia";
 import { Medidor } from "@/components/ui/Medidor";
 import { postularse } from "@/lib/acciones/postulaciones";
 import type { EntradaDelFeed } from "@/lib/dominio/FeedDeVacantes";
+import { ETIQUETA_MODALIDAD } from "@/lib/dominio/ReglasDeBusqueda";
 import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
 
 /**
@@ -100,6 +101,10 @@ export function FilaVacante({
             <Insignia tono={vacante.tipo === "pasantia" ? "acento" : "neutro"}>
               {etiquetaTipo(vacante.tipo)}
             </Insignia>
+            {vacante.modalidad && (
+              <span>{ETIQUETA_MODALIDAD[vacante.modalidad]}</span>
+            )}
+            {vacante.ubicacion && <span>{vacante.ubicacion}</span>}
             <span>
               {vacante.posiciones === 1
                 ? "1 posición"
