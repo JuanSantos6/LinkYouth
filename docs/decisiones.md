@@ -6,6 +6,37 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-20 — Mapa embebido con Leaflet y OpenStreetMap
+
+Reemplaza la decisión 6 de la Etapa 2 («Mapa con un enlace a
+OpenStreetMap»), que había elegido el enlace para no tocar la CSP.
+
+**Decisión.** Mapas embebidos con Leaflet 1.9.4 y las teselas estándar de
+OpenStreetMap (`tile.openstreetmap.org`), con la atribución visible. La CSP
+abre `img-src` a ese único origen, que vive en `src/lib/mapa/teselas.ts` y
+lo comparten el mapa y la política. La búsqueda de direcciones (Nominatim) la
+hace el servidor, con una acción solo para empresas: `connect-src` sigue en
+`'self'`. «Cómo llegar» abre la app de mapas del teléfono sin pasar por
+Google: Mapas de Apple en iOS, `geo:` en Android (deja elegir la app) e
+indicaciones de OpenStreetMap en la computadora.
+
+**Alternativas.** *Seguir con el enlace*: no deja ver los eventos en un mapa
+ni elegir el lugar tocándolo, que es lo que pide el uso desde el celular.
+*Google Maps*: pide clave y facturación, y abre `script-src` y `frame-src` a
+Google. *MapLibre con teselas vectoriales*: más pesado (≈ 200 kB más) y
+necesita un servidor de estilos o de teselas propio. *Teselas de CARTO u
+otro proveedor con tema oscuro*: suma un tercero con sus propias
+condiciones; el modo oscuro se resuelve con un filtro CSS sobre las
+teselas. *Geocodificar desde el navegador*: abre `connect-src` a Nominatim y
+no permite cumplir su límite de una consulta por segundo ni identificar la
+aplicación.
+
+**Por qué.** Es el cambio mínimo de la CSP que permite el mapa: solo
+imágenes, de un solo origen, sin scripts ni conexiones de terceros. El
+costo es que el navegador de quien abre un mapa le pide las teselas a
+OpenStreetMap (y le entrega su IP); por eso el mapa carga recién cuando
+entra en pantalla, y las páginas sin mapa no le piden nada.
+
 ## 2026-10-20 — Eliminar la cuenta anonimizando
 
 **Decisión.** `eliminar_mi_cuenta()` borra los datos personales y conserva

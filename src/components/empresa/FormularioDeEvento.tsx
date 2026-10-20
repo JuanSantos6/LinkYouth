@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { SelectorDeUbicacion } from "@/components/mapa/SelectorDeUbicacion";
 import { Aviso } from "@/components/ui/AvisoOrigen";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
@@ -16,17 +17,18 @@ import type { EventoDeEmpresa, OpcionCatalogo } from "@/lib/data/tipos";
 import { ReglasDeEvento } from "@/lib/dominio/ReglasDeEvento";
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 
-/** La coordenada guardada, escrita como la escribiría una persona: con coma. */
 const comoTexto = (n: number | null | undefined) =>
-  n === null || n === undefined ? "" : String(n).replace(".", ",");
+  n === null || n === undefined ? "" : String(n);
 
 /**
  * Crear un evento o editarlo (RF4.1, RF4.2): título, descripción, día y hora
- * de Montevideo, dirección, coordenadas para el mapa, imagen y áreas.
+ * de Montevideo, dirección, ubicación en el mapa, imagen y áreas.
  *
- * Las coordenadas son opcionales. Con ellas, «Ver en el mapa» marca el punto
- * exacto y quedan guardadas para el mapa de eventos del joven; sin ellas, el
- * enlace busca la dirección.
+ * Las coordenadas son opcionales y se eligen con `SelectorDeUbicacion`
+ * buscando la dirección o marcando el punto en el mapa. Con ellas se muestra
+ * el mapa embebido en el detalle y el evento aparece en el mapa general de
+ * `/eventos`; con coordenadas o con dirección, «Cómo llegar» abre la
+ * aplicación de mapas.
  */
 export function FormularioDeEvento({
   evento,
@@ -128,51 +130,12 @@ export function FormularioDeEvento({
           />
         </Campo>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Campo
-            etiqueta="Latitud (opcional)"
-            ayuda="Por ejemplo, -34,9055."
-            error={error.latitud}
-          >
-            <input
-              name="latitud"
-              inputMode="decimal"
-              defaultValue={valor.texto("latitud", comoTexto(evento?.latitud))}
-              aria-invalid={error.latitud ? true : undefined}
-              className={`mt-1.5 ${CAMPO}`}
-            />
-          </Campo>
-          <Campo
-            etiqueta="Longitud (opcional)"
-            ayuda="Por ejemplo, -56,1913."
-            error={error.longitud}
-          >
-            <input
-              name="longitud"
-              inputMode="decimal"
-              defaultValue={valor.texto(
-                "longitud",
-                comoTexto(evento?.longitud),
-              )}
-              aria-invalid={error.longitud ? true : undefined}
-              className={`mt-1.5 ${CAMPO}`}
-            />
-          </Campo>
-        </div>
-        <p className="text-[13px] text-apagado">
-          Para marcar el punto exacto en el mapa: buscá el lugar en{" "}
-          <a
-            href="https://www.openstreetmap.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-acento underline underline-offset-4"
-          >
-            OpenStreetMap
-            <span className="sr-only"> (se abre en otra pestaña)</span>
-          </a>
-          , hacé clic derecho, elegí «Mostrar dirección» y copiá los dos
-          números.
-        </p>
+        <SelectorDeUbicacion
+          latitudInicial={valor.texto("latitud", comoTexto(evento?.latitud))}
+          longitudInicial={valor.texto("longitud", comoTexto(evento?.longitud))}
+          errorLatitud={error.latitud}
+          errorLongitud={error.longitud}
+        />
       </fieldset>
 
       <fieldset className="space-y-5">

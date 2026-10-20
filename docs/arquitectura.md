@@ -351,8 +351,9 @@ salida —página, redirección o la vía sin credenciales—.
 `generarNonce` devuelve 16 bytes aleatorios en base64, uno por request.
 `politicaDeContenido` arma la CSP: scripts solo con ese nonce más
 `'strict-dynamic'` (sin `'unsafe-inline'`), estilos con `'unsafe-inline'`
-(React escribe atributos `style`), imágenes del mismo origen más `data:` y
-`blob:`, `connect-src 'self'` (el navegador no habla con Supabase),
+(React escribe atributos `style`), imágenes del mismo origen más `data:`,
+`blob:` y el servidor de teselas del mapa (`ORIGEN_DE_TESELAS`, 2026-10-20),
+`connect-src 'self'` (el navegador no habla con Supabase),
 `frame-ancestors 'none'`. En desarrollo suma `'unsafe-eval'` y `ws:` para el
 refresco en caliente. `CABECERA_NONCE` (`x-nonce`) es el header interno con el
 que el middleware le pasa el nonce a los Server Components; no sale al
@@ -390,6 +391,13 @@ toca a la cuenta.
 El `matcher` excluye `_next/static`, `_next/image`, `favicon.ico` y los
 archivos de imagen. Sin eso, el middleware correría en cada ícono y cada
 fuente, y cada uno pagaría una revalidación de token.
+
+### 5.3c `src/lib/mapa/teselas.ts`
+
+`ORIGEN_DE_TESELAS`, `URL_DE_TESELAS`, `ATRIBUCION`, `ZOOM_MAXIMO`,
+`CENTRO_POR_DEFECTO` (Montevideo), `ZOOM_POR_DEFECTO` y `ZOOM_DE_UN_PUNTO`.
+Un solo lugar para el servidor de teselas: lo leen el mapa y la CSP, que así
+no pueden quedar en desacuerdo. Ver `docs/decisiones.md`, 2026-10-20.
 
 ### 5.4 `src/lib/formato.ts`
 
@@ -501,6 +509,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerVacantes(filtros?)` | `Resultado<Vacante[]>` | RF3.5.1. Filtra por tipo y busca por título. |
 | `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
+| `obtenerEvento(id)` | `Resultado<Evento> \| null` | RF4.4. Un evento para `/eventos/[id]`; `null` si no existe o no se ve. Los ids de ejemplo abren el contenido de demostración. |
 | `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
@@ -587,6 +596,15 @@ seguir», que son **distintas a propósito**:
 | `cambiarContrasenia` | Comprueba la actual con un cliente aparte, sin cookies, y guarda la nueva con `auth.updateUser`. |
 | `cambiarCorreo` | Con la contraseña actual, pide el cambio a GoTrue; queda hecho al abrir el enlace (`/auth/callback`, tipo `email_change`). |
 | `eliminarCuenta` | Contraseña y la palabra ELIMINAR; `eliminar_mi_cuenta()` anonimiza en la base, y con la clave de servicio se reemplazan correo y contraseña de `auth.users`, se bloquea la cuenta y se borran sus imágenes. La fila de `auth.users` no se borra: su cascada se llevaría postulaciones y reseñas. |
+
+#### `geocodificacion.ts`
+
+`buscarDireccion(texto)` y `direccionDePunto(latitud, longitud)` devuelven
+`{ estado: "ok", lugares }` o `{ estado: "error", mensaje }`. Consultan
+Nominatim desde el servidor (un `User-Agent` propio, una consulta por
+segundo por proceso, solo Uruguay al buscar) y solo para cuentas de empresa,
+para que el servidor no quede de intermediario abierto. Las usa
+`SelectorDeUbicacion` (RF4.1).
 
 #### `formacion.ts` · `avisos.ts` · `resenias.ts`
 
@@ -743,7 +761,10 @@ habilidades, áreas, intereses clave), `pideUbicacion(modalidad)`,
 
 Límites de un evento, `deHoraLocal(texto)` y `aHoraLocal(iso)` (la hora de
 Montevideo, calculada con `Intl` y no con «-03:00» fijo), `leerCoordenada`,
-`validar(datos, ahora?)`, `enlaceAlMapa(evento)` (OpenStreetMap),
+`validar(datos, ahora?)`, `tieneUbicacion(evento)`,
+`comoLlegar(evento, plataforma)` (Mapas de Apple, `geo:` o indicaciones de
+OpenStreetMap según el sistema; `null` sin coordenadas ni dirección),
+`plataformaDe(userAgent)`,
 `momento(evento, ahora?)` (próximo, pasado o cancelado) y
 `puedeModificar(evento, ahora?)`. Exporta `MOMENTOS_DE_EVENTO`.
 
@@ -918,8 +939,10 @@ para que no se lea como permiso general.
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
 | `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?`, `conSesion?` | Tarjetas apiladas; la que más coincide va primera y destacada. |
 | `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?`, `conSesion?` | Una vacante como tarjeta clickeable entera hacia el detalle; el botón de postularse queda por encima. Medidor «Tenés X de Y» a la derecha. |
-| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta con imagen opcional y bloque de fecha en lavanda, dirección y «Ver en el mapa». Inscribirse une los anillos. |
-| `eventos/EnlaceAlMapa` | `evento` | «Ver en el mapa» a OpenStreetMap, en pestaña nueva. No aparece si no hay coordenadas ni dirección. Lo usan el joven y la empresa. |
+| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta clickeable entera hacia `/eventos/[id]`, con imagen opcional, bloque de fecha en lavanda y dirección. Exporta también `AccionDeInscripcion` (inscribirse une los anillos; cancelar inscripción la revierte). |
+| `eventos/ComoLlegar` | `evento` | Botón secundario «Cómo llegar» (RF4.4): lee `User-Agent` con `headers()` y delega en `ReglasDeEvento.comoLlegar` el enlace a Mapas de Apple, `geo:` o indicaciones de OpenStreetMap. No aparece si no hay coordenadas ni dirección. |
+| `mapa/MapaInteractivo` | `puntos`, `respaldoSinJs?`, `etiqueta?` | Mapa embebido con Leaflet y teselas de OpenStreetMap (RF4.1, RF4.4). Carga diferida con `IntersectionObserver`, esqueleto y dirección sin JS, marcador SVG en violeta de marca, gestos táctiles que no atrapan el scroll del celular y emergentes armados con nodos del DOM. |
+| `mapa/SelectorDeUbicacion` | `latitudInicial?`, `longitudInicial?`, `errorLatitud?`, `errorLongitud?` | Selector de coordenadas para `FormularioDeEvento` (RF4.1, RF4.2): buscador con `buscarDireccion`, resultados elegibles y mapa interactivo con marcador arrastrable que consulta `direccionDePunto` y completa la dirección si estaba vacía. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
@@ -969,7 +992,8 @@ para que no se lea como permiso general.
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. Se lee sin sesión: sin compatibilidad, con una invitación a crear cuenta. |
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
-| `/eventos` | `PaginaEventos` | Agenda de eventos próximos. Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
+| `/eventos` | `PaginaEventos` | Agenda de eventos próximos con mapa único arriba del listado (RF4.4). Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
+| `/eventos/[id]` | `PaginaDetalleEvento` | Detalle de un evento para el joven (RF4.4, RF4.5, RF4.6): descripción completa, mapa con su marcador, «Cómo llegar» e inscripción. Se lee con o sin sesión. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio, su edición y enlace a `/personas/<usuario>`. Incluye `Seccion` (privada). |
 | `/personas/[usuario]` | `PaginaPerfilPublico` | Perfil público de una persona con sesión (RF2.5, RF2.1.1): foto, `@nombre_usuario`, biografía e intereses, sin nombre, apellido, edad ni país. |
@@ -1311,8 +1335,8 @@ porque es un cambio de esquema.
    mensajes; vuelve cuando exista una tabla o un servicio de correo
    (historial de git: `src/components/landing/FormularioConsulta.tsx` y
    `src/lib/acciones/consultas.ts`).
-5. **Mapa único de eventos para el joven.** Las coordenadas ya se guardan;
-   falta la pantalla.
+5. ~~**Mapa único de eventos para el joven.**~~ Resuelto el 2026-10-20: mapa
+   en `/eventos`, en cada detalle y para elegir el lugar en el formulario.
 6. **La prueba de punta a punta corre en el servidor.** En el entorno de
    desarrollo de la Etapa 2 no había Supabase (sin GoTrue ni PostgREST): se
    probaron las políticas sobre Postgres 16 con sesiones simuladas
