@@ -846,6 +846,7 @@ para que no se lea como permiso general.
 | `ConexionAnillos` | — | Los dos anillos del isotipo uniéndose: la única «celebración» de la app. |
 | `EnfocarPrimerError` | `estado` | Cuando la acción devuelve errores por campo (`estado.campos`), lleva el foco al primer elemento con `aria-invalid="true"` dentro del `<form>`. |
 | `valoresDeFormulario` | `estado` | Qué mostrar en cada campo de un formulario largo: lo mandado si hubo error, lo guardado si no. |
+| `Estrellas` | `valor` | Cinco estrellas dibujadas con el puntaje en texto (`sr-only`) para lectores de pantalla. Lo usan `/empresa/resenias` y `/organizaciones/[id]`. |
 
 #### `layout/` — estructura
 
@@ -906,6 +907,12 @@ para que no se lea como permiso general.
 | `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 | `FormularioDeFormacion` | `esEjemplo?` | Sumar un estudio en curso o finalizado al perfil propio (RF2.4.1), con errores por campo y valores conservados. |
 | `avisos/ControlesDeAviso` | — | `BotonMarcarTodosLeidos`, `BotonMarcarAvisoLeido` y `EnlaceDeAviso` para marcar avisos como leídos en `/avisos` (RF6.1). |
+| `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
+| `ajustes/FormularioNombreDeUsuario` | `actual?` | Cambio de nombre de usuario de una cuenta individual (RF1.5.1). |
+| `ajustes/FormularioContrasenia` | — | Cambio de contraseña confirmando la actual y midiendo la fuerza de la nueva con `CampoContrasenia` (RF1.5.2). |
+| `ajustes/FormularioCorreo` | `correoActual?` | Cambio de correo electrónico confirmando la contraseña actual (RF1.5.3). |
+| `ajustes/FormularioEliminarCuenta` | `tipo?` | Baja definitiva y anonimización de la cuenta tras advertir qué se pierde y confirmar contraseña y `ELIMINAR` (RF1.7). |
+| `resenias/FormularioDeResenia` | `empresaId` | Publicar una reseña anónima (1 a 5 estrellas y comentario) sobre una empresa en la que la persona se postuló (RF8.1). |
 
 #### `empresa/` — pantallas de empresa (Etapa 2)
 
@@ -942,6 +949,10 @@ para que no se lea como permiso general.
 | `/personas/[usuario]` | `PaginaPerfilPublico` | Perfil público de una persona con sesión (RF2.5, RF2.1.1): foto, `@nombre_usuario`, biografía e intereses, sin nombre, apellido, edad ni país. |
 | `/avisos` | `PaginaAvisos` | Bandeja de notificaciones y marcado como leído de un aviso o de todos (RF6.1). |
 | `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
+| `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
+| `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |
+| `/ajustes` | `PaginaAjustes` | Tema de la plataforma y ajustes de cuenta del joven: nombre de usuario, contraseña, correo y eliminar cuenta (RF1.5, RF1.7). |
+| `/organizaciones/[id]` | `PaginaOrganizacion` | Perfil público de una empresa con sus búsquedas activas, sus reseñas anónimas con promedio y el formulario para reseñarla si corresponde (RF2.5, RF8.1, RF8.2). Se lee con o sin sesión. |
 | `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, en `(sitio)/`. Se leen con o sin sesión, salvo `/como-funciona`, que para una empresa con sesión redirige a `/empresa`. |
 | `/empresa` | `PaginaEmpresa` | Panel: búsquedas activas, postulantes nuevos, posiciones, próximos eventos y postulantes recomendados (RF7). |
 | `/empresa/busquedas` | `PaginaBusquedas` | Mis búsquedas, con filtro por estado. `nueva`, `[id]` (postulantes ordenados por coincidencia), `[id]/editar` y `[id]/postulantes/[postulacionId]` (ficha y cambio de estado). RF3.1–RF3.4. |
@@ -949,6 +960,7 @@ para que no se lea como permiso general.
 | `/empresa/candidatos` | `PaginaCandidatos` | Postulantes propios filtrables por intereses (RF7.3). |
 | `/empresa/perfil` | `PaginaPerfilDeEmpresa` | Perfil de la empresa (RF7.1). |
 | `/empresa/resenias` | `PaginaResenias` | Reseñas recibidas, anónimas (RF7.4). |
+| `/empresa/cuenta` | `PaginaCuentaEmpresa` | Ajustes de cuenta de la empresa: contraseña, correo y eliminar cuenta (RF1.5, RF1.7). |
 | `/contacto` | `PaginaContacto` | El correo de `src/lib/contacto.ts` y el contacto comercial. Sin formulario: no hay dónde recibir los mensajes. Pública. |
 
 Las cinco pantallas de `(app)/` declaran

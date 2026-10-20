@@ -154,6 +154,13 @@ function MenuCuenta({ area }: { area: "postulante" | "empresa" }) {
           >
             <IconoResenias className="h-4 w-4" /> Reseñas recibidas
           </EnlaceTransicion>
+          <EnlaceTransicion
+            href="/empresa/cuenta"
+            role="menuitem"
+            className={OPCION_MENU}
+          >
+            <IconoAjustes className="h-4 w-4" /> Cuenta
+          </EnlaceTransicion>
         </>
       )}
       <hr className="mx-2 my-1 border-borde" />

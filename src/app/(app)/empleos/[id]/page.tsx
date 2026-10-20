@@ -91,9 +91,12 @@ export default async function PaginaVacante({ params }: Props) {
                 forma="cuadrado"
               />
               <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[14px] text-apagado">
-                <span className="font-semibold text-tinta">
+                <EnlaceTransicion
+                  href={`/organizaciones/${vacante.empresa.id}`}
+                  className="font-semibold text-tinta underline-offset-4 hover:text-acento hover:underline"
+                >
                   {vacante.empresa.razon_social}
-                </span>
+                </EnlaceTransicion>
                 <span>{vacante.empresa.rubro}</span>
                 <span>{tiempoRelativo(vacante.creada_en)}</span>
               </p>
