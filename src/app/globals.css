@@ -360,6 +360,9 @@
   :root:not([data-tema="claro"]) .logo-oscuro {
     display: block;
   }
+  :root:not([data-tema="claro"]) .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+  }
 }
 
 :root[data-tema="oscuro"] .logo-claro {
@@ -368,6 +371,135 @@
 
 :root[data-tema="oscuro"] .logo-oscuro {
   display: block;
+}
+
+:root[data-tema="oscuro"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+
+/* ---------- Mapa embebido (Leaflet + OpenStreetMap) ----------
+ * Controles, atribución, rótulos y emergentes con los tokens de «Recreo».
+ * En modo oscuro se invierten solo las teselas (`.leaflet-tile-pane`); el
+ * marcador y los paneles quedan con sus colores reales.
+ */
+.leaflet-container {
+  background-color: var(--ly-realce);
+  color: var(--ly-tinta);
+  font-family: var(--font-cuerpo);
+  font-size: 14px;
+}
+
+.leaflet-container a {
+  color: var(--ly-violeta-texto);
+}
+
+/* En celular, mientras el mapa está inactivo deja pasar el scroll de 1 dedo;
+ * el pellizco lo sigue manejando Leaflet (sin `pinch-zoom`, el navegador no
+ * agranda la página entera en vez del mapa). */
+.leaflet-container[data-activo="false"] {
+  touch-action: pan-x pan-y !important;
+}
+
+.leaflet-bar,
+.leaflet-touch .leaflet-bar {
+  border: 1px solid var(--ly-borde-control) !important;
+  border-radius: var(--radius-control) !important;
+  overflow: hidden;
+  box-shadow: var(--ly-flotante) !important;
+}
+
+.leaflet-bar a,
+.leaflet-touch .leaflet-bar a {
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 42px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--ly-superficie) !important;
+  color: var(--ly-tinta) !important;
+  border-bottom-color: var(--ly-borde) !important;
+  font-family: var(--font-titulo);
+  font-size: 20px !important;
+  font-weight: 700;
+  text-decoration: none !important;
+}
+
+.leaflet-bar a:hover,
+.leaflet-bar a:focus-visible,
+.leaflet-touch .leaflet-bar a:hover,
+.leaflet-touch .leaflet-bar a:focus-visible {
+  background-color: var(--ly-realce) !important;
+  color: var(--ly-violeta-texto) !important;
+}
+
+.leaflet-bar a.leaflet-disabled,
+.leaflet-touch .leaflet-bar a.leaflet-disabled {
+  background-color: var(--ly-realce) !important;
+  color: var(--ly-apagado) !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+.leaflet-control-attribution {
+  background-color: var(--ly-vidrio) !important;
+  color: var(--ly-apagado) !important;
+  border-top: 1px solid var(--ly-borde);
+  border-left: 1px solid var(--ly-borde);
+  border-top-left-radius: var(--radius-control);
+  padding: 4px 10px !important;
+  font-family: var(--font-cuerpo);
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+
+.leaflet-control-attribution a {
+  color: var(--ly-violeta-texto) !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background-color: var(--ly-superficie) !important;
+  color: var(--ly-tinta) !important;
+  border: 1px solid var(--ly-borde);
+  box-shadow: var(--ly-flotante) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-ficha) !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  font-family: var(--font-cuerpo);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ly-tinta);
+}
+
+.leaflet-popup-close-button {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  color: var(--ly-apagado) !important;
+  font-size: 18px !important;
+}
+
+.leaflet-popup-close-button:hover,
+.leaflet-popup-close-button:focus-visible {
+  color: var(--ly-tinta) !important;
+}
+
+.ly-marcador-mapa {
+  background: transparent;
+  border: 0;
+}
+
+.ly-marcador-svg {
+  display: block;
+  filter: drop-shadow(0 2px 4px rgb(30 26 56 / 0.35));
 }
 
 /* ---------- Encabezado flotante, progresivo ----------

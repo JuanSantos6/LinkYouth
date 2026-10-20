@@ -918,8 +918,10 @@ para que no se lea como permiso general.
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
 | `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?`, `conSesion?` | Tarjetas apiladas; la que más coincide va primera y destacada. |
 | `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?`, `conSesion?` | Una vacante como tarjeta clickeable entera hacia el detalle; el botón de postularse queda por encima. Medidor «Tenés X de Y» a la derecha. |
-| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta con imagen opcional y bloque de fecha en lavanda, dirección y «Ver en el mapa». Inscribirse une los anillos. |
-| `eventos/EnlaceAlMapa` | `evento` | «Ver en el mapa» a OpenStreetMap, en pestaña nueva. No aparece si no hay coordenadas ni dirección. Lo usan el joven y la empresa. |
+| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta clickeable entera hacia `/eventos/[id]`, con imagen opcional, bloque de fecha en lavanda y dirección. Exporta también `AccionDeInscripcion` (inscribirse une los anillos; cancelar inscripción la revierte). |
+| `eventos/ComoLlegar` | `evento` | Botón secundario «Cómo llegar» (RF4.4): lee `User-Agent` con `headers()` y delega en `ReglasDeEvento.comoLlegar` el enlace a Mapas de Apple, `geo:` o indicaciones de OpenStreetMap. No aparece si no hay coordenadas ni dirección. |
+| `mapa/MapaInteractivo` | `puntos`, `respaldoSinJs?`, `etiqueta?` | Mapa embebido con Leaflet y teselas de OpenStreetMap (RF4.1, RF4.4). Carga diferida con `IntersectionObserver`, esqueleto y dirección sin JS, marcador SVG en violeta de marca, gestos táctiles que no atrapan el scroll del celular y emergentes armados con nodos del DOM. |
+| `mapa/SelectorDeUbicacion` | `latitudInicial?`, `longitudInicial?`, `errorLatitud?`, `errorLongitud?` | Selector de coordenadas para `FormularioDeEvento` (RF4.1, RF4.2): buscador con `buscarDireccion`, resultados elegibles y mapa interactivo con marcador arrastrable que consulta `direccionDePunto` y completa la dirección si estaba vacía. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
@@ -967,7 +969,8 @@ para que no se lea como permiso general.
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. Se lee sin sesión: sin compatibilidad, con una invitación a crear cuenta. |
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
-| `/eventos` | `PaginaEventos` | Agenda de eventos próximos. Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
+| `/eventos` | `PaginaEventos` | Agenda de eventos próximos con mapa único arriba del listado (RF4.4). Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
+| `/eventos/[id]` | `PaginaDetalleEvento` | Detalle de un evento para el joven (RF4.4, RF4.5, RF4.6): descripción completa, mapa con su marcador, «Cómo llegar» e inscripción. Se lee con o sin sesión. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio, su edición y enlace a `/personas/<usuario>`. Incluye `Seccion` (privada). |
 | `/personas/[usuario]` | `PaginaPerfilPublico` | Perfil público de una persona con sesión (RF2.5, RF2.1.1): foto, `@nombre_usuario`, biografía e intereses, sin nombre, apellido, edad ni país. |

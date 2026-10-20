@@ -13,6 +13,28 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Mapa de eventos
+
+- **Mapa embebido con Leaflet y teselas de OpenStreetMap (`MapaInteractivo`,
+  RF4.1, RF4.4)**: carga diferida con `IntersectionObserver` + `import("leaflet")`,
+  esqueleto y respaldo sin JS, marcadores en SVG con los colores de la marca,
+  gestos táctiles que no atrapan el scroll del celular, filtro en modo oscuro y
+  respeto por `prefers-reduced-motion`. Por qué: reemplaza el viejo enlace
+  externo `EnlaceAlMapa` por un mapa propio en la pantalla sin depender de
+  Google Maps ni ralentizar la carga inicial.
+- **Mapa general en `/eventos` y detalle en `/eventos/[id]` (RF4.4, RF4.5,
+  RF4.6)**: mapa único arriba del listado con emergentes armados con nodos del
+  DOM y conteo de eventos sin coordenadas; pantalla nueva `/eventos/[id]` con
+  su `loading.tsx`, mapa del punto, botón `ComoLlegar` según `User-Agent` y
+  acción de inscribirse o cancelar inscripción; `TarjetaEvento` pasa a ser
+  clickeable entera hacia el detalle.
+- **Detalle de evento de la empresa (`/empresa/eventos/[id]`) y selector en el
+  formulario (`SelectorDeUbicacion`, `FormularioDeEvento`, RF4.1, RF4.2)**:
+  muestra el mapa embebido y `ComoLlegar` en el detalle de la empresa, y
+  reemplaza los campos manuales de latitud y longitud por un buscador con
+  `buscarDireccion` y marcación táctil/arrastrable sobre el mapa con
+  `direccionDePunto`.
+
 ## 2026-10-20 — Nivel 2: base de datos, acciones y confirmación de correo
 
 - **Migración 006** (`db/migraciones/006-cuenta-y-perfil-publico.sql`):
