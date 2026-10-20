@@ -70,14 +70,14 @@ Autor y título verificados en la página de cada foto el 2026-10-20.
 
 Las de `public/imagenes/` las sirve la aplicación (portada y cabecera de cada
 búsqueda según el rubro). Las de `scripts/demo/imagenes/` las sube la carga
-de la demo a Storage: fotos de perfil de 8 de los 15 jóvenes y de 7 de los 8
+de la demo a Storage: fotos de perfil de 7 de los 15 jóvenes y de 7 de los 8
 eventos.
 
 ## Personas de la demo
 
 Los nombres, las biografías, los estudios y las postulaciones de la demo son
 ficticios. Las fotos de perfil son de modelos de Pexels y **no representan a
-esas personas**. Los 7 jóvenes sin foto muestran el avatar automático
+esas personas**. Los 8 jóvenes sin foto muestran el avatar automático
 (iniciales sobre un color de la paleta, fijo para cada cuenta), que es lo que
 ve cualquier cuenta real sin foto.
 

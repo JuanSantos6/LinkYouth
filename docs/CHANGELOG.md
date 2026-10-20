@@ -17,7 +17,7 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 - **Fotos de Pexels, verificadas y servidas desde el servidor**
   (`scripts/imagenes/`, `public/imagenes/`, `src/lib/imagenes.ts`): 14 para
-  la página (portada y una por rubro) y 14 para la demo (8 personas, 6
+  la página (portada y una por rubro) y 14 para la demo (7 personas, 7
   eventos), en WebP de 640 y 1280 px (1,1 MB en total para la página). agy las
   propuso y las eligió mirándolas; el autor y la página de cada una se
   verificaron contra Pexels (4 autores estaban mal anotados y una foto ya no
@@ -27,8 +27,8 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   de tokens de la paleta elegido por un hash del id de la cuenta, así el
   color no cambia con el nombre y nadie queda sin imagen.
 - **Carga de la demo con imágenes** (`scripts/demo/sembrar.mjs`): logos SVG
-  propios de las 8 empresas, foto para 8 de los 15 jóvenes (los otros 7
-  muestran el avatar automático, como cualquier cuenta sin foto) y para 6 de
+  propios de las 8 empresas, foto para 7 de los 15 jóvenes (los otros 8
+  muestran el avatar automático, como cualquier cuenta sin foto) y para 7 de
   los 8 eventos; todo como WebP en Storage, guardado con ruta relativa.
 - **`obtenerIdentidadDeSesion()`** y `empresa_id` en `PostulacionResumen`:
   los datos que faltaban para el avatar del menú y el color de la empresa en
