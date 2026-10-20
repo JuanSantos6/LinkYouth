@@ -174,7 +174,9 @@ test("el joven se postula y la empresa lo lleva por los estados (RF3.6, RF3.4.3,
   await boton("Pasar a revisión").click();
   await expect(boton("Citar a entrevista")).toBeVisible();
   await boton("Citar a entrevista").click();
-  await expect(boton("Citar a entrevista")).toHaveCount(0);
+  // Hay que esperar el estado nuevo: «Seleccionar» ya está en la pantalla
+  // anterior y desaparece cuando se refresca.
+  await expect(page.getByText("Está en «Entrevista»")).toBeVisible();
   await boton("Seleccionar").click();
   await boton("Sí, seleccionar").click();
   await expect(page.getByText("Seleccionada").first()).toBeVisible();
