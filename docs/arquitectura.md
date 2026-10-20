@@ -541,6 +541,14 @@ paralelo para todas las personas a la vez (`armarPostulaciones`, privada).
 | `obtenerPostulantesPropios(usuarioId?)` | `Resultado<{ postulacion, busqueda }[]>` | RF7.3. Postulantes no retirados de todas las búsquedas propias. |
 | `obtenerPanelDeEmpresa(usuarioId?)` | `Resultado<PanelDeEmpresa>` | RF7. Perfil, búsquedas, eventos y las postulaciones en curso de las búsquedas activas, para recomendar. Si una lectura cae en el ejemplo, el panel entero lo es. |
 
+#### `publico.ts`
+
+Lo que se ve de otra cuenta. `obtenerOrganizacion(id)` (RF2.5, RF8.2): datos
+de la empresa, sus búsquedas activas, sus reseñas por `resenias_de_empresa()`
+—sin autor— y `puedeReseniar`, que solo decide si se muestra el formulario
+(la política de insert es la que manda). `obtenerPerfilPublico(usuario)`
+(RF2.5): `perfil_publico()`, solo con sesión.
+
 ### 5.6 `src/lib/acciones/`
 
 Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
@@ -570,6 +578,22 @@ seguir», que son **distintas a propósito**:
 - `SIN_PERFIL` para el guardia de tipo de cuenta: hay sesión, pero no es una
   cuenta de postulante con perfil creado. Decirle «iniciá sesión» a alguien
   que ya la tiene lo manda a buscar el problema al lugar equivocado.
+
+#### `cuenta.ts` (RF1.5, RF1.7)
+
+| Función | Qué hace |
+| --- | --- |
+| `cambiarNombreDeUsuario` | Actualiza `perfiles.nombre_usuario`; el `23505` es «ya está en uso». |
+| `cambiarContrasenia` | Comprueba la actual con un cliente aparte, sin cookies, y guarda la nueva con `auth.updateUser`. |
+| `cambiarCorreo` | Con la contraseña actual, pide el cambio a GoTrue; queda hecho al abrir el enlace (`/auth/callback`, tipo `email_change`). |
+| `eliminarCuenta` | Contraseña y la palabra ELIMINAR; `eliminar_mi_cuenta()` anonimiza en la base, y con la clave de servicio se reemplazan correo y contraseña de `auth.users`, se bloquea la cuenta y se borran sus imágenes. La fila de `auth.users` no se borra: su cascada se llevaría postulaciones y reseñas. |
+
+#### `formacion.ts` · `avisos.ts` · `resenias.ts`
+
+`agregarFormacion` y `quitarFormacion(id)` (RF2.4); `marcarAvisosLeidos(id?)`
+(RF6.1), uno o todos, para las dos cuentas; `publicarResenia` (RF8.1), que
+valida con `ReglasDeResenia` y traduce el `42501` de la política
+`resenias_solo_quien_postulo` a «podés reseñar después de postularte».
 
 #### `recuperacion.ts` (RF1.8)
 
@@ -846,6 +870,7 @@ para que no se lea como permiso general.
 | `ConexionAnillos` | — | Los dos anillos del isotipo uniéndose: la única «celebración» de la app. |
 | `EnfocarPrimerError` | `estado` | Cuando la acción devuelve errores por campo (`estado.campos`), lleva el foco al primer elemento con `aria-invalid="true"` dentro del `<form>`. |
 | `valoresDeFormulario` | `estado` | Qué mostrar en cada campo de un formulario largo: lo mandado si hubo error, lo guardado si no. |
+| `Estrellas` | `valor` | Cinco estrellas dibujadas con el puntaje en texto (`sr-only`) para lectores de pantalla. Lo usan `/empresa/resenias` y `/organizaciones/[id]`. |
 
 #### `layout/` — estructura
 
@@ -903,7 +928,15 @@ para que no se lea como permiso general.
 | `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca provisoria (iniciales) si no hay logo; el aviso de abajo aparece en cuanto hay una sola. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
 | `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
+| `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
+| `FormularioDeFormacion` | `esEjemplo?` | Sumar un estudio en curso o finalizado al perfil propio (RF2.4.1), con errores por campo y valores conservados. |
+| `avisos/ControlesDeAviso` | — | `BotonMarcarTodosLeidos`, `BotonMarcarAvisoLeido` y `EnlaceDeAviso` para marcar avisos como leídos en `/avisos` (RF6.1). |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
+| `ajustes/FormularioNombreDeUsuario` | `actual?` | Cambio de nombre de usuario de una cuenta individual (RF1.5.1). |
+| `ajustes/FormularioContrasenia` | — | Cambio de contraseña confirmando la actual y midiendo la fuerza de la nueva con `CampoContrasenia` (RF1.5.2). |
+| `ajustes/FormularioCorreo` | `correoActual?` | Cambio de correo electrónico confirmando la contraseña actual (RF1.5.3). |
+| `ajustes/FormularioEliminarCuenta` | `tipo?` | Baja definitiva y anonimización de la cuenta tras advertir qué se pierde y confirmar contraseña y `ELIMINAR` (RF1.7). |
+| `resenias/FormularioDeResenia` | `empresaId` | Publicar una reseña anónima (1 a 5 estrellas y comentario) sobre una empresa en la que la persona se postuló (RF8.1). |
 
 #### `empresa/` — pantallas de empresa (Etapa 2)
 
@@ -936,9 +969,14 @@ para que no se lea como permiso general.
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
 | `/eventos` | `PaginaEventos` | Agenda de eventos próximos. Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
+| `/perfil` | `PaginaPerfil` | Perfil propio, su edición y enlace a `/personas/<usuario>`. Incluye `Seccion` (privada). |
+| `/personas/[usuario]` | `PaginaPerfilPublico` | Perfil público de una persona con sesión (RF2.5, RF2.1.1): foto, `@nombre_usuario`, biografía e intereses, sin nombre, apellido, edad ni país. |
+| `/avisos` | `PaginaAvisos` | Bandeja de notificaciones y marcado como leído de un aviso o de todos (RF6.1). |
+| `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
 | `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
 | `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |
-| `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
+| `/ajustes` | `PaginaAjustes` | Tema de la plataforma y ajustes de cuenta del joven: nombre de usuario, contraseña, correo y eliminar cuenta (RF1.5, RF1.7). |
+| `/organizaciones/[id]` | `PaginaOrganizacion` | Perfil público de una empresa con sus búsquedas activas, sus reseñas anónimas con promedio y el formulario para reseñarla si corresponde (RF2.5, RF8.1, RF8.2). Se lee con o sin sesión. |
 | `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, en `(sitio)/`. Se leen con o sin sesión, salvo `/como-funciona`, que para una empresa con sesión redirige a `/empresa`. |
 | `/empresa` | `PaginaEmpresa` | Panel: búsquedas activas, postulantes nuevos, posiciones, próximos eventos y postulantes recomendados (RF7). |
 | `/empresa/busquedas` | `PaginaBusquedas` | Mis búsquedas, con filtro por estado. `nueva`, `[id]` (postulantes ordenados por coincidencia), `[id]/editar` y `[id]/postulantes/[postulacionId]` (ficha y cambio de estado). RF3.1–RF3.4. |
@@ -946,6 +984,7 @@ para que no se lea como permiso general.
 | `/empresa/candidatos` | `PaginaCandidatos` | Postulantes propios filtrables por intereses (RF7.3). |
 | `/empresa/perfil` | `PaginaPerfilDeEmpresa` | Perfil de la empresa (RF7.1). |
 | `/empresa/resenias` | `PaginaResenias` | Reseñas recibidas, anónimas (RF7.4). |
+| `/empresa/cuenta` | `PaginaCuentaEmpresa` | Ajustes de cuenta de la empresa: contraseña, correo y eliminar cuenta (RF1.5, RF1.7). |
 | `/contacto` | `PaginaContacto` | El correo de `src/lib/contacto.ts` y el contacto comercial. Sin formulario: no hay dónde recibir los mensajes. Pública. |
 
 Las cinco pantallas de `(app)/` declaran
@@ -1052,6 +1091,24 @@ disparador sí ve `old` y `new`.
   revisión o entrevista siguen su curso (RF3.3.3).
 - **`notificar_cancelacion_evento()`** · disparador
   `eventos_notificar_cancelacion`: avisa a cada inscripto (RF4.3.2).
+
+#### Migración 006: cuenta y perfil público
+
+- `resenias_de_empresa(empresa) returns table (id, calificacion, comentario,
+  creada_en)`: `security definer`, abierta a `anon`. Sin `perfil_id`: la
+  reseña pública no dice quién la escribió (RF8.2).
+- `perfil_publico(usuario) returns table (id, nombre_usuario, foto_url, bio,
+  tags)`: solo `authenticated`. Lo que RF2.1.1 llama datos públicos; nombre,
+  apellido, nacimiento y país quedan afuera (H1).
+- `eliminar_mi_cuenta() returns void`: anonimiza la cuenta de quien la llama
+  (RF1.7). Joven: perfil sin datos, intereses, habilidades, formación,
+  inscripciones y avisos borrados, postulaciones en curso a `cancelada`.
+  Empresa: datos fuera, búsquedas a `cerrada`, eventos futuros a
+  `cancelado` (los disparadores avisan). Las reseñas quedan.
+- `notificaciones`: `update` solo de la columna `leida`.
+
+Verificación: `db/verificar-006.sql` (9 comprobaciones, termina en
+`ROLLBACK`).
 
 #### Restricción `perfiles_mayor_de_edad`
 

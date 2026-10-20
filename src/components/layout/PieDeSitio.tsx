@@ -70,6 +70,7 @@ const TU_EMPRESA: Columna = {
     { href: "/empresa/candidatos", etiqueta: "Candidatos" },
     { href: "/empresa/perfil", etiqueta: "Perfil de la empresa" },
     { href: "/empresa/resenias", etiqueta: "Reseñas recibidas" },
+    { href: "/empresa/cuenta", etiqueta: "Cuenta" },
   ],
 };
 

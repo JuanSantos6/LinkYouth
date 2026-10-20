@@ -6,6 +6,20 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-20 — Eliminar la cuenta anonimizando
+
+**Decisión.** `eliminar_mi_cuenta()` borra los datos personales y conserva
+postulaciones y reseñas sin nada que identifique; `auth.users` se bloquea y
+se le reemplazan correo y contraseña, pero la fila queda.
+
+**Alternativas.** *Borrar la fila de `auth.users`*: la cascada se lleva
+postulaciones y reseñas, que nunca se borran, y la empresa perdería su
+historial. *Marcar `cuentas.eliminada` y nada más*: los datos personales
+seguirían en la base.
+
+**Por qué.** Cumple RF1.7.5 (los datos asociados a la persona desaparecen)
+sin romper la regla de no borrar postulaciones ni reseñas.
+
 ## 2026-10-20 — Correo y acceso con nombre de usuario
 
 ### 1. Los enlaces del correo van a la aplicación, con `token_hash`

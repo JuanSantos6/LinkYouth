@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import {
+  BotonMarcarAvisoLeido,
+  BotonMarcarTodosLeidos,
+  EnlaceDeAviso,
+} from "@/components/avisos/ControlesDeAviso";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
@@ -14,18 +18,25 @@ export const dynamic = "force-dynamic";
  * Bandeja de avisos (RF6.1).
  *
  * Las filas las crea la base cuando una empresa mueve el estado de una
- * postulación (RF6.2). Desde acá no se escribe nada: `notificaciones` no tiene
- * política de insert, y así queda claro que ningún cliente puede fabricar un
- * aviso.
+ * postulación (RF6.2). Desde acá solo se actualiza `leida`: `notificaciones`
+ * no tiene política de insert, y así queda claro que ningún cliente puede
+ * fabricar un aviso.
  */
 export default async function PaginaAvisos() {
   const avisos = await obtenerAvisos((await obtenerUsuarioId()) ?? undefined);
+  const esEjemplo = avisos.origen === "ejemplo";
+  const haySinLeer = avisos.datos.some((aviso) => !aviso.leida);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Encabezado
         titulo="Avisos"
         descripcion="Lo que pasó con tus postulaciones, de lo más reciente a lo más viejo."
+        acciones={
+          haySinLeer ? (
+            <BotonMarcarTodosLeidos esEjemplo={esEjemplo} />
+          ) : undefined
+        }
       />
 
       <AvisoOrigen resultado={avisos} />
@@ -41,7 +52,7 @@ export default async function PaginaAvisos() {
             {avisos.datos.map((aviso) => (
               <li
                 key={aviso.id}
-                className={`flex items-start gap-3 py-4 ${
+                className={`flex flex-wrap items-start justify-between gap-3 py-4 ${
                   aviso.leida ? "" : "border-l-2 border-acento pl-3"
                 }`}
               >
@@ -55,14 +66,22 @@ export default async function PaginaAvisos() {
                   </p>
                 </div>
 
-                {aviso.enlace && (
-                  <Link
-                    href={aviso.enlace}
-                    className="shrink-0 text-[14px] font-medium text-acento hover:underline"
-                  >
-                    Ver
-                  </Link>
-                )}
+                <div className="flex shrink-0 flex-wrap items-center gap-3">
+                  {!aviso.leida && (
+                    <BotonMarcarAvisoLeido
+                      id={aviso.id}
+                      esEjemplo={esEjemplo}
+                    />
+                  )}
+                  {aviso.enlace && (
+                    <EnlaceDeAviso
+                      id={aviso.id}
+                      href={aviso.enlace}
+                      leida={aviso.leida}
+                      esEjemplo={esEjemplo}
+                    />
+                  )}
+                </div>
               </li>
             ))}
           </ul>

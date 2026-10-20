@@ -13,6 +13,47 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Nivel 2: base de datos, acciones y confirmación de correo
+
+- **Migración 006** (`db/migraciones/006-cuenta-y-perfil-publico.sql`):
+  reseñas públicas sin autor (RF8.2), perfil público de persona con sesión
+  (RF2.5), eliminar la cuenta anonimizando (RF1.7) y avisos que solo admiten
+  cambiar `leida` (RF6.1). Por qué: abrir las tablas habría expuesto quién
+  escribió cada reseña y datos personales de los jóvenes. Aplicada en el
+  servidor; `db/verificar-006.sql` da 9/9.
+- **Acciones** `cuenta.ts`, `formacion.ts`, `avisos.ts`, `resenias.ts` y
+  lecturas `data/publico.ts`, que usan las pantallas de las dos secciones de
+  abajo. `e2e/nivel2.spec.ts` recorre todo el Nivel 2 (6/6).
+- **Confirmación de correo obligatoria**: `MAILER_AUTOCONFIRM` desactivado
+  en GoTrue, una vez comprobado que el correo de prueba llega.
+- **`docs/plan.md`**: lo que queda como trabajo futuro, con el motivo.
+
+## 2026-10-20 — Formación en el perfil, avisos leídos y perfil público de persona
+
+- **Alta y baja de formación en `/perfil` (RF2.4.1, RF2.4.2)**:
+  `FormularioDeFormacion` para sumar estudios en curso o finalizados sin perder
+  lo escrito ante un error, y `BotonConfirmado` en `ListaFormacion` para quitar
+  un estudio propio con confirmación en pantalla.
+- **Avisos leídos en `/avisos` (RF6.1)**: `BotonMarcarTodosLeidos` en el
+  encabezado cuando hay notificaciones sin leer, `BotonMarcarAvisoLeido` por
+  fila y marcado al abrir el enlace del aviso (`EnlaceDeAviso`), conectados a
+  `marcarAvisosLeidos`.
+- **Perfil público de persona en `/personas/[usuario]` (RF2.5, RF2.1.1)**:
+  pantalla nueva con `loading.tsx` y enlace «Ver mi perfil público» desde
+  `/perfil`. Muestra solo foto (o iniciales), `@nombre_usuario`, biografía e
+  intereses, sin nombre, apellido, edad ni país.
+## 2026-10-20 — Ajustes de cuenta y perfil público de empresa con reseñas
+
+- **Ajustes de cuenta para joven (`/ajustes`) y empresa (`/empresa/cuenta`)
+  (RF1.5, RF1.7)**: cambio de nombre de usuario (joven), contraseña, correo y
+  baja definitiva de la cuenta con advertencia de pérdida de datos y
+  confirmación con contraseña y la palabra `ELIMINAR`, compartiendo los
+  formularios de `src/components/ajustes/`.
+- **Perfil público de empresa y reseñas anónimas en `/organizaciones/[id]`
+  (RF2.5, RF8.1, RF8.2)**: muestra datos de la organización, búsquedas activas,
+  promedio y listado de reseñas (`Estrellas` extraído a `ui/`), formulario
+  `FormularioDeResenia` para jóvenes que se postularon, y enlaces desde el
+  detalle de vacante y las tarjetas de evento.
 ## 2026-10-20 — Datos de la demo
 
 - **`scripts/demo/sembrar.mjs` y `contenido.json`**: carga reproducible de la

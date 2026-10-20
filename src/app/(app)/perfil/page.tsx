@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 
 import { Encabezado } from "@/components/layout/Encabezado";
 import { AvatarEditable } from "@/components/perfil/AvatarEditable";
+import { FormularioDeFormacion } from "@/components/perfil/FormularioDeFormacion";
 import { FormularioPerfil } from "@/components/perfil/FormularioPerfil";
 import { GuiaDeFicha } from "@/components/perfil/GuiaDeFicha";
 import { ListaFormacion } from "@/components/perfil/ListaFormacion";
 import { SelectorTags } from "@/components/perfil/SelectorTags";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
+import { BotonEnlace } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { obtenerCatalogos, obtenerPerfilActual } from "@/lib/data/consultas";
 import { CompletitudDeFicha } from "@/lib/dominio/CompletitudDeFicha";
@@ -50,12 +52,21 @@ export default async function PaginaPerfil() {
   ]);
   const datos = perfil.datos;
   const nombreCompleto = `${datos.nombre} ${datos.apellido}`;
+  const esEjemplo = perfil.origen === "ejemplo";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Encabezado
         titulo="Mi perfil"
         descripcion="Esto es lo que ve una empresa cuando entra a tu ficha. LinkYouth no usa currículum: lo que cuenta son tus habilidades y tu formación."
+        acciones={
+          <BotonEnlace
+            href={`/personas/${datos.nombre_usuario}`}
+            variante="secundario"
+          >
+            Ver mi perfil público
+          </BotonEnlace>
+        }
       />
 
       <AvisoOrigen resultado={perfil} />
@@ -88,7 +99,13 @@ export default async function PaginaPerfil() {
         titulo="Formación"
         descripcion="Estudios en curso y finalizados."
       >
-        <ListaFormacion formaciones={datos.formaciones} />
+        <div className="space-y-6">
+          <ListaFormacion
+            formaciones={datos.formaciones}
+            esEjemplo={esEjemplo}
+          />
+          <FormularioDeFormacion esEjemplo={esEjemplo} />
+        </div>
       </Seccion>
     </div>
   );

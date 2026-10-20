@@ -692,6 +692,26 @@ export type Database = {
         }[]
       }
       cuenta_activa: { Args: { cuenta: string }; Returns: boolean }
+      eliminar_mi_cuenta: { Args: never; Returns: undefined }
+      perfil_publico: {
+        Args: { usuario: string }
+        Returns: {
+          id: string
+          nombre_usuario: string
+          foto_url: string | null
+          bio: string | null
+          tags: string[]
+        }[]
+      }
+      resenias_de_empresa: {
+        Args: { empresa: string }
+        Returns: {
+          id: string
+          calificacion: number
+          comentario: string
+          creada_en: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

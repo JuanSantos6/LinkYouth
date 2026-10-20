@@ -8,6 +8,18 @@ El orden no es caprichoso: cada hito depende del anterior. Sin autenticación
 no hay perfil propio, y sin perfil propio el matching no tiene contra qué
 comparar.
 
+> **Estado al cierre (2026-10-20).** Entraron RF1 a RF4, RF6.1, RF6.2,
+> RF7 y RF8.1–8.2, desplegados y con e2e. Quedan como **trabajo futuro**, con
+> el motivo, y sin ningún enlace ni botón en la interfaz que lleve a ellos:
+>
+> | Requisito | Motivo |
+> | --- | --- |
+> | RF5 (entrevistas y test), RF9 (chats), RF10 (IA, recomendación) | Fuera del alcance del MVP desde el inicio del plan. |
+> | RF8.3 (reportar reseñas) y área de administración | Requiere un rol nuevo en la base, sus políticas y una zona entera de interfaz; no entraba con calidad antes de la defensa. |
+> | RF6.3 (aviso de match a la empresa) | Depende de definir qué puntaje es «relevante» (RF3.9.2); sin esa regla, el aviso sería ruido. |
+> | RF6.4–6.5 (preferencias de avisos) | Necesita una tabla de preferencias y que cada disparador la consulte; los avisos actuales son pocos y todos útiles. |
+> | Completar el alta al confirmar el correo | Hoy se completa en el primer inicio de sesión (`iniciarSesion`); funciona, pero son dos pasos. |
+
 **Cómo leer cada hito.** *Qué entra* es el alcance. *Qué no entra* está para
 evitar que el hito se estire. *Terminado cuando* es la condición que se puede
 verificar; si no se puede verificar, el hito no está cerrado.

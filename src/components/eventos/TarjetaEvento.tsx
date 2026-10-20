@@ -1,4 +1,5 @@
 import { AccionConCuenta } from "@/components/auth/InvitacionACuenta";
+import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
@@ -64,7 +65,12 @@ export function TarjetaEvento({
 
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-semibold text-tinta">
-            {evento.empresa.razon_social}
+            <EnlaceTransicion
+              href={`/organizaciones/${evento.empresa.id}`}
+              className="underline-offset-4 hover:text-acento hover:underline"
+            >
+              {evento.empresa.razon_social}
+            </EnlaceTransicion>
           </p>
 
           <h3 className="mt-0.5 text-[18px] text-tinta sm:text-[19px]">
