@@ -541,6 +541,14 @@ paralelo para todas las personas a la vez (`armarPostulaciones`, privada).
 | `obtenerPostulantesPropios(usuarioId?)` | `Resultado<{ postulacion, busqueda }[]>` | RF7.3. Postulantes no retirados de todas las búsquedas propias. |
 | `obtenerPanelDeEmpresa(usuarioId?)` | `Resultado<PanelDeEmpresa>` | RF7. Perfil, búsquedas, eventos y las postulaciones en curso de las búsquedas activas, para recomendar. Si una lectura cae en el ejemplo, el panel entero lo es. |
 
+#### `publico.ts`
+
+Lo que se ve de otra cuenta. `obtenerOrganizacion(id)` (RF2.5, RF8.2): datos
+de la empresa, sus búsquedas activas, sus reseñas por `resenias_de_empresa()`
+—sin autor— y `puedeReseniar`, que solo decide si se muestra el formulario
+(la política de insert es la que manda). `obtenerPerfilPublico(usuario)`
+(RF2.5): `perfil_publico()`, solo con sesión.
+
 ### 5.6 `src/lib/acciones/`
 
 Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
@@ -570,6 +578,22 @@ seguir», que son **distintas a propósito**:
 - `SIN_PERFIL` para el guardia de tipo de cuenta: hay sesión, pero no es una
   cuenta de postulante con perfil creado. Decirle «iniciá sesión» a alguien
   que ya la tiene lo manda a buscar el problema al lugar equivocado.
+
+#### `cuenta.ts` (RF1.5, RF1.7)
+
+| Función | Qué hace |
+| --- | --- |
+| `cambiarNombreDeUsuario` | Actualiza `perfiles.nombre_usuario`; el `23505` es «ya está en uso». |
+| `cambiarContrasenia` | Comprueba la actual con un cliente aparte, sin cookies, y guarda la nueva con `auth.updateUser`. |
+| `cambiarCorreo` | Con la contraseña actual, pide el cambio a GoTrue; queda hecho al abrir el enlace (`/auth/callback`, tipo `email_change`). |
+| `eliminarCuenta` | Contraseña y la palabra ELIMINAR; `eliminar_mi_cuenta()` anonimiza en la base, y con la clave de servicio se reemplazan correo y contraseña de `auth.users`, se bloquea la cuenta y se borran sus imágenes. La fila de `auth.users` no se borra: su cascada se llevaría postulaciones y reseñas. |
+
+#### `formacion.ts` · `avisos.ts` · `resenias.ts`
+
+`agregarFormacion` y `quitarFormacion(id)` (RF2.4); `marcarAvisosLeidos(id?)`
+(RF6.1), uno o todos, para las dos cuentas; `publicarResenia` (RF8.1), que
+valida con `ReglasDeResenia` y traduce el `42501` de la política
+`resenias_solo_quien_postulo` a «podés reseñar después de postularte».
 
 #### `recuperacion.ts` (RF1.8)
 
@@ -1067,6 +1091,24 @@ disparador sí ve `old` y `new`.
   revisión o entrevista siguen su curso (RF3.3.3).
 - **`notificar_cancelacion_evento()`** · disparador
   `eventos_notificar_cancelacion`: avisa a cada inscripto (RF4.3.2).
+
+#### Migración 006: cuenta y perfil público
+
+- `resenias_de_empresa(empresa) returns table (id, calificacion, comentario,
+  creada_en)`: `security definer`, abierta a `anon`. Sin `perfil_id`: la
+  reseña pública no dice quién la escribió (RF8.2).
+- `perfil_publico(usuario) returns table (id, nombre_usuario, foto_url, bio,
+  tags)`: solo `authenticated`. Lo que RF2.1.1 llama datos públicos; nombre,
+  apellido, nacimiento y país quedan afuera (H1).
+- `eliminar_mi_cuenta() returns void`: anonimiza la cuenta de quien la llama
+  (RF1.7). Joven: perfil sin datos, intereses, habilidades, formación,
+  inscripciones y avisos borrados, postulaciones en curso a `cancelada`.
+  Empresa: datos fuera, búsquedas a `cerrada`, eventos futuros a
+  `cancelado` (los disparadores avisan). Las reseñas quedan.
+- `notificaciones`: `update` solo de la columna `leida`.
+
+Verificación: `db/verificar-006.sql` (9 comprobaciones, termina en
+`ROLLBACK`).
 
 #### Restricción `perfiles_mayor_de_edad`
 

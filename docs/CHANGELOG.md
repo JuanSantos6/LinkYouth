@@ -13,6 +13,21 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Nivel 2: base de datos, acciones y confirmación de correo
+
+- **Migración 006** (`db/migraciones/006-cuenta-y-perfil-publico.sql`):
+  reseñas públicas sin autor (RF8.2), perfil público de persona con sesión
+  (RF2.5), eliminar la cuenta anonimizando (RF1.7) y avisos que solo admiten
+  cambiar `leida` (RF6.1). Por qué: abrir las tablas habría expuesto quién
+  escribió cada reseña y datos personales de los jóvenes. Aplicada en el
+  servidor; `db/verificar-006.sql` da 9/9.
+- **Acciones** `cuenta.ts`, `formacion.ts`, `avisos.ts`, `resenias.ts` y
+  lecturas `data/publico.ts`, que usan las pantallas de las dos secciones de
+  abajo. `e2e/nivel2.spec.ts` recorre todo el Nivel 2 (6/6).
+- **Confirmación de correo obligatoria**: `MAILER_AUTOCONFIRM` desactivado
+  en GoTrue, una vez comprobado que el correo de prueba llega.
+- **`docs/plan.md`**: lo que queda como trabajo futuro, con el motivo.
+
 ## 2026-10-20 — Formación en el perfil, avisos leídos y perfil público de persona
 
 - **Alta y baja de formación en `/perfil` (RF2.4.1, RF2.4.2)**:

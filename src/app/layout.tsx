@@ -63,7 +63,11 @@ export default async function RootLayout({
       className={`${display.variable} ${texto.variable}`}
     >
       <head>
+        {/* `suppressHydrationWarning`: el navegador oculta el valor de
+            `nonce` en el DOM y React lo marcaba como diferencia en
+            desarrollo. El atributo llega bien en el HTML del servidor. */}
         <script
+          suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{ __html: GUION_DE_TEMA }}
         />
