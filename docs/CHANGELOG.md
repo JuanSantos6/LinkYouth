@@ -13,6 +13,15 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Ajustes antes del cierre
+
+- **`Compatibilidad` cuenta una vez cada requisito** (RF3.5.2): «Inglés» como
+  habilidad y «inglés» como tag hacían que el medidor dijera «Tenés 2 de 2» con
+  un porcentaje de 50. Lo encontró el test escrito el mismo día.
+- **Hooks de graphify** (`.claude/settings.json`): si `graphify` no está
+  instalado, salen sin error. Antes fallaban en cada Bash, Grep, Read y Glob.
+- **Prettier** en `como-funciona/page.tsx` y `AnimacionesDePortada.tsx`, los
+  dos archivos que no pasaban `format:check`.
 ## 2026-10-20 — Recuperación de contraseña, correo y acceso con usuario
 
 - **`/recuperar`, `/recuperar/nueva` y `/auth/callback` (RF1.8)**: pedir el

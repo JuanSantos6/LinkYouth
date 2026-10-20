@@ -16,18 +16,18 @@ existen siempre, también para el CSS escrito a mano.
 
 ## Contrastes medidos (WCAG 2.1)
 
-| Par | Claro | Oscuro |
-| --- | --- | --- |
-| tinta / papel | 15,5:1 | 16,2:1 |
-| apagado / papel | 6,4:1 | 8,6:1 |
-| acento (violeta texto) / blanco | 6,2:1 | 7,9:1 sobre papel |
-| tinta sobre mandarina | 5,0:1 | 7,8:1 |
-| tinta sobre turquesa | 9,8:1 | 10,6:1 |
-| tinta sobre coincide-fondo | 14,1:1 | — |
-| turquesa-texto / blanco | 5,2:1 | — |
-| alerta / blanco | 6,6:1 | 6,6:1 |
-| borde-control / papel | 3,3:1 | 4,6:1 |
-| violeta (forma) / blanco | 3,9:1 | — |
+| Par                             | Claro  | Oscuro            |
+| ------------------------------- | ------ | ----------------- |
+| tinta / papel                   | 15,5:1 | 16,2:1            |
+| apagado / papel                 | 6,4:1  | 8,6:1             |
+| acento (violeta texto) / blanco | 6,2:1  | 7,9:1 sobre papel |
+| tinta sobre mandarina           | 5,0:1  | 7,8:1             |
+| tinta sobre turquesa            | 9,8:1  | 10,6:1            |
+| tinta sobre coincide-fondo      | 14,1:1 | —                 |
+| turquesa-texto / blanco         | 5,2:1  | —                 |
+| alerta / blanco                 | 6,6:1  | 6,6:1             |
+| borde-control / papel           | 3,3:1  | 4,6:1             |
+| violeta (forma) / blanco        | 3,9:1  | —                 |
 
 Vidrio (86 %): con contenido negro detrás, tinta 12:1 y apagado 5:1; en
 oscuro, con blanco detrás, 10,8:1 y 5,7:1.
@@ -39,24 +39,24 @@ que el contraste medido no dependa del navegador.
 
 ## Tipografía
 
-| Fuente | Uso |
-| --- | --- |
+| Fuente          | Uso                                           |
+| --------------- | --------------------------------------------- |
 | Red Hat Display | Títulos y cifras, 500–800, tracking `-0.02em` |
-| Red Hat Text | Cuerpo, 15 px, interlínea 1,55 |
+| Red Hat Text    | Cuerpo, 15 px, interlínea 1,55                |
 
 `.cifra` trata un número como elemento gráfico: Display 800, tracking
 `-0.04em`, `tabular-nums`.
 
 ## Radios y sombras
 
-| Token | Uso |
-| --- | --- |
-| `rounded-control` (10 px) | Botones, campos |
-| `rounded-ficha` (12 px) | Bloques, avatares cuadrados, fecha de evento |
-| `rounded-tarjeta` (16 px) | Tarjetas |
-| `rounded-full` | Etiquetas, filtros, cápsulas, pestañas |
-| `shadow-elevada` | Tarjeta clickeable al pasar el mouse |
-| `shadow-flotante` | Menús, cápsula de vidrio |
+| Token                     | Uso                                          |
+| ------------------------- | -------------------------------------------- |
+| `rounded-control` (10 px) | Botones, campos                              |
+| `rounded-ficha` (12 px)   | Bloques, avatares cuadrados, fecha de evento |
+| `rounded-tarjeta` (16 px) | Tarjetas                                     |
+| `rounded-full`            | Etiquetas, filtros, cápsulas, pestañas       |
+| `shadow-elevada`          | Tarjeta clickeable al pasar el mouse         |
+| `shadow-flotante`         | Menús, cápsula de vidrio                     |
 
 ## Tiempos
 
