@@ -13,6 +13,9 @@ export type DatosDeEvento = {
   tags: string[];
 };
 
+/** Para qué sistema se arma el enlace de «Cómo llegar». */
+export type Plataforma = "ios" | "android" | "otro";
+
 export const MOMENTOS_DE_EVENTO = ["proximo", "pasado", "cancelado"] as const;
 export type MomentoDeEvento = (typeof MOMENTOS_DE_EVENTO)[number];
 
@@ -155,27 +158,67 @@ export class ReglasDeEvento {
     return errores;
   }
 
-  /**
-   * Enlace «Ver en el mapa» a OpenStreetMap, o `null` si no hay con qué.
-   *
-   * Un enlace y no un mapa embebido: un mapa obliga a abrir la política de
-   * contenido y hace que el navegador de cada visitante le pida datos a un
-   * tercero. Con coordenadas marca el punto exacto; sin ellas, busca la
-   * dirección.
-   */
-  static enlaceAlMapa(evento: {
+  /** Si el evento tiene coordenadas, que es lo que necesita el mapa. */
+  static tieneUbicacion(evento: {
     latitud: number | null;
     longitud: number | null;
-    direccion: string | null;
-  }): string | null {
-    if (evento.latitud !== null && evento.longitud !== null) {
-      const { latitud: lat, longitud: lng } = evento;
-      return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
+  }): evento is { latitud: number; longitud: number } {
+    return evento.latitud !== null && evento.longitud !== null;
+  }
+
+  /**
+   * «Cómo llegar»: un enlace que abre la app de mapas del teléfono con el
+   * destino ya puesto, o `null` si el evento no tiene ni coordenadas ni
+   * dirección.
+   *
+   * Cada sistema abre su app con un enlace distinto, y ninguno pasa por
+   * Google: en el iPhone, `maps.apple.com` abre Mapas de Apple; en Android,
+   * `geo:` deja elegir la app instalada (Google Maps, OsmAnd, Waze…); en la
+   * computadora, las indicaciones de OpenStreetMap en el navegador. Con
+   * coordenadas va al punto exacto; sin ellas, a la dirección escrita.
+   */
+  static comoLlegar(
+    evento: {
+      titulo: string;
+      latitud: number | null;
+      longitud: number | null;
+      direccion: string | null;
+    },
+    plataforma: Plataforma,
+  ): string | null {
+    const direccion = evento.direccion?.trim() ?? "";
+    const punto = this.tieneUbicacion(evento)
+      ? `${evento.latitud},${evento.longitud}`
+      : null;
+    if (!punto && !direccion) return null;
+    const q = encodeURIComponent;
+
+    switch (plataforma) {
+      case "ios":
+        return punto
+          ? `https://maps.apple.com/?daddr=${punto}&q=${q(evento.titulo)}`
+          : `https://maps.apple.com/?daddr=${q(direccion)}`;
+      case "android":
+        return punto
+          ? `geo:${punto}?q=${punto}(${q(evento.titulo)})`
+          : `geo:0,0?q=${q(direccion)}`;
+      default:
+        return punto
+          ? `https://www.openstreetmap.org/directions?to=${punto}`
+          : `https://www.openstreetmap.org/search?query=${q(direccion)}`;
     }
-    if (evento.direccion?.trim()) {
-      return `https://www.openstreetmap.org/search?query=${encodeURIComponent(evento.direccion.trim())}`;
-    }
-    return null;
+  }
+
+  /**
+   * De qué sistema es el navegador, a partir del `User-Agent`. Solo decide
+   * qué enlace de «Cómo llegar» ofrecer: si se equivoca, el enlace de la
+   * computadora funciona igual en cualquier teléfono.
+   */
+  static plataformaDe(agente: string | null): Plataforma {
+    if (!agente) return "otro";
+    if (/iPhone|iPad|iPod/i.test(agente)) return "ios";
+    if (/Android/i.test(agente)) return "android";
+    return "otro";
   }
 
   /**

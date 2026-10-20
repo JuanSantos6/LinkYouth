@@ -1,6 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+
+import { despacharCorreos } from "@/lib/correo/despachar";
 
 import { mensajeDeError, sesionDePostulante } from "./sesion";
 import { CLAVE_DUPLICADA, type EstadoAccion } from "./tipos";
@@ -40,6 +43,8 @@ export async function postularse(
   revalidatePath("/inicio");
   revalidatePath("/empleos");
   revalidatePath("/postulaciones");
+  // El disparador avisó a la empresa y encoló su correo (RF6.3).
+  after(despacharCorreos);
 
   return {
     estado: "ok",

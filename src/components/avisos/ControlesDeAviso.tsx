@@ -66,9 +66,20 @@ export function BotonMarcarAvisoLeido({
   );
 }
 
+const DESTINOS: readonly [prefijo: string, etiqueta: string][] = [
+  ["/postulaciones", "Ver la postulación"],
+  ["/empresa/busquedas", "Ver a la persona"],
+  ["/empresa/eventos", "Ver el evento"],
+  ["/eventos", "Ver el evento"],
+];
+
+function textoDelEnlace(href: string): string {
+  return DESTINOS.find(([prefijo]) => href.startsWith(prefijo))?.[1] ?? "Abrir";
+}
+
 /**
- * Enlace al destino del aviso: si estaba sin leer, tocarlo también lo marca
- * como leído en segundo plano.
+ * Enlace al destino del aviso: dice a dónde lleva según la ruta y, si estaba
+ * sin leer, tocarlo también lo marca como leído en segundo plano.
  */
 export function EnlaceDeAviso({
   id,
@@ -89,9 +100,9 @@ export function EnlaceDeAviso({
           void marcarAvisosLeidos(id);
         }
       }}
-      className="shrink-0 text-[14px] font-medium text-acento hover:underline"
+      className="inline-flex min-h-11 shrink-0 items-center rounded-control px-3 py-2 text-[14px] font-medium text-acento transition-colors duration-150 hover:bg-realce hover:underline"
     >
-      Ver
+      {textoDelEnlace(href)}
     </Link>
   );
 }

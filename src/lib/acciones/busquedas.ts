@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 
+import { despacharCorreos } from "@/lib/correo/despachar";
 import { comoEstadoPostulacion, comoEstadoVacante } from "@/lib/data/tipos";
 import { EstadoParaEmpresa } from "@/lib/dominio/EstadoParaEmpresa";
 import {
@@ -306,6 +308,9 @@ export async function cambiarEstadoBusqueda(
 
   revalidatePath("/empresa", "layout");
   revalidatePath("/empleos");
+  // Al cerrar, las pendientes pasan a descartadas y cada una encola su
+  // correo (RF3.3.3, RF6.3).
+  if (destino === "cerrada") after(despacharCorreos);
 
   const mensajes = {
     activa: "La búsqueda está activa otra vez.",
@@ -396,6 +401,8 @@ export async function cambiarEstadoPostulacion(
   }
 
   revalidatePath("/empresa", "layout");
+  // Seleccionada o descartada encolan el correo al joven (RF6.3).
+  after(despacharCorreos);
 
   const etiqueta = new EstadoParaEmpresa(destino).etiqueta;
   return {

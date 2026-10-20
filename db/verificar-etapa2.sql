@@ -399,8 +399,9 @@ do $$ begin
   if not exists (
     select 1 from notificaciones
     where cuenta_id = 'e2000000-0000-4000-8000-0000000000a1'
-      and mensaje = 'Tu postulación a «Verificación activa» fue aceptada.'
-      and enlace = '/postulaciones'
+      -- Texto y enlace desde la migración 007.
+      and mensaje like 'Te seleccionaron en Verificación A para «Verificación activa».%'
+      and enlace like '/postulaciones#postulacion-%'
   ) then
     raise exception 'FALLA 23: el aviso al joven no tiene el texto o el enlace esperados';
   end if;

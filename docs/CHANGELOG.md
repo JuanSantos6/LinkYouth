@@ -13,6 +13,69 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Avisos para los dos lados
+
+- **Por qué no se veían** (diagnóstico): no era RLS ni faltaban datos del
+  joven (había 61 avisos); la empresa no tenía ningún disparador que le
+  escribiera, ni campana ni bandeja, y la campana del joven no mostraba
+  cuántos había sin leer. Además el texto decía «fue aceptada» y el enlace
+  llevaba a la lista entera.
+- **Migración 007** (`db/migraciones/007-avisos-y-correos.sql`): avisos a la
+  empresa por postulación e inscripción, textos con palabras («Te
+  seleccionaron en…», «no siguió adelante») y enlace a la postulación, y
+  cola `correos_pendientes`. Aplicada en el servidor;
+  `db/verificar-007.sql` da 12/12 y `verificar-etapa2.sql` sigue en 25/25
+  (se actualizó el texto esperado). Por qué una cola:
+  [`decisiones.md`](./decisiones.md), 2026-10-20.
+- **Correos por SMTP** (`src/lib/correo/`, nodemailer 7.0.9): solo
+  seleccionado, descartado y postulación recibida, para no mandar un correo
+  por cada aviso menor. Detalle en [`correo.md`](./correo.md).
+- **`e2e/avisos.spec.ts`**: los avisos de los dos lados, la campana, el
+  enlace a la postulación y la cola de correos. La carga de la demo cierra
+  sin mandar los correos que generan sus propias postulaciones.
+- **Campana con contador en `CabeceraGlobal` (`CampanaDeAvisos`, RF6.1)**:
+  muestra la cantidad de avisos sin leer en la cabecera tanto para el joven
+  (`/avisos`) como para la empresa (`/empresa/avisos`), con blanco táctil de
+  44×44 px y nombre accesible de `TipoDeAviso.nombreDeLaCampana`, para que no
+  haga falta entrar a la bandeja a ciegas.
+- **Bandeja compartida `BandejaDeAvisos` y pantalla `/empresa/avisos` (RF6.1,
+  RF6.2)**: extrae el listado con rótulo y tono según `TipoDeAviso` (destacando
+  los avisos sin leer de `logro` y `baja`), enlaces con texto según el destino y
+  estados vacíos propios de cada cuenta, sumando «Avisos» al menú y al pie de la
+  empresa.
+- **Anclas por postulación en `/postulaciones` (RF3.7, RF6.2)**: cada fila lleva
+  `id="postulacion-<id>"`, `scroll-mt-28` y resaltado `:target` en lavanda para
+  que el enlace del aviso lleve directo a la postulación sin que la cabecera la
+  tape.
+
+## 2026-10-20 — Mapa de eventos
+
+- **CSP, búsqueda de direcciones y «Cómo llegar»** (`src/lib/mapa/teselas.ts`,
+  `src/lib/acciones/geocodificacion.ts`, `ReglasDeEvento.comoLlegar`,
+  `obtenerEvento`): `img-src` se abre solo a `tile.openstreetmap.org`; la
+  búsqueda de direcciones la hace el servidor para no abrir `connect-src`.
+  Por qué y alternativas en [`decisiones.md`](./decisiones.md), 2026-10-20.
+  Se borra `EnlaceAlMapa`.
+- **Mapa embebido con Leaflet y teselas de OpenStreetMap (`MapaInteractivo`,
+  RF4.1, RF4.4)**: carga diferida con `IntersectionObserver` + `import("leaflet")`,
+  esqueleto y respaldo sin JS, marcadores en SVG con los colores de la marca,
+  gestos táctiles que no atrapan el scroll del celular, filtro en modo oscuro y
+  respeto por `prefers-reduced-motion`. Por qué: reemplaza el viejo enlace
+  externo `EnlaceAlMapa` por un mapa propio en la pantalla sin depender de
+  Google Maps ni ralentizar la carga inicial.
+- **Mapa general en `/eventos` y detalle en `/eventos/[id]` (RF4.4, RF4.5,
+  RF4.6)**: mapa único arriba del listado con emergentes armados con nodos del
+  DOM y conteo de eventos sin coordenadas; pantalla nueva `/eventos/[id]` con
+  su `loading.tsx`, mapa del punto, botón `ComoLlegar` según `User-Agent` y
+  acción de inscribirse o cancelar inscripción; `TarjetaEvento` pasa a ser
+  clickeable entera hacia el detalle.
+- **Detalle de evento de la empresa (`/empresa/eventos/[id]`) y selector en el
+  formulario (`SelectorDeUbicacion`, `FormularioDeEvento`, RF4.1, RF4.2)**:
+  muestra el mapa embebido y `ComoLlegar` en el detalle de la empresa, y
+  reemplaza los campos manuales de latitud y longitud por un buscador con
+  `buscarDireccion` y marcación táctil/arrastrable sobre el mapa con
+  `direccionDePunto`.
+
 ## 2026-10-20 — Nivel 2: base de datos, acciones y confirmación de correo
 
 - **Migración 006** (`db/migraciones/006-cuenta-y-perfil-publico.sql`):
@@ -587,7 +650,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   cuatro. Lo que baja es la carga contra el servidor de auth y el consumo de
   límites, no el tiempo que espera una persona.
 
-
 - **El registro sin confirmar muestra una pantalla propia, no un formulario
   vacío.** Cuando `registrarse()` o `registrarEmpresa()` devuelven `ok` —el
   `signUp` anduvo pero no dejó sesión— el formulario se reemplaza por
@@ -598,7 +660,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   El camino con sesión activa no cambia: sigue redirigiendo a /inicio o /empresa
   según `cuentas.tipo`, sin pasar por acá.
 
-
 - **`BotonPostularse` e `BotonInscribirse` se fusionan en `ui/BotonAccion`.**
   Eran el mismo componente con tres textos cambiados: idéntico `useActionState`,
   idéntico `<form>` con un campo oculto, idéntica región `aria-live`. Solo
@@ -606,7 +667,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   Motivo: era el hallazgo crítico de la auditoría de organización, y el cambio
   anterior —el `esEjemplo`— lo cobró: hubo que hacer el mismo arreglo dos veces
   y acordarse de las dos. Refactor puro, sin cambio de comportamiento.
-
 
 - **Postularse e inscribirse quedan deshabilitados sobre contenido de
   demostración.** `TarjetaVacante` y `TarjetaEvento` reciben `esEjemplo` y lo
@@ -647,7 +707,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   alcance: ante un valor desconocido la sesión cae en la aplicación del
   postulante, nunca en el panel de empresa.
 
-
 - **Primeros tests del proyecto: `e2e/auth.spec.ts`, con Playwright.** Nueve
   casos sobre el guard de rutas del middleware y las cabeceras de CN-002.
   `playwright.config.ts` levanta y baja `npm run dev` solo; `npm run test:e2e`
@@ -663,7 +722,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   El flujo de registro y login queda fuera hasta que exista un Supabase de
   test: ver `plan.md`, Hito 1.
 
-
 - **La verificación previa de `nombre_usuario` lee la vista, no la tabla.**
   `registrarse()` consulta `perfiles_publicos` en lugar de `perfiles`.
   Motivo: quien se registra todavía no tiene sesión, y desde CN-001 la tabla
@@ -672,7 +730,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   apagado en silencio: el choque volvía a aparecer recién en el primer inicio de
   sesión, que es justo lo que `a855925` había corregido. El índice único sigue
   siendo la defensa final.
-
 
 - **`fecha_nacimiento` deja de ser legible por cualquiera (CN-001).** `perfiles`
   sale del alcance de lectura de la API: la política pasa a `to authenticated
@@ -701,7 +758,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   `npm audit` baja de 2 (1 high, 1 moderate) a 0.
   Motivo: el fix que proponía npm era `next@16.3.5`, un salto de major en medio
   del MVP. El override arregla lo mismo sin mover `next`.
-
 
 - **La marca y «Cerrar sesión» dejan de estar ocultas en móvil.** En
   `BarraLateral` eran `hidden lg:flex` / `hidden lg:block`: desde un teléfono
@@ -755,7 +811,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   costaba un diagnóstico: a quien no cargó `.env.local` le decía que iniciara
   sesión, que es el único camino que no lo arregla.
 
-
 - **Se borra el código sin consumidor.** `src/lib/supabase/client.ts` entero
   (ningún archivo lo importaba: todo es Server Component), `supabaseConfigurado()`
   de `config.ts` y la prop `acciones` de `Encabezado`, que ninguna de las cinco
@@ -781,7 +836,6 @@ Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
   declaraba que `ui/` no toca el dominio mientras `AvisoOrigen` importaba de
   `lib/data/`. Se documenta como la única excepción, con el motivo.
   Motivo: una regla que el código ya viola en un punto se deja de leer entera.
-
 
 - **Las rutas de `(app)/` dejan de ser accesibles sin sesión.** El middleware
   redirige a `/login` a quien entre sin usuario, salvo en `/login` y

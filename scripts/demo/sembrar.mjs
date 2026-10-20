@@ -657,6 +657,23 @@ async function cargar(cat) {
   );
   console.log(`✓ ${c.resenias.length} reseñas`);
 
+  // Los disparadores encolaron un correo por cada postulación y cada
+  // selección o descarte de la carga (migración 007). Son historia armada,
+  // no novedades: se cierran sin mandarse, así una recarga no le escribe 40
+  // correos a las cuentas demo, que tienen dirección real.
+  const cerrados = await exigir(
+    db
+      .from("correos_pendientes")
+      .update({
+        enviado_en: new Date().toISOString(),
+        ultimo_error: "omitido: carga de la demo",
+      })
+      .is("enviado_en", null)
+      .select("id"),
+    "correos de la carga",
+  );
+  console.log(`✓ ${cerrados.length} correos de la carga cerrados sin mandar`);
+
   const jovenDemo = c.jovenes.find((j) => j.demo);
   const empresaDemo = c.empresas.find((e) => e.demo);
   writeFileSync(

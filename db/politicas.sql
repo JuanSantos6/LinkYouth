@@ -672,6 +672,49 @@ using (cuenta_id = auth.uid())
 with check (cuenta_id = auth.uid());
 
 -- ============================================================
+-- CORREOS_PENDIENTES (migración 007)
+-- Cola de los correos de aviso (RF6.3). RLS activado y sin políticas, y
+-- sin permisos para `anon` ni `authenticated`: ni el joven ni la empresa
+-- la leen, ni siquiera sus filas. La llenan los disparadores (`security
+-- definer`) y la vacía la aplicación con `service_role`.
+-- ============================================================
+
+alter table correos_pendientes enable row level security;
+revoke all on correos_pendientes from public, anon, authenticated;
+grant all on correos_pendientes to service_role;
+
+-- Toma hasta `limite` correos sin enviar y los marca como reclamados, de
+-- a uno por despacho: `for update skip locked` hace que dos despachos
+-- simultáneos se repartan la cola en vez de mandar lo mismo. Un correo
+-- reclamado hace más de 10 minutos y sin enviar se considera abandonado
+-- (el proceso se cortó a mitad) y se vuelve a tomar. Después de 5
+-- intentos se deja de reintentar.
+create or replace function public.reclamar_correos_pendientes(limite int default 20)
+returns setof public.correos_pendientes
+language sql
+security definer
+set search_path = public, pg_temp
+as $$
+  update correos_pendientes c
+  set reclamado_en = now(), intentos = c.intentos + 1
+  where c.id in (
+    select id from correos_pendientes
+    where enviado_en is null
+      and intentos < 5
+      and (reclamado_en is null or reclamado_en < now() - interval '10 minutes')
+    order by creado_en
+    limit greatest(1, least(limite, 50))
+    for update skip locked
+  )
+  returning c.*;
+$$;
+
+revoke all on function public.reclamar_correos_pendientes(int) from public, anon, authenticated;
+grant execute on function public.reclamar_correos_pendientes(int) to service_role;
+
+revoke all on function public.avisar(uuid, text, text, text, text) from public, anon, authenticated;
+
+-- ============================================================
 -- Cuenta y perfil público (migración 006): RF8.2, RF2.5, RF1.7, RF6.1
 -- ============================================================
 -- ------------------------------------------------------------
