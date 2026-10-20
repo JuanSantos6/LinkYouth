@@ -15,6 +15,12 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-10-20 — Mapa de eventos
 
+- **CSP, búsqueda de direcciones y «Cómo llegar»** (`src/lib/mapa/teselas.ts`,
+  `src/lib/acciones/geocodificacion.ts`, `ReglasDeEvento.comoLlegar`,
+  `obtenerEvento`): `img-src` se abre solo a `tile.openstreetmap.org`; la
+  búsqueda de direcciones la hace el servidor para no abrir `connect-src`.
+  Por qué y alternativas en [`decisiones.md`](./decisiones.md), 2026-10-20.
+  Se borra `EnlaceAlMapa`.
 - **Mapa embebido con Leaflet y teselas de OpenStreetMap (`MapaInteractivo`,
   RF4.1, RF4.4)**: carga diferida con `IntersectionObserver` + `import("leaflet")`,
   esqueleto y respaldo sin JS, marcadores en SVG con los colores de la marca,

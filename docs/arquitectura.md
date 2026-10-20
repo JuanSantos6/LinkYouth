@@ -351,8 +351,9 @@ salida —página, redirección o la vía sin credenciales—.
 `generarNonce` devuelve 16 bytes aleatorios en base64, uno por request.
 `politicaDeContenido` arma la CSP: scripts solo con ese nonce más
 `'strict-dynamic'` (sin `'unsafe-inline'`), estilos con `'unsafe-inline'`
-(React escribe atributos `style`), imágenes del mismo origen más `data:` y
-`blob:`, `connect-src 'self'` (el navegador no habla con Supabase),
+(React escribe atributos `style`), imágenes del mismo origen más `data:`,
+`blob:` y el servidor de teselas del mapa (`ORIGEN_DE_TESELAS`, 2026-10-20),
+`connect-src 'self'` (el navegador no habla con Supabase),
 `frame-ancestors 'none'`. En desarrollo suma `'unsafe-eval'` y `ws:` para el
 refresco en caliente. `CABECERA_NONCE` (`x-nonce`) es el header interno con el
 que el middleware le pasa el nonce a los Server Components; no sale al
@@ -390,6 +391,13 @@ toca a la cuenta.
 El `matcher` excluye `_next/static`, `_next/image`, `favicon.ico` y los
 archivos de imagen. Sin eso, el middleware correría en cada ícono y cada
 fuente, y cada uno pagaría una revalidación de token.
+
+### 5.3c `src/lib/mapa/teselas.ts`
+
+`ORIGEN_DE_TESELAS`, `URL_DE_TESELAS`, `ATRIBUCION`, `ZOOM_MAXIMO`,
+`CENTRO_POR_DEFECTO` (Montevideo), `ZOOM_POR_DEFECTO` y `ZOOM_DE_UN_PUNTO`.
+Un solo lugar para el servidor de teselas: lo leen el mapa y la CSP, que así
+no pueden quedar en desacuerdo. Ver `docs/decisiones.md`, 2026-10-20.
 
 ### 5.4 `src/lib/formato.ts`
 
@@ -501,6 +509,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerVacantes(filtros?)` | `Resultado<Vacante[]>` | RF3.5.1. Filtra por tipo y busca por título. |
 | `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
+| `obtenerEvento(id)` | `Resultado<Evento> \| null` | RF4.4. Un evento para `/eventos/[id]`; `null` si no existe o no se ve. Los ids de ejemplo abren el contenido de demostración. |
 | `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
@@ -587,6 +596,15 @@ seguir», que son **distintas a propósito**:
 | `cambiarContrasenia` | Comprueba la actual con un cliente aparte, sin cookies, y guarda la nueva con `auth.updateUser`. |
 | `cambiarCorreo` | Con la contraseña actual, pide el cambio a GoTrue; queda hecho al abrir el enlace (`/auth/callback`, tipo `email_change`). |
 | `eliminarCuenta` | Contraseña y la palabra ELIMINAR; `eliminar_mi_cuenta()` anonimiza en la base, y con la clave de servicio se reemplazan correo y contraseña de `auth.users`, se bloquea la cuenta y se borran sus imágenes. La fila de `auth.users` no se borra: su cascada se llevaría postulaciones y reseñas. |
+
+#### `geocodificacion.ts`
+
+`buscarDireccion(texto)` y `direccionDePunto(latitud, longitud)` devuelven
+`{ estado: "ok", lugares }` o `{ estado: "error", mensaje }`. Consultan
+Nominatim desde el servidor (un `User-Agent` propio, una consulta por
+segundo por proceso, solo Uruguay al buscar) y solo para cuentas de empresa,
+para que el servidor no quede de intermediario abierto. Las usa
+`SelectorDeUbicacion` (RF4.1).
 
 #### `formacion.ts` · `avisos.ts` · `resenias.ts`
 
@@ -743,7 +761,10 @@ habilidades, áreas, intereses clave), `pideUbicacion(modalidad)`,
 
 Límites de un evento, `deHoraLocal(texto)` y `aHoraLocal(iso)` (la hora de
 Montevideo, calculada con `Intl` y no con «-03:00» fijo), `leerCoordenada`,
-`validar(datos, ahora?)`, `enlaceAlMapa(evento)` (OpenStreetMap),
+`validar(datos, ahora?)`, `tieneUbicacion(evento)`,
+`comoLlegar(evento, plataforma)` (Mapas de Apple, `geo:` o indicaciones de
+OpenStreetMap según el sistema; `null` sin coordenadas ni dirección),
+`plataformaDe(userAgent)`,
 `momento(evento, ahora?)` (próximo, pasado o cancelado) y
 `puedeModificar(evento, ahora?)`. Exporta `MOMENTOS_DE_EVENTO`.
 
@@ -1311,8 +1332,8 @@ porque es un cambio de esquema.
    mensajes; vuelve cuando exista una tabla o un servicio de correo
    (historial de git: `src/components/landing/FormularioConsulta.tsx` y
    `src/lib/acciones/consultas.ts`).
-5. **Mapa único de eventos para el joven.** Las coordenadas ya se guardan;
-   falta la pantalla.
+5. ~~**Mapa único de eventos para el joven.**~~ Resuelto el 2026-10-20: mapa
+   en `/eventos`, en cada detalle y para elegir el lugar en el formulario.
 6. **La prueba de punta a punta corre en el servidor.** En el entorno de
    desarrollo de la Etapa 2 no había Supabase (sin GoTrue ni PostgREST): se
    probaron las políticas sobre Postgres 16 con sesiones simuladas
