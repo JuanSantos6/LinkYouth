@@ -20,6 +20,10 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   un porcentaje de 50. Lo encontró el test escrito el mismo día.
 - **Hooks de graphify** (`.claude/settings.json`): si `graphify` no está
   instalado, salen sin error. Antes fallaban en cada Bash, Grep, Read y Glob.
+- **`e2e/empresa.spec.ts`**: el circuito de la empresa con datos reales (las
+  ocho pantallas sin datos de ejemplo, publicar una búsqueda, postulación del
+  joven, revisión → entrevista → seleccionada con su aviso, crear y cancelar un
+  evento). Por qué: es el recorrido de la defensa y no tenía ninguna red.
 - **Prettier** en `como-funciona/page.tsx` y `AnimacionesDePortada.tsx`, los
   dos archivos que no pasaban `format:check`.
 ## 2026-10-20 — Recuperación de contraseña, correo y acceso con usuario
