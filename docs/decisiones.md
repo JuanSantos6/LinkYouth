@@ -6,6 +6,34 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-20 — Fotos de banco libres y avatar automático
+
+Reemplaza la regla «nada de fotos de banco» de la decisión del 2026-09-27
+(«Recreo»), que dejaba la portada con recuadros provisionales.
+
+**Decisión.** Fotos de Pexels o Unsplash (uso comercial permitido, sin
+atribución obligatoria), elegidas mirándolas, recortadas y convertidas a
+WebP (640 y 1280 px) por `scripts/imagenes/preparar.mjs` y servidas desde
+el propio servidor. Fuente, autor y licencia de cada una en
+[`imagenes.md`](./imagenes.md). Las de la demo (personas y eventos) se suben
+a Storage como cualquier foto de usuario; los logos de la demo son dibujos
+propios. Quien no tiene foto ni logo ve un avatar con sus iniciales sobre un
+color de la paleta que sale del id de la cuenta.
+
+**Alternativas.** *Seguir con `FotoProvisional`*: honesto pero vacío para la
+defensa. *Enlazar las fotos a Unsplash o Pexels*: abre la CSP y le entrega
+la IP de cada visitante a un tercero. *Generar imágenes con IA*: personas
+que no existen con defectos visibles, y la licencia de uso es menos clara.
+*Avatares ilustrados de un servicio externo*: otro tercero. *Color del
+avatar por nombre*: cambia si la persona cambia de nombre y repite color
+entre homónimos.
+
+**Por qué.** Fotos reales con licencia clara, sin terceros en tiempo de
+ejecución, y ninguna cuenta sin imagen. Lo que todavía no existe (el equipo,
+un taller propio, la captura de la app) sigue rotulado como provisional.
+
+---
+
 ## 2026-10-20 — Eliminar la cuenta anonimizando
 
 **Decisión.** `eliminar_mi_cuenta()` borra los datos personales y conserva

@@ -93,37 +93,42 @@ function fechaMontevideo(enDias, hora) {
   return new Date(`${dia}T${hora}:00-03:00`).toISOString();
 }
 
-function iniciales(texto) {
-  return texto
-    .replace(/\b(S\.?A\.?|S\.?R\.?L\.?|Ltda\.?)$/i, "")
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0].toUpperCase())
-    .join("");
+// Imágenes de la demo (docs/imagenes.md). Los logos son dibujos propios en
+// SVG (`logos/<clave>.svg`); las fotos de personas y eventos, WebP ya
+// recortados por `scripts/imagenes/preparar.mjs` (`imagenes/<espacio>.webp`).
+// Quien no tiene foto queda sin `foto_url` a propósito: la aplicación le
+// muestra el avatar automático con sus iniciales.
+const LOGOS = join(AQUI, "logos");
+const IMAGENES = join(AQUI, "imagenes");
+
+/** El logo SVG de una empresa, como WebP de 512 px. */
+async function logoDe(clave) {
+  const svg = join(LOGOS, `${clave}.svg`);
+  if (!existsSync(svg)) fallar(`Falta el logo ${svg}`);
+  return sharp(readFileSync(svg), { density: 300 })
+    .resize(512, 512)
+    .webp({ quality: 90 })
+    .toBuffer();
 }
 
-/** Imagen genérica: iniciales sobre un color. Círculo para personas. */
-async function imagen(texto, color, circulo) {
-  const forma = circulo
-    ? `<circle cx="128" cy="128" r="128" fill="${color}"/>`
-    : `<rect width="256" height="256" rx="48" fill="${color}"/>`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">${forma}
-    <text x="128" y="128" dy="0.35em" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif"
-      font-size="104" font-weight="700" fill="#ffffff">${iniciales(texto)}</text></svg>`;
-  return sharp(Buffer.from(svg)).png().toBuffer();
+/** La foto WebP de un espacio (`persona-lucia`, `evento-nube-charla`), o `null`. */
+function fotoDe(espacio) {
+  const archivo = join(IMAGENES, `${espacio}.webp`);
+  return existsSync(archivo) ? readFileSync(archivo) : null;
 }
 
-async function subirImagen(usuarioId, nombre, png) {
-  const camino = `${usuarioId}/${nombre}.png`;
+async function subirImagen(usuarioId, nombre, webp) {
+  const camino = `${usuarioId}/${nombre}.webp`;
   await exigir(
-    db.storage.from(BUCKET).upload(camino, png, {
-      contentType: "image/png",
+    db.storage.from(BUCKET).upload(camino, webp, {
+      contentType: "image/webp",
       upsert: true,
     }),
     `subir ${camino}`,
   );
-  return db.storage.from(BUCKET).getPublicUrl(camino).data.publicUrl;
+  // Ruta relativa, como la guarda la aplicación (ver `rutaDeImagen`).
+  return new URL(db.storage.from(BUCKET).getPublicUrl(camino).data.publicUrl)
+    .pathname;
 }
 
 // ── validación ─────────────────────────────────────────────────────────────
@@ -416,11 +421,7 @@ async function cargar(cat) {
       db.from("cuentas").insert({ id, tipo: "empresa" }),
       `cuenta ${e.clave}`,
     );
-    const logo_url = await subirImagen(
-      id,
-      "logo",
-      await imagen(e.razon_social, e.color, false),
-    );
+    const logo_url = await subirImagen(id, "logo", await logoDe(e.clave));
     await exigir(
       db.from("empresas").insert({
         id,
@@ -435,7 +436,7 @@ async function cargar(cat) {
       `empresa ${e.clave}`,
     );
   }
-  console.log(`✓ ${c.empresas.length} empresas con logo`);
+  console.log(`✓ ${c.empresas.length} empresas con su logo`);
 
   for (const j of c.jovenes) {
     const id = await crearUsuario(correo(j, "joven"), clavePara(j, "joven"));
@@ -444,11 +445,8 @@ async function cargar(cat) {
       db.from("cuentas").insert({ id, tipo: "individual" }),
       `cuenta ${j.clave}`,
     );
-    const foto_url = await subirImagen(
-      id,
-      "perfil",
-      await imagen(`${j.nombre} ${j.apellido}`, j.color, true),
-    );
+    const foto = fotoDe(`persona-${j.clave}`);
+    const foto_url = foto ? await subirImagen(id, "perfil", foto) : null;
     await exigir(
       db.from("perfiles").insert({
         id,
@@ -488,7 +486,7 @@ async function cargar(cat) {
     );
   }
   console.log(
-    `✓ ${c.jovenes.length} jóvenes con foto, intereses, habilidades y formación`,
+    `✓ ${c.jovenes.length} jóvenes (${c.jovenes.filter((j) => fotoDe(`persona-${j.clave}`)).length} con foto, el resto con avatar automático), intereses, habilidades y formación`,
   );
 
   for (const [i, v] of c.vacantes.entries()) {
@@ -578,6 +576,18 @@ async function cargar(cat) {
     );
   }
 
+  const imagenDeEvento = {};
+  for (const e of c.eventos) {
+    const foto = fotoDe(`evento-${e.clave}`);
+    if (foto) {
+      imagenDeEvento[e.clave] = await subirImagen(
+        ids.empresas[e.empresa],
+        `evento-${e.clave}`,
+        foto,
+      );
+    }
+  }
+
   for (const e of c.eventos) {
     const fila = await exigir(
       db
@@ -590,6 +600,7 @@ async function cargar(cat) {
           direccion: e.direccion,
           latitud: e.latitud,
           longitud: e.longitud,
+          imagen_url: imagenDeEvento[e.clave] ?? null,
           estado: "activo",
         })
         .select("id")

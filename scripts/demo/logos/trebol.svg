@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect x="0" y="0" width="256" height="256" fill="#2D5A27" />
+  <circle cx="128" cy="78" r="22" fill="#C7E9B0" />
+  <circle cx="104" cy="112" r="22" fill="#C7E9B0" />
+  <circle cx="152" cy="112" r="22" fill="#C7E9B0" />
+  <rect x="123" y="120" width="10" height="36" rx="4" fill="#F9FBE7" />
+  <text x="128" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#F9FBE7">ET</text>
+</svg>

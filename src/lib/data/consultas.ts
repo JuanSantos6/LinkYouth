@@ -489,6 +489,59 @@ export async function obtenerAvisos(
   return { datos: data ?? [], origen: "supabase" };
 }
 
+// --- Identidad de la sesión -------------------------------------------------
+
+/** Lo que hace falta para dibujar el avatar de quien tiene la sesión. */
+export type IdentidadDeSesion = {
+  id: string;
+  nombre: string;
+  url: string | null;
+  forma: "redondo" | "cuadrado";
+};
+
+/**
+ * Nombre y foto (o logo) de la sesión, para el avatar del menú de la cuenta.
+ * Joven: nombre y apellido con su foto; empresa: razón social con su logo.
+ * `null` sin sesión o sin base. Cada política deja leer la fila propia.
+ */
+export async function obtenerIdentidadDeSesion(): Promise<IdentidadDeSesion | null> {
+  const supabase = await createClient();
+  if (!supabase) return null;
+  const id = await resolverUsuarioId(supabase);
+  if (!id) return null;
+
+  const [{ data: perfil }, { data: empresa }] = await Promise.all([
+    supabase
+      .from("perfiles")
+      .select("nombre, apellido, foto_url")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("empresas")
+      .select("razon_social, logo_url")
+      .eq("id", id)
+      .maybeSingle(),
+  ]);
+
+  if (perfil) {
+    return {
+      id,
+      nombre: `${perfil.nombre} ${perfil.apellido}`.trim(),
+      url: perfil.foto_url,
+      forma: "redondo",
+    };
+  }
+  if (empresa) {
+    return {
+      id,
+      nombre: empresa.razon_social,
+      url: empresa.logo_url,
+      forma: "cuadrado",
+    };
+  }
+  return null;
+}
+
 // --- Instituciones ----------------------------------------------------------
 
 /**
