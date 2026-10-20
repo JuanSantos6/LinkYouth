@@ -39,7 +39,13 @@ const COLOR_TEXTO: Record<Nivel, string> = {
  * «Fuerte»— y debajo los requisitos que faltan. Quien no distingue el rojo del
  * verde lee lo mismo que el resto.
  */
-export function CampoContrasenia() {
+export function CampoContrasenia({
+  errorContrasenia,
+  errorConfirmacion,
+}: {
+  errorContrasenia?: string;
+  errorConfirmacion?: string;
+} = {}) {
   const [valor, setValor] = useState("");
   const [confirmacion, setConfirmacion] = useState("");
 
@@ -49,21 +55,47 @@ export function CampoContrasenia() {
   // El aviso aparece recién cuando hay algo escrito en la confirmación: de lo
   // contrario grita «no coinciden» apenas se empieza a tipear el primer campo.
   const noCoinciden = confirmacion.length > 0 && confirmacion !== valor;
+  const mostrarErrorContrasenia =
+    Boolean(errorContrasenia) && !fuerza.esAceptable;
+  const descripcionContrasenia = [
+    valor.length > 0 ? "requisitos-contrasenia" : "",
+    mostrarErrorContrasenia ? "error-password" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const mensajeConfirmacion = noCoinciden
+    ? "Las dos contraseñas no coinciden."
+    : confirmacion.length === 0
+      ? (errorConfirmacion ?? "")
+      : "";
+  const confirmacionInvalida = Boolean(mensajeConfirmacion);
 
   return (
     <div className="space-y-4">
-      <Campo etiqueta="Contraseña">
-        <EntradaContrasenia
-          name="password"
-          autoComplete="new-password"
-          required
-          minLength={LARGO_MINIMO}
-          maxLength={LARGO_MAXIMO}
-          value={valor}
-          onChange={(evento) => setValor(evento.target.value)}
-          aria-describedby="requisitos-contrasenia"
-        />
-      </Campo>
+      <div>
+        <Campo etiqueta="Contraseña">
+          <EntradaContrasenia
+            name="password"
+            autoComplete="new-password"
+            required
+            minLength={LARGO_MINIMO}
+            maxLength={LARGO_MAXIMO}
+            value={valor}
+            onChange={(evento) => setValor(evento.target.value)}
+            aria-invalid={mostrarErrorContrasenia ? true : undefined}
+            aria-describedby={descripcionContrasenia || undefined}
+          />
+        </Campo>
+        {mostrarErrorContrasenia && (
+          <p
+            id="error-password"
+            className="mt-1 text-[13px] font-medium text-alerta"
+          >
+            {errorContrasenia}
+          </p>
+        )}
+      </div>
 
       {valor.length > 0 && (
         <div>
@@ -120,13 +152,24 @@ export function CampoContrasenia() {
           maxLength={LARGO_MAXIMO}
           value={confirmacion}
           onChange={(evento) => setConfirmacion(evento.target.value)}
-          aria-invalid={noCoinciden || undefined}
-          className={noCoinciden ? "border-fuerza-baja" : ""}
+          aria-invalid={confirmacionInvalida ? true : undefined}
+          aria-describedby={
+            confirmacionInvalida ? "error-password_confirmacion" : undefined
+          }
+          className={confirmacionInvalida ? "border-fuerza-baja" : ""}
         />
       </Campo>
 
-      <p aria-live="polite" className="text-[13px] text-tinta">
-        {noCoinciden ? "Las dos contraseñas no coinciden." : ""}
+      <p
+        id="error-password_confirmacion"
+        aria-live="polite"
+        className={`text-[13px] ${
+          errorConfirmacion && confirmacion.length === 0
+            ? "font-medium text-alerta"
+            : "text-tinta"
+        }`}
+      >
+        {mensajeConfirmacion}
       </p>
     </div>
   );

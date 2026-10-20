@@ -25,7 +25,13 @@ import { createClient } from "@/lib/supabase/server";
 import { COOKIE_RECORDAR, esConexionSegura } from "@/lib/supabase/sesion";
 import type { Database } from "@/types/database";
 
-import { CLAVE_DUPLICADA, SIN_CONFIGURAR, type EstadoAccion } from "./tipos";
+import {
+  CLAVE_DUPLICADA,
+  SIN_CONFIGURAR,
+  type EstadoAccion,
+  type EstadoFormulario,
+  valoresDe,
+} from "./tipos";
 
 /** Código de Postgres para violación de una restricción `check`. */
 const CHECK_VIOLADO = "23514";
@@ -34,28 +40,50 @@ const CHECK_VIOLADO = "23514";
  * Un solo texto para las dos veces que se detecta el nombre repetido: la
  * verificación previa al `signUp` y el índice único de `perfiles`.
  */
-const USUARIO_OCUPADO: EstadoAccion = {
+const USUARIO_OCUPADO: EstadoFormulario = {
   estado: "error",
   mensaje: "Ese nombre de usuario ya está en uso. Probá con otro.",
+  campos: {
+    nombre_usuario: "Ese nombre de usuario ya está en uso. Probá con otro.",
+  },
 };
 
 /**
  * Un solo texto para las dos veces que se detecta la razón social repetida: la
  * verificación previa al `signUp` y el índice único de `empresas`.
  */
-const RAZON_SOCIAL_OCUPADA: EstadoAccion = {
+const RAZON_SOCIAL_OCUPADA: EstadoFormulario = {
   estado: "error",
   mensaje: "Ya hay una empresa registrada con esa razón social.",
+  campos: {
+    razon_social: "Ya hay una empresa registrada con esa razón social.",
+  },
 };
 
 /**
  * Un solo texto para el RUT repetido: la verificación previa y el índice
  * único de `empresas`.
  */
-const RUT_OCUPADO: EstadoAccion = {
+const RUT_OCUPADO: EstadoFormulario = {
   estado: "error",
   mensaje: "Ya hay una empresa registrada con ese RUT.",
+  campos: {
+    rut: "Ya hay una empresa registrada con ese RUT.",
+  },
 };
+
+/** Lo que se mandó en el formulario de registro, sin ninguna contraseña. */
+function valoresSinContrasenia(
+  datos: FormData,
+): Record<string, string | string[]> {
+  const valores = valoresDe(datos);
+  for (const clave of Object.keys(valores)) {
+    if (/password|contrasenia/i.test(clave)) {
+      delete valores[clave];
+    }
+  }
+  return valores;
+}
 
 /**
  * Datos del formulario de registro que no van a `auth.users` sino a
@@ -159,7 +187,7 @@ async function completarAlta(
   supabase: SupabaseClient<Database>,
   user: User,
   datos: DatosDePerfil,
-): Promise<EstadoAccion | null> {
+): Promise<EstadoFormulario | null> {
   const { error: errorCuenta } = await supabase
     .from("cuentas")
     .upsert(
@@ -189,9 +217,11 @@ async function completarAlta(
   // (RF1.1.8). No se repite la comprobación acá: la base es la única fuente
   // de la regla y el código solo traduce su respuesta.
   if (error.code === CHECK_VIOLADO) {
+    const mensaje = "Tenés que ser mayor de 18 años para registrarte.";
     return {
       estado: "error",
-      mensaje: "Tenés que ser mayor de 18 años para registrarte.",
+      mensaje,
+      campos: { fecha_nacimiento: mensaje },
     };
   }
 
@@ -308,7 +338,7 @@ async function completarAltaEmpresa(
   supabase: SupabaseClient<Database>,
   user: User,
   datos: DatosDeEmpresa,
-): Promise<EstadoAccion | null> {
+): Promise<EstadoFormulario | null> {
   const { error: errorCuenta } = await supabase
     .from("cuentas")
     .upsert(
@@ -362,34 +392,50 @@ async function completarAltaEmpresa(
  *
  * Devuelve `null` si está todo bien.
  */
-function validarAcceso(datos: FormData): EstadoAccion | null {
+function validarAcceso(datos: FormData): EstadoFormulario | null {
   const email = String(datos.get("email") ?? "").trim();
   const password = String(datos.get("password") ?? "");
   const confirmacion = String(datos.get("password_confirmacion") ?? "");
 
   if (!email || !password) {
+    const mensaje = "El correo y la contraseña son obligatorios.";
     return {
       estado: "error",
-      mensaje: "El correo y la contraseña son obligatorios.",
+      mensaje,
+      campos: {
+        ...(!email ? { email: mensaje } : {}),
+        ...(!password ? { password: mensaje } : {}),
+      },
     };
   }
 
   if (confirmacion !== password) {
+    const mensaje = "Las dos contraseñas no coinciden.";
     return {
       estado: "error",
-      mensaje: "Las dos contraseñas no coinciden.",
+      mensaje,
+      campos: { password_confirmacion: mensaje },
     };
   }
 
   const motivo = new FuerzaDeContrasenia(password).motivoDelRechazo;
-  if (motivo) return { estado: "error", mensaje: motivo };
+  if (motivo) {
+    return {
+      estado: "error",
+      mensaje: motivo,
+      campos: { password: motivo },
+    };
+  }
 
   // El checkbox es `required` en el formulario; acá se comprueba de nuevo
   // porque un `required` de HTML no llega al servidor.
   if (!datos.get("privacidad")) {
+    const mensaje =
+      "Tenés que aceptar la política de privacidad para registrarte.";
     return {
       estado: "error",
-      mensaje: "Tenés que aceptar la política de privacidad para registrarte.",
+      mensaje,
+      campos: { privacidad: mensaje },
     };
   }
 
@@ -397,12 +443,18 @@ function validarAcceso(datos: FormData): EstadoAccion | null {
 }
 
 /** Que un texto no pase del largo que la ficha puede mostrar sin cortarlo. */
-function validarLargo(valor: string, campo: string): EstadoAccion | null {
+function validarLargo(
+  valor: string,
+  etiqueta: string,
+  campo: string,
+): EstadoFormulario | null {
   if (valor.length <= ReglasDeRegistro.LARGO_NOMBRE) return null;
 
+  const mensaje = `${etiqueta} no puede pasar de ${ReglasDeRegistro.LARGO_NOMBRE} caracteres.`;
   return {
     estado: "error",
-    mensaje: `${campo} no puede pasar de ${ReglasDeRegistro.LARGO_NOMBRE} caracteres.`,
+    mensaje,
+    campos: { [campo]: mensaje },
   };
 }
 
@@ -441,36 +493,51 @@ async function destinoSegunTipo(
  * primer inicio de sesión.
  */
 export async function registrarEmpresa(
-  _estadoPrevio: EstadoAccion,
+  _estadoPrevio: EstadoFormulario,
   datos: FormData,
-): Promise<EstadoAccion> {
+): Promise<EstadoFormulario> {
   const email = String(datos.get("email") ?? "").trim();
   const password = String(datos.get("password") ?? "");
   const empresa = leerDatosDeEmpresa(datos);
   const logo = leerArchivo(datos, "logo");
+  const conValores = (estado: EstadoFormulario): EstadoFormulario => ({
+    ...estado,
+    valores: valoresSinContrasenia(datos),
+  });
 
   const problemaDeAcceso = validarAcceso(datos);
-  if (problemaDeAcceso) return problemaDeAcceso;
+  if (problemaDeAcceso) return conValores(problemaDeAcceso);
 
   if (!empresa.razon_social || !empresa.rubro) {
-    return {
+    const mensaje = "La razón social y el rubro son obligatorios.";
+    return conValores({
       estado: "error",
-      mensaje: "La razón social y el rubro son obligatorios.",
-    };
+      mensaje,
+      campos: {
+        ...(!empresa.razon_social ? { razon_social: mensaje } : {}),
+        ...(!empresa.rubro ? { rubro: mensaje } : {}),
+      },
+    });
   }
 
-  const problemaDeLargo = validarLargo(empresa.razon_social, "La razón social");
-  if (problemaDeLargo) return problemaDeLargo;
+  const problemaDeLargo = validarLargo(
+    empresa.razon_social,
+    "La razón social",
+    "razon_social",
+  );
+  if (problemaDeLargo) return conValores(problemaDeLargo);
 
   if (!ReglasDeRegistro.rutValido(empresa.rut)) {
-    return {
+    const mensaje = "El RUT tiene que tener doce dígitos.";
+    return conValores({
       estado: "error",
-      mensaje: "El RUT tiene que tener doce dígitos.",
-    };
+      mensaje,
+      campos: { rut: mensaje },
+    });
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
+  if (!supabase) return conValores(SIN_CONFIGURAR);
 
   // Mismo propósito que el chequeo de `nombre_usuario` en `registrarse()`:
   // cortar el caso común antes de crear nada en `auth.users`. Tampoco elimina
@@ -486,7 +553,7 @@ export async function registrarEmpresa(
     .eq("razon_social", empresa.razon_social)
     .maybeSingle();
 
-  if (yaExiste) return RAZON_SOCIAL_OCUPADA;
+  if (yaExiste) return conValores(RAZON_SOCIAL_OCUPADA);
 
   // Mismo criterio y misma limitación que el chequeo de arriba: corta el caso
   // común antes de crear nada, no elimina la carrera, y el índice único sigue
@@ -499,7 +566,7 @@ export async function registrarEmpresa(
     .eq("rut", empresa.rut)
     .maybeSingle();
 
-  if (rutTomado) return RUT_OCUPADO;
+  if (rutTomado) return conValores(RUT_OCUPADO);
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -508,14 +575,14 @@ export async function registrarEmpresa(
   });
 
   if (error) {
-    return { estado: "error", mensaje: error.message };
+    return conValores({ estado: "error", mensaje: error.message });
   }
 
   if (!data.user) {
-    return {
+    return conValores({
       estado: "error",
       mensaje: "No se pudo crear la cuenta. Probá de nuevo.",
-    };
+    });
   }
 
   if (!data.session) {
@@ -527,7 +594,7 @@ export async function registrarEmpresa(
   }
 
   const fallo = await completarAltaEmpresa(supabase, data.user, empresa);
-  if (fallo) return fallo;
+  if (fallo) return conValores(fallo);
 
   if (logo) {
     await guardarImagen(supabase, "empresas", data.user.id, logo);
@@ -550,16 +617,20 @@ export async function registrarEmpresa(
  * primer inicio de sesión, que es cuando existe la sesión que RLS pide.
  */
 export async function registrarse(
-  _estadoPrevio: EstadoAccion,
+  _estadoPrevio: EstadoFormulario,
   datos: FormData,
-): Promise<EstadoAccion> {
+): Promise<EstadoFormulario> {
   const email = String(datos.get("email") ?? "").trim();
   const password = String(datos.get("password") ?? "");
   const perfil = leerDatosDePerfil(datos);
   const avatar = leerArchivo(datos, "avatar");
+  const conValores = (estado: EstadoFormulario): EstadoFormulario => ({
+    ...estado,
+    valores: valoresSinContrasenia(datos),
+  });
 
   const problemaDeAcceso = validarAcceso(datos);
-  if (problemaDeAcceso) return problemaDeAcceso;
+  if (problemaDeAcceso) return conValores(problemaDeAcceso);
 
   if (
     !perfil.nombre ||
@@ -568,13 +639,24 @@ export async function registrarse(
     !perfil.pais ||
     !perfil.nombre_usuario
   ) {
-    return { estado: "error", mensaje: "Faltan datos del perfil." };
+    const mensaje = "Faltan datos del perfil.";
+    return conValores({
+      estado: "error",
+      mensaje,
+      campos: {
+        ...(!perfil.nombre ? { nombre: mensaje } : {}),
+        ...(!perfil.apellido ? { apellido: mensaje } : {}),
+        ...(!perfil.nombre_usuario ? { nombre_usuario: mensaje } : {}),
+        ...(!perfil.pais ? { pais: mensaje } : {}),
+        ...(!perfil.fecha_nacimiento ? { fecha_nacimiento: mensaje } : {}),
+      },
+    });
   }
 
   const problemaDeLargo =
-    validarLargo(perfil.nombre, "El nombre") ??
-    validarLargo(perfil.apellido, "El apellido");
-  if (problemaDeLargo) return problemaDeLargo;
+    validarLargo(perfil.nombre, "El nombre", "nombre") ??
+    validarLargo(perfil.apellido, "El apellido", "apellido");
+  if (problemaDeLargo) return conValores(problemaDeLargo);
 
   // La edad la decide el `check` `perfiles_mayor_de_edad` de la base; acá se
   // adelanta el rechazo para no crear un usuario en `auth.users` que después
@@ -583,21 +665,25 @@ export async function registrarse(
   if (
     !ReglasDeRegistro.tieneEdadSuficiente(perfil.fecha_nacimiento, new Date())
   ) {
-    return {
+    const mensaje = `Tenés que tener al menos ${ReglasDeRegistro.EDAD_MINIMA} años para registrarte.`;
+    return conValores({
       estado: "error",
-      mensaje: `Tenés que tener al menos ${ReglasDeRegistro.EDAD_MINIMA} años para registrarte.`,
-    };
+      mensaje,
+      campos: { fecha_nacimiento: mensaje },
+    });
   }
 
   if (perfil.tags.length < ReglasDeRegistro.TAGS_MINIMOS) {
-    return {
+    const mensaje = `Elegí al menos ${ReglasDeRegistro.TAGS_MINIMOS} áreas de interés.`;
+    return conValores({
       estado: "error",
-      mensaje: `Elegí al menos ${ReglasDeRegistro.TAGS_MINIMOS} áreas de interés.`,
-    };
+      mensaje,
+      campos: { tags: mensaje },
+    });
   }
 
   const supabase = await createClient();
-  if (!supabase) return SIN_CONFIGURAR;
+  if (!supabase) return conValores(SIN_CONFIGURAR);
 
   // Corta el caso común del nombre repetido antes de crear nada en
   // `auth.users`: sin esto el choque aparece recién al insertar en
@@ -618,7 +704,7 @@ export async function registrarse(
     .eq("nombre_usuario", perfil.nombre_usuario)
     .maybeSingle();
 
-  if (yaExiste) return USUARIO_OCUPADO;
+  if (yaExiste) return conValores(USUARIO_OCUPADO);
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -627,14 +713,14 @@ export async function registrarse(
   });
 
   if (error) {
-    return { estado: "error", mensaje: error.message };
+    return conValores({ estado: "error", mensaje: error.message });
   }
 
   if (!data.user) {
-    return {
+    return conValores({
       estado: "error",
       mensaje: "No se pudo crear la cuenta. Probá de nuevo.",
-    };
+    });
   }
 
   if (!data.session) {
@@ -646,14 +732,14 @@ export async function registrarse(
   }
 
   const fallo = await completarAlta(supabase, data.user, perfil);
-  if (fallo) return fallo;
+  if (fallo) return conValores(fallo);
 
   const falloIntereses = await guardarIntereses(
     supabase,
     data.user.id,
     perfil.tags,
   );
-  if (falloIntereses) return falloIntereses;
+  if (falloIntereses) return conValores(falloIntereses);
 
   if (avatar) {
     await guardarImagen(supabase, "perfiles", data.user.id, avatar);

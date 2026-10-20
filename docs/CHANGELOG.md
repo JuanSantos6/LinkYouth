@@ -15,6 +15,11 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-10-20 — Delegación a Antigravity y tests del dominio
 
+- **Los formularios de registro conservan lo escrito ante un error (RF1.1,
+  RF1.2)**: `registrarse` y `registrarEmpresa` devuelven `EstadoFormulario` con
+  el error del campo que falló y los valores enviados (sin contraseñas), y
+  `EnfocarPrimerError` lleva el foco al primer control con `aria-invalid="true"`
+  para que un error de validación no obligue a cargar todo el alta de nuevo.
 - **`AGENTS.md`, `GEMINI.md` y skill `delegar-a-gemini`**: reglas para que
   Antigravity CLI (`agy`) trabaje en tareas de bajo riesgo dentro de un
   worktree `gemini/<tarea>`, sin tocar `db/`, RLS, middleware ni seguridad, y
