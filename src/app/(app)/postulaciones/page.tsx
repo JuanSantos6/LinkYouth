@@ -100,7 +100,11 @@ export default async function PaginaPostulaciones() {
               const proceso = new ProcesoDePostulacion(postulacion.estado);
 
               return (
-                <li key={postulacion.id} className="py-5">
+                <li
+                  key={postulacion.id}
+                  id={`postulacion-${postulacion.id}`}
+                  className="scroll-mt-28 rounded-ficha px-3 py-5 transition-colors duration-200 target:bg-lavanda"
+                >
                   <div className="flex items-start gap-4">
                     <Avatar
                       nombre={postulacion.vacante.empresa}

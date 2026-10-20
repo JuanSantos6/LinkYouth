@@ -930,7 +930,9 @@ para que no se lea como permiso general.
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
 | `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 | `FormularioDeFormacion` | `esEjemplo?` | Sumar un estudio en curso o finalizado al perfil propio (RF2.4.1), con errores por campo y valores conservados. |
-| `avisos/ControlesDeAviso` | — | `BotonMarcarTodosLeidos`, `BotonMarcarAvisoLeido` y `EnlaceDeAviso` para marcar avisos como leídos en `/avisos` (RF6.1). |
+| `avisos/CampanaDeAvisos` | `href`, `sinLeer` | Botón redondo de 44×44 px en la cabecera con el ícono de avisos, contador de no leídos (`TipoDeAviso.textoDelContador`) y nombre accesible `TipoDeAviso.nombreDeLaCampana(sinLeer)` (RF6.1). |
+| `avisos/BandejaDeAvisos` | `avisos`, `descripcion?`, `descripcionVacia?` | Bandeja compartida entre joven y empresa: rótulo e ícono según `TipoDeAviso` (`logro`, `baja`, `novedad`, `neutro`), resaltado de no leídos y acciones para marcarlos o abrir el destino (RF6.1, RF6.2). |
+| `avisos/ControlesDeAviso` | — | `BotonMarcarTodosLeidos`, `BotonMarcarAvisoLeido` y `EnlaceDeAviso` (con texto según el destino y blanco de 44 px) para marcar avisos como leídos (RF6.1). |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 | `ajustes/FormularioNombreDeUsuario` | `actual?` | Cambio de nombre de usuario de una cuenta individual (RF1.5.1). |
 | `ajustes/FormularioContrasenia` | — | Cambio de contraseña confirmando la actual y midiendo la fuerza de la nueva con `CampoContrasenia` (RF1.5.2). |
@@ -982,6 +984,7 @@ para que no se lea como permiso general.
 | `/empresa/busquedas` | `PaginaBusquedas` | Mis búsquedas, con filtro por estado. `nueva`, `[id]` (postulantes ordenados por coincidencia), `[id]/editar` y `[id]/postulantes/[postulacionId]` (ficha y cambio de estado). RF3.1–RF3.4. |
 | `/empresa/eventos` | `PaginaEventos` | Próximos, pasados y cancelados. `nuevo`, `[id]` (inscriptos, mapa, cancelar) y `[id]/editar`. RF4. |
 | `/empresa/candidatos` | `PaginaCandidatos` | Postulantes propios filtrables por intereses (RF7.3). |
+| `/empresa/avisos` | `PaginaAvisosDeEmpresa` | Bandeja de avisos de la empresa: nuevas postulaciones e inscripciones a eventos (RF6.1). |
 | `/empresa/perfil` | `PaginaPerfilDeEmpresa` | Perfil de la empresa (RF7.1). |
 | `/empresa/resenias` | `PaginaResenias` | Reseñas recibidas, anónimas (RF7.4). |
 | `/empresa/cuenta` | `PaginaCuentaEmpresa` | Ajustes de cuenta de la empresa: contraseña, correo y eliminar cuenta (RF1.5, RF1.7). |
