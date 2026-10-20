@@ -206,6 +206,8 @@ export type PostulacionResumen = {
     id: string;
     titulo: string;
     empresa: string;
+    /** Para el color del avatar automático de la empresa. */
+    empresa_id: string | null;
     empresa_logo_url: string | null;
   };
 };

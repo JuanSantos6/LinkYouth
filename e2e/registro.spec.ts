@@ -69,9 +69,14 @@ test("registro de empresa: el error queda junto al campo y no se pierde nada", a
 test("registro de joven: el error queda junto al campo y no se pierde nada", async ({
   page,
 }) => {
+  // Un perfil que no sea de otra suite: esas cuentas se crean y se borran (o
+  // se anonimizan) mientras este test corre en paralelo.
   const { data } = await admin
     .from("perfiles")
     .select("nombre_usuario")
+    .not("nombre_usuario", "like", "e2e%")
+    .not("nombre_usuario", "like", "cuenta_eliminada%")
+    .order("creado_en")
     .limit(1)
     .single();
   test.skip(!data, "Hace falta al menos un perfil en la base.");

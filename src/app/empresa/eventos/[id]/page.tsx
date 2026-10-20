@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AvisoDeResultado } from "@/components/empresa/AvisoDeResultado";
-import { EnlaceAlMapa } from "@/components/eventos/EnlaceAlMapa";
+import { ComoLlegar } from "@/components/eventos/ComoLlegar";
+import { MapaInteractivo } from "@/components/mapa/MapaInteractivo";
 import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { BotonEnlace } from "@/components/ui/Boton";
@@ -15,14 +16,15 @@ import { cancelarEvento } from "@/lib/acciones/eventosDeEmpresa";
 import { obtenerEventoDeEmpresa, obtenerInscriptos } from "@/lib/data/empresa";
 import { ReglasDeEvento } from "@/lib/dominio/ReglasDeEvento";
 import { fechaLarga, hora, tiempoRelativo } from "@/lib/formato";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 export const metadata: Metadata = { title: "Evento" };
 export const dynamic = "force-dynamic";
 
 /**
- * Un evento propio (RF4): cuándo y dónde es, con el enlace al mapa, quiénes
- * se inscribieron y, mientras no haya pasado, editarlo o cancelarlo (RF4.2,
- * RF4.3). Cancelar les avisa a los inscriptos desde la base (RF4.3.2).
+ * Un evento propio (RF4): cuándo y dónde es, con su mapa y «Cómo llegar»,
+ * quiénes se inscribieron y, mientras no haya pasado, editarlo o cancelarlo
+ * (RF4.2, RF4.3). Cancelar les avisa a los inscriptos desde la base (RF4.3.2).
  */
 export default async function PaginaEvento({
   params,
@@ -44,6 +46,7 @@ export default async function PaginaEvento({
   const inscriptos = await obtenerInscriptos(evento.id);
   const momento = ReglasDeEvento.momento(evento);
   const modificable = ReglasDeEvento.puedeModificar(evento);
+  const conMapa = ReglasDeEvento.tieneUbicacion(evento);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -79,11 +82,11 @@ export default async function PaginaEvento({
           </time>
           , {hora(evento.fecha_hora)}
         </p>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-[14.5px] text-apagado">
             {evento.direccion ?? "Sin dirección cargada"}
           </span>
-          <EnlaceAlMapa evento={evento} />
+          <ComoLlegar evento={evento} />
         </div>
 
         {modificable && (
@@ -111,6 +114,21 @@ export default async function PaginaEvento({
 
       <AvisoOrigen resultado={resultado} />
 
+      {conMapa && (
+        <MapaInteractivo
+          puntos={[
+            {
+              id: evento.id,
+              titulo: evento.titulo,
+              latitud: evento.latitud,
+              longitud: evento.longitud,
+            },
+          ]}
+          respaldoSinJs={evento.direccion ?? evento.titulo}
+          etiqueta={`Ubicación de ${evento.titulo}`}
+        />
+      )}
+
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
         <section aria-labelledby="t-inscriptos" className="min-w-0 space-y-4">
           <h2 id="t-inscriptos" className="text-[22px] text-tinta">
@@ -122,6 +140,7 @@ export default async function PaginaEvento({
 
           {inscriptos.datos.length === 0 ? (
             <EstadoVacio
+              ilustracion="personas"
               titulo="Nadie se inscribió todavía"
               descripcion={
                 momento === "proximo"
@@ -141,6 +160,7 @@ export default async function PaginaEvento({
                     <Avatar
                       nombre={nombre}
                       url={persona.foto_url}
+                      semilla={persona.id}
                       tamano="sm"
                     />
                     <span className="min-w-0 flex-1">
@@ -171,8 +191,12 @@ export default async function PaginaEvento({
           {evento.imagen_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={evento.imagen_url}
-              alt=""
+              src={rutaDeImagen(evento.imagen_url) ?? undefined}
+              alt={`Foto del evento ${evento.titulo}`}
+              width={640}
+              height={360}
+              loading="lazy"
+              decoding="async"
               className="aspect-[16/9] w-full rounded-ficha object-cover"
             />
           )}

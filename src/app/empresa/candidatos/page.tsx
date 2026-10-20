@@ -56,6 +56,7 @@ export default async function PaginaCandidatos({
       {candidatos.length === 0 ? (
         <EstadoVacio
           nivel={2}
+          ilustracion="personas"
           titulo="Todavía no tenés candidatos"
           descripcion="Cuando alguien se postule a una de tus búsquedas, aparece acá con sus intereses y sus habilidades declaradas."
           accion={
@@ -120,6 +121,7 @@ export default async function PaginaCandidatos({
           {visibles.length === 0 ? (
             <EstadoVacio
               nivel={2}
+              ilustracion="busquedas"
               titulo="Nadie tiene todos esos intereses"
               descripcion="Sacá alguno de los filtros para ver más personas."
               accion={
@@ -142,7 +144,11 @@ export default async function PaginaCandidatos({
                     className="space-y-3 rounded-tarjeta border border-borde bg-superficie p-5"
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar nombre={nombre} url={persona.foto_url} />
+                      <Avatar
+                        nombre={nombre}
+                        url={persona.foto_url}
+                        semilla={persona.id}
+                      />
                       <div className="min-w-0">
                         <h2 className="text-[17px] font-semibold text-tinta">
                           {nombre}

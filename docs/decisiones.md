@@ -6,6 +6,87 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-20 — Fotos de banco libres y avatar automático
+
+Reemplaza la regla «nada de fotos de banco» de la decisión del 2026-09-27
+(«Recreo»), que dejaba la portada con recuadros provisionales.
+
+**Decisión.** Fotos de Pexels o Unsplash (uso comercial permitido, sin
+atribución obligatoria), elegidas mirándolas, recortadas y convertidas a
+WebP (640 y 1280 px) por `scripts/imagenes/preparar.mjs` y servidas desde
+el propio servidor. Fuente, autor y licencia de cada una en
+[`imagenes.md`](./imagenes.md). Las de la demo (personas y eventos) se suben
+a Storage como cualquier foto de usuario; los logos de la demo son dibujos
+propios. Quien no tiene foto ni logo ve un avatar con sus iniciales sobre un
+color de la paleta que sale del id de la cuenta.
+
+**Alternativas.** *Seguir con `FotoProvisional`*: honesto pero vacío para la
+defensa. *Enlazar las fotos a Unsplash o Pexels*: abre la CSP y le entrega
+la IP de cada visitante a un tercero. *Generar imágenes con IA*: personas
+que no existen con defectos visibles, y la licencia de uso es menos clara.
+*Avatares ilustrados de un servicio externo*: otro tercero. *Color del
+avatar por nombre*: cambia si la persona cambia de nombre y repite color
+entre homónimos.
+
+**Por qué.** Fotos reales con licencia clara, sin terceros en tiempo de
+ejecución, y ninguna cuenta sin imagen. Lo que todavía no existe (el equipo,
+un taller propio, la captura de la app) sigue rotulado como provisional.
+
+## 2026-10-20 — Avisos de los dos lados y correos con una cola en la base
+
+**Decisión.** Los disparadores escriben el aviso y, para los tres casos
+importantes (seleccionado, descartado, postulación recibida), una fila en
+`correos_pendientes`; la aplicación la despacha por SMTP con nodemailer
+justo después de la acción (`after()`), con la clave de servicio. La
+empresa recibe avisos por postulación e inscripción con nuevos disparadores
+`after insert`.
+
+**Alternativas.** *Mandar el correo desde la acción de servidor, sin cola*:
+se pierde si la acción falla después del `update`, y no cubre los cambios
+que hace la base sola (cerrar una búsqueda rechaza las pendientes).
+*`pg_net` o una Edge Function disparada por la base*: mete otro servicio y
+otra superficie en Supabase, que no se publica. *Un proceso aparte en PM2
+que lea la cola cada minuto*: un servicio más para mantener en el servidor;
+queda como opción si `after()` no alcanza. *Un correo por cada aviso*:
+llena la casilla de cosas menores; los demás avisos quedan en la campana.
+
+**Por qué.** El aviso y su correo nacen en la misma transacción, así que no
+hay correo de algo que no pasó ni cambio sin correo. La cola guarda
+`cuenta_id` y no la dirección: el correo se busca al mandarlo. Nadie la lee
+desde la API (RLS sin políticas, sin permisos para `anon` ni
+`authenticated`).
+
+## 2026-10-20 — Mapa embebido con Leaflet y OpenStreetMap
+
+Reemplaza la decisión 6 de la Etapa 2 («Mapa con un enlace a
+OpenStreetMap»), que había elegido el enlace para no tocar la CSP.
+
+**Decisión.** Mapas embebidos con Leaflet 1.9.4 y las teselas estándar de
+OpenStreetMap (`tile.openstreetmap.org`), con la atribución visible. La CSP
+abre `img-src` a ese único origen, que vive en `src/lib/mapa/teselas.ts` y
+lo comparten el mapa y la política. La búsqueda de direcciones (Nominatim) la
+hace el servidor, con una acción solo para empresas: `connect-src` sigue en
+`'self'`. «Cómo llegar» abre la app de mapas del teléfono sin pasar por
+Google: Mapas de Apple en iOS, `geo:` en Android (deja elegir la app) e
+indicaciones de OpenStreetMap en la computadora.
+
+**Alternativas.** *Seguir con el enlace*: no deja ver los eventos en un mapa
+ni elegir el lugar tocándolo, que es lo que pide el uso desde el celular.
+*Google Maps*: pide clave y facturación, y abre `script-src` y `frame-src` a
+Google. *MapLibre con teselas vectoriales*: más pesado (≈ 200 kB más) y
+necesita un servidor de estilos o de teselas propio. *Teselas de CARTO u
+otro proveedor con tema oscuro*: suma un tercero con sus propias
+condiciones; el modo oscuro se resuelve con un filtro CSS sobre las
+teselas. *Geocodificar desde el navegador*: abre `connect-src` a Nominatim y
+no permite cumplir su límite de una consulta por segundo ni identificar la
+aplicación.
+
+**Por qué.** Es el cambio mínimo de la CSP que permite el mapa: solo
+imágenes, de un solo origen, sin scripts ni conexiones de terceros. El
+costo es que el navegador de quien abre un mapa le pide las teselas a
+OpenStreetMap (y le entrega su IP); por eso el mapa carga recién cuando
+entra en pantalla, y las páginas sin mapa no le piden nada.
+
 ## 2026-10-20 — Eliminar la cuenta anonimizando
 
 **Decisión.** `eliminar_mi_cuenta()` borra los datos personales y conserva

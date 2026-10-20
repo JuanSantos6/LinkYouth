@@ -83,6 +83,7 @@ export default async function PaginaPostulaciones() {
       <section>
         {postulaciones.datos.length === 0 ? (
           <EstadoVacio
+            ilustracion="postulaciones"
             titulo="Todavía no te postulaste a ninguna búsqueda"
             descripcion="Cuando te postules, vas a poder seguir acá en qué etapa está cada proceso."
             accion={
@@ -100,11 +101,19 @@ export default async function PaginaPostulaciones() {
               const proceso = new ProcesoDePostulacion(postulacion.estado);
 
               return (
-                <li key={postulacion.id} className="py-5">
+                <li
+                  key={postulacion.id}
+                  id={`postulacion-${postulacion.id}`}
+                  className="scroll-mt-28 rounded-ficha px-3 py-5 transition-colors duration-200 target:bg-lavanda"
+                >
                   <div className="flex items-start gap-4">
                     <Avatar
                       nombre={postulacion.vacante.empresa}
                       url={postulacion.vacante.empresa_logo_url}
+                      semilla={
+                        postulacion.vacante.empresa_id ??
+                        postulacion.vacante.empresa
+                      }
                       forma="cuadrado"
                       tamano="sm"
                     />

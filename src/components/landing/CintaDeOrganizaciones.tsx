@@ -1,7 +1,8 @@
+import { Avatar } from "@/components/ui/Avatar";
 import type { EmpresaResumen } from "@/lib/data/tipos";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 import { PausaDeCinta } from "./PausaDeCinta";
-import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 /**
  * Cinta de logos de las organizaciones que publican, de borde a borde, que
@@ -107,54 +108,27 @@ function Logo({
     );
   }
 
-  const iniciales = empresa.razon_social
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((palabra) => palabra[0]?.toUpperCase())
-    .join("");
-
-  // Sin logo: una marca de ejemplo en el color del texto, para que la cinta
-  // se lea como una fila de logos y no como una lista de tarjetas.
+  // Sin logo: el avatar cuadrado con las iniciales de la organización y su
+  // nombre al lado, manteniendo la estructura de fila de la cinta.
   return (
-    <svg
+    <span
       role="img"
       aria-label={`Logo provisorio de ${empresa.razon_social}`}
       data-logo-provisorio
-      viewBox="0 0 220 48"
-      className="h-10 w-auto text-apagado"
+      className="flex items-center gap-3"
     >
-      <rect
-        x="1"
-        y="4"
-        width="40"
-        height="40"
-        rx="12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
+      <Avatar
+        nombre={empresa.razon_social}
+        semilla={empresa.id}
+        tamano="sm"
+        forma="cuadrado"
       />
-      <text
-        x="21"
-        y="30"
-        textAnchor="middle"
-        fontSize="16"
-        fontWeight="800"
-        fill="currentColor"
-        fontFamily="var(--fuente-titulo), sans-serif"
-      >
-        {iniciales}
-      </text>
-      <text
-        x="54"
-        y="31"
-        fontSize="19"
-        fontWeight="700"
-        fill="currentColor"
-        fontFamily="var(--fuente-titulo), sans-serif"
+      <span
+        aria-hidden="true"
+        className="font-titulo text-[19px] font-bold text-apagado"
       >
         {empresa.razon_social}
-      </text>
-    </svg>
+      </span>
+    </span>
   );
 }

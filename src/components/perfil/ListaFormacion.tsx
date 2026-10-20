@@ -48,7 +48,11 @@ export function ListaFormacion({
           className="flex flex-wrap items-start justify-between gap-4 py-4 first:pt-0 last:pb-0"
         >
           <div className="flex min-w-0 flex-1 items-start gap-4">
-            <Avatar nombre={formacion.institucion} forma="cuadrado" />
+            <Avatar
+              nombre={formacion.institucion}
+              semilla={formacion.institucion}
+              forma="cuadrado"
+            />
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">

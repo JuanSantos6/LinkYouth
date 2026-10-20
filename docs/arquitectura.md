@@ -191,6 +191,15 @@ en internet. Las fotos y logos se guardan y se muestran como rutas relativas
 trae de Storage por la red interna con el `rewrite` de `next.config.ts`. El
 middleware deja pasar esas rutas sin pedir sesión.
 
+**Los avisos y los correos.** Ningún código de la aplicación escribe un
+aviso: los escriben los disparadores de la base cuando cambia una
+postulación, alguien se postula o se inscribe, o se cancela un evento. Los
+tres avisos importantes dejan además un correo en `correos_pendientes`, que
+la aplicación despacha por SMTP después de responder (`after()` y
+`src/lib/correo/`). Es el único lugar donde el servidor usa la clave de
+servicio sin que lo pida una persona por su nombre de usuario. Ver
+`docs/correo.md`.
+
 **Los alias de tipo.** El esquema usa `text` + `check` en vez de enums de
 Postgres, así que `supabase gen types` devuelve esas columnas como `string`.
 Los alias (`TipoOportunidad`, `EstadoPostulacion`, `EstadoFormacion`…) viven
@@ -351,8 +360,9 @@ salida —página, redirección o la vía sin credenciales—.
 `generarNonce` devuelve 16 bytes aleatorios en base64, uno por request.
 `politicaDeContenido` arma la CSP: scripts solo con ese nonce más
 `'strict-dynamic'` (sin `'unsafe-inline'`), estilos con `'unsafe-inline'`
-(React escribe atributos `style`), imágenes del mismo origen más `data:` y
-`blob:`, `connect-src 'self'` (el navegador no habla con Supabase),
+(React escribe atributos `style`), imágenes del mismo origen más `data:`,
+`blob:` y el servidor de teselas del mapa (`ORIGEN_DE_TESELAS`, 2026-10-20),
+`connect-src 'self'` (el navegador no habla con Supabase),
 `frame-ancestors 'none'`. En desarrollo suma `'unsafe-eval'` y `ws:` para el
 refresco en caliente. `CABECERA_NONCE` (`x-nonce`) es el header interno con el
 que el middleware le pasa el nonce a los Server Components; no sale al
@@ -390,6 +400,21 @@ toca a la cuenta.
 El `matcher` excluye `_next/static`, `_next/image`, `favicon.ico` y los
 archivos de imagen. Sin eso, el middleware correría en cada ícono y cada
 fuente, y cada uno pagaría una revalidación de token.
+
+### 5.3c `src/lib/mapa/teselas.ts`
+
+`ORIGEN_DE_TESELAS`, `URL_DE_TESELAS`, `ATRIBUCION`, `ZOOM_MAXIMO`,
+`CENTRO_POR_DEFECTO` (Montevideo), `ZOOM_POR_DEFECTO` y `ZOOM_DE_UN_PUNTO`.
+Un solo lugar para el servidor de teselas: lo leen el mapa y la CSP, que así
+no pueden quedar en desacuerdo. Ver `docs/decisiones.md`, 2026-10-20.
+
+### 5.3d `src/lib/imagenes.ts`
+
+`imagen(espacio)` e `imagenDeRubro(rubro)` → `{ src, srcSet, ancho, alto,
+alt }` de las fotos de `public/imagenes/` (o `null` si el rubro no tiene
+foto: no se muestra la de otro). Los datos salen de `imagenes.generado.ts`,
+que escribe `scripts/imagenes/preparar.mjs` desde el manifiesto. Ver
+`docs/imagenes.md`.
 
 ### 5.4 `src/lib/formato.ts`
 
@@ -501,11 +526,14 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerVacantes(filtros?)` | `Resultado<Vacante[]>` | RF3.5.1. Filtra por tipo y busca por título. |
 | `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
+| `obtenerEvento(id)` | `Resultado<Evento> \| null` | RF4.4. Un evento para `/eventos/[id]`; `null` si no existe o no se ve. Los ids de ejemplo abren el contenido de demostración. |
 | `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
 | `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
-| `obtenerAvisos(usuarioId?, limite?)` | `Resultado<Aviso[]>` | RF6.1. Las filas las crea el disparador de la base: `notificaciones` no tiene política de insert, así que ningún navegador puede fabricar un aviso. |
+| `obtenerAvisos(usuarioId?, limite?)` | `Resultado<Aviso[]>` | RF6.1. Sirve para las dos cuentas. Las filas las crean los disparadores de la base: `notificaciones` no tiene política de insert, así que ningún navegador puede fabricar un aviso. |
+| `obtenerIdentidadDeSesion()` | `IdentidadDeSesion \| null` | Nombre, foto o logo e id de la sesión, para el avatar del menú de la cuenta. Joven o empresa según la fila que exista. |
+| `contarAvisosSinLeer(usuarioId?)` | `number` | RF6.1. El contador de la campana; 0 sin sesión o sin base. |
 | `obtenerTipoCuenta(usuarioId?)` | `TipoCuenta \| null` | En qué mitad de la aplicación está la sesión. La cabecera y el pie lo necesitan para no ofrecerle a una cuenta de empresa enlaces que el middleware le va a rebotar. |
 | `obtenerCatalogos()` | `Resultado<Catalogos>` | RF2.3, RF2.4.3. Los dos catálogos cerrados enteros, sin filtro ni paginado: 36 tags y 20 habilidades. |
 
@@ -587,6 +615,22 @@ seguir», que son **distintas a propósito**:
 | `cambiarContrasenia` | Comprueba la actual con un cliente aparte, sin cookies, y guarda la nueva con `auth.updateUser`. |
 | `cambiarCorreo` | Con la contraseña actual, pide el cambio a GoTrue; queda hecho al abrir el enlace (`/auth/callback`, tipo `email_change`). |
 | `eliminarCuenta` | Contraseña y la palabra ELIMINAR; `eliminar_mi_cuenta()` anonimiza en la base, y con la clave de servicio se reemplazan correo y contraseña de `auth.users`, se bloquea la cuenta y se borran sus imágenes. La fila de `auth.users` no se borra: su cascada se llevaría postulaciones y reseñas. |
+
+#### `geocodificacion.ts`
+
+`buscarDireccion(texto)` y `direccionDePunto(latitud, longitud)` devuelven
+`{ estado: "ok", lugares }` o `{ estado: "error", mensaje }`. Consultan
+Nominatim desde el servidor (un `User-Agent` propio, una consulta por
+segundo por proceso, solo Uruguay al buscar) y solo para cuentas de empresa,
+para que el servidor no quede de intermediario abierto. Las usa
+`SelectorDeUbicacion` (RF4.1).
+
+#### `src/lib/correo/` (no son acciones)
+
+`despacharCorreos(limite?)` (`despachar.ts`, `server-only`): manda la cola
+`correos_pendientes` por SMTP (RF6.3); nunca lanza. `armarCorreo`,
+`enlaceAbsoluto` y `esDireccionDePrueba` (`plantilla.ts`): asunto, texto y
+HTML del correo, con los enlaces solo a rutas propias. Ver `docs/correo.md`.
 
 #### `formacion.ts` · `avisos.ts` · `resenias.ts`
 
@@ -739,11 +783,21 @@ habilidades, áreas, intereses clave), `pideUbicacion(modalidad)`,
 `puedeEliminar(postulaciones)` y `puedeEditar(estado)`. Exporta
 `ETIQUETA_MODALIDAD`, `ETIQUETA_ESTADO_BUSQUEDA` y el tipo `ErroresDeCampo`.
 
+#### `TipoDeAviso`
+
+`new TipoDeAviso(tipo)` con `etiqueta` y `tono` (`logro`, `baja`, `novedad`,
+`neutro`) para cada `notificaciones.tipo`; los avisos viejos (`postulacion`,
+`evento`) se leen como genéricos. `textoDelContador(n)` («9+») y
+`nombreDeLaCampana(n)` («Avisos, 3 sin leer»).
+
 #### `ReglasDeEvento`
 
 Límites de un evento, `deHoraLocal(texto)` y `aHoraLocal(iso)` (la hora de
 Montevideo, calculada con `Intl` y no con «-03:00» fijo), `leerCoordenada`,
-`validar(datos, ahora?)`, `enlaceAlMapa(evento)` (OpenStreetMap),
+`validar(datos, ahora?)`, `tieneUbicacion(evento)`,
+`comoLlegar(evento, plataforma)` (Mapas de Apple, `geo:` o indicaciones de
+OpenStreetMap según el sistema; `null` sin coordenadas ni dirección),
+`plataformaDe(userAgent)`,
 `momento(evento, ahora?)` (próximo, pasado o cancelado) y
 `puedeModificar(evento, ahora?)`. Exporta `MOMENTOS_DE_EVENTO`.
 
@@ -824,6 +878,13 @@ cada par en comentarios; `TEMAS` (`sistema`, `claro`, `oscuro`),
 que el botón del encabezado recorre los temas. Los mismos valores están en
 `globals.css` como `--ly-*`. Ya no hay acentos elegibles.
 
+#### `avatar.ts`
+
+`colorDeAvatar(semilla)` → `{ fondo, texto }`: un par de clases de tokens de
+`COLORES_DE_AVATAR` (5 pares, AA en los dos temas, sin mandarina ni alerta)
+elegido por un hash FNV-1a de la semilla. La semilla es el id de la cuenta:
+el color no cambia si cambia el nombre. Lo usa `Avatar`.
+
 #### `PreferenciasDeApariencia`
 
 Lee y escribe `data-tema` en `<html>` y lo guarda en `localStorage`.
@@ -852,14 +913,16 @@ para que no se lea como permiso general.
 | `Tarjeta` | `como?`, `elevada?`, + props del elemento | Superficie con borde, radio de tarjeta. `elevada` solo para lo que está realmente por encima del plano. |
 | `Boton` | `variante?`, + props de `<button>` | Botón de acción. `primario` es mandarina con texto tinta y es el único lugar de la app con mandarina: uno por pantalla. Baja 1 px al presionar. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
-| `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
+| `Avatar` | `nombre`, `url?`, `semilla?`, `tamano?`, `forma?` | Foto o iniciales con color determinista (`colorDeAvatar(semilla ?? nombre)`), incluido detrás del `<img>` por si falla la carga. Tamaños `xs` (28 px), `sm`, `md`, `lg`. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
+| `Foto` | `imagen`, `sizes`, `prioridad?`, `className?` | Imagen estática de la página (`ImagenDePagina` de `src/lib/imagenes.ts`) con `srcSet` WebP (640/1280/1920), dimensiones intrínsecas y `object-cover`. Con `prioridad`, `loading="eager"` y `fetchPriority="high"`. |
+| `Ilustracion` | `variante`, `className?` | Cinco ilustraciones SVG de 96 px en el estilo del isotipo (`postulaciones`, `avisos`, `eventos`, `busquedas`, `personas`) con tokens del tema (`fill-lavanda`, `stroke-violeta`, `stroke-turquesa`) para acompañar estados vacíos. |
 | `Etiqueta` | `children`, `coincide?`, `marcada?` | Un tag o una habilidad, en píldora. Lo que el perfil ya declara va en turquesa (suave en claro) con ✓ y un texto para lectores de pantalla: nunca solo color. `marcada` la marca en violeta con ✓ y ese texto: es la de las pantallas de empresa, donde el turquesa no se usa en habilidades declaradas. |
 | `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es turquesa, para lo ya logrado (postulación aceptada o seleccionada). Una búsqueda activa va en `acento`. Siempre con palabra. |
 | `SelectorDeOpciones` | `nombre`, `leyenda`, `opciones`, `inicial?`, `minimo?`, `maximo?`, `error?`, `tono?`, … | Elegir varias opciones de un catálogo como etiquetas que se prenden; lo elegido viaja en campos ocultos. Contador en `aria-live`. Lo usan el registro (`SelectorIntereses`) y los formularios de empresa (`tono="acento"`). |
 | `BotonConfirmado` | `accion`, `campos`, `textos`, `variante?`, `deshabilitado?` | Para lo que no tiene vuelta atrás: el primer toque abre la confirmación en la misma pantalla; el foco va al botón que confirma y vuelve con Esc. |
 | `Campo` | `etiqueta`, `ayuda?`, `error?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
 | `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?`, `celebrar?`, `extras?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Con `celebrar`, al salir bien aparecen los anillos del isotipo uniéndose (`ConexionAnillos`). No conoce vacantes ni eventos. |
-| `EstadoVacio` | `titulo`, `descripcion`, `accion?`, `nivel?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
+| `EstadoVacio` | `titulo`, `descripcion`, `accion?`, `nivel?`, `ilustracion?` | Qué se ve cuando una lista viene vacía, con ilustración opcional (`Ilustracion`) arriba del título. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
 | `Aviso` | `titulo?`, `children` | Aviso discreto: una línea con filete a la izquierda. Lo que la aplicación aclara sobre sí misma se ve igual, sin dominar la pantalla. |
 | `MensajeDeAccion` | `estado`, `className?` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
@@ -876,7 +939,8 @@ para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `CabeceraGlobal` | `area?`, `umbralId?`, `secciones?` | Un solo menú por tipo de cuenta, dentro de `EncabezadoFlotante`. La empresa no ve Empleos ni Eventos del postulante. A la derecha: tema, y según el área, Entrar y Crear cuenta, o avisos y el menú de la cuenta. En el teléfono, el menú «Secciones». La portada pasa sus propias anclas en `secciones`. |
+| `CabeceraGlobal` | `area?`, `umbralId?`, `secciones?` | Un solo menú por tipo de cuenta, dentro de `EncabezadoFlotante`. La empresa no ve Empleos ni Eventos del postulante. A la derecha: tema, y según el área, Entrar y Crear cuenta, o avisos y el menú de la cuenta (`AvatarDeLaSesion`). En el teléfono, el menú «Secciones». La portada pasa sus propias anclas en `secciones`. |
+| `AvatarDeLaSesion` | — | Servidor asíncrono dentro de su propio `<Suspense>`: llama a `obtenerIdentidadDeSesion()` y muestra el `Avatar` (`xs`, 28 px) de quien tiene la sesión en el botón del menú de cuenta, con `IconoPerfil` en círculo lavanda como respaldo. |
 | `PieDeSitio` | `area?` | Columnas por área: a una empresa, «Tu empresa» en lugar de «Para jóvenes» y sin «Cómo funciona». Abajo, el correo de contacto. Ningún enlace lleva a una página vacía. |
 | `Marca` | `href`, `variante?`, `alto?` | Logo oficial desde `public/marca/`: la versión clara y la oscura como imágenes, y el CSS muestra la del tema (`.logo-claro`, `.logo-oscuro`). Imágenes y no SVG en línea para no repetir ids de degradado si aparece dos veces. |
 | `Encabezado` | `titulo`, `descripcion?` | Encabezado de sección. |
@@ -918,8 +982,10 @@ para que no se lea como permiso general.
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
 | `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?`, `conSesion?` | Tarjetas apiladas; la que más coincide va primera y destacada. |
 | `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?`, `conSesion?` | Una vacante como tarjeta clickeable entera hacia el detalle; el botón de postularse queda por encima. Medidor «Tenés X de Y» a la derecha. |
-| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta con imagen opcional y bloque de fecha en lavanda, dirección y «Ver en el mapa». Inscribirse une los anillos. |
-| `eventos/EnlaceAlMapa` | `evento` | «Ver en el mapa» a OpenStreetMap, en pestaña nueva. No aparece si no hay coordenadas ni dirección. Lo usan el joven y la empresa. |
+| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta clickeable entera hacia `/eventos/[id]`, con imagen opcional, bloque de fecha en lavanda y dirección. Exporta también `AccionDeInscripcion` (inscribirse une los anillos; cancelar inscripción la revierte). |
+| `eventos/ComoLlegar` | `evento` | Botón secundario «Cómo llegar» (RF4.4): lee `User-Agent` con `headers()` y delega en `ReglasDeEvento.comoLlegar` el enlace a Mapas de Apple, `geo:` o indicaciones de OpenStreetMap. No aparece si no hay coordenadas ni dirección. |
+| `mapa/MapaInteractivo` | `puntos`, `respaldoSinJs?`, `etiqueta?` | Mapa embebido con Leaflet y teselas de OpenStreetMap (RF4.1, RF4.4). Carga diferida con `IntersectionObserver`, esqueleto y dirección sin JS, marcador SVG en violeta de marca, gestos táctiles que no atrapan el scroll del celular y emergentes armados con nodos del DOM. |
+| `mapa/SelectorDeUbicacion` | `latitudInicial?`, `longitudInicial?`, `errorLatitud?`, `errorLongitud?` | Selector de coordenadas para `FormularioDeEvento` (RF4.1, RF4.2): buscador con `buscarDireccion`, resultados elegibles y mapa interactivo con marcador arrastrable que consulta `direccionDePunto` y completa la dirección si estaba vacía. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
@@ -930,7 +996,10 @@ para que no se lea como permiso general.
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
 | `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 | `FormularioDeFormacion` | `esEjemplo?` | Sumar un estudio en curso o finalizado al perfil propio (RF2.4.1), con errores por campo y valores conservados. |
-| `avisos/ControlesDeAviso` | — | `BotonMarcarTodosLeidos`, `BotonMarcarAvisoLeido` y `EnlaceDeAviso` para marcar avisos como leídos en `/avisos` (RF6.1). |
+| `avisos/CampanaDeAvisos` | `href`, `sinLeer` | Botón redondo de 44×44 px en la cabecera con el ícono de avisos, contador de no leídos (`TipoDeAviso.textoDelContador`) y nombre accesible `TipoDeAviso.nombreDeLaCampana(sinLeer)` (RF6.1). |
+| `avisos/CampanaDeAvisosDeLaSesion` | `href` | La campana con el número leído de la base (`contarAvisosSinLeer`), dentro de su propio `Suspense`: la cabecera se manda entera y el contador llega después. Es la que usa `CabeceraGlobal`. |
+| `avisos/BandejaDeAvisos` | `avisos`, `descripcion?`, `descripcionVacia?` | Bandeja compartida entre joven y empresa: rótulo e ícono según `TipoDeAviso` (`logro`, `baja`, `novedad`, `neutro`), resaltado de no leídos y acciones para marcarlos o abrir el destino (RF6.1, RF6.2). |
+| `avisos/ControlesDeAviso` | — | `BotonMarcarTodosLeidos`, `BotonMarcarAvisoLeido` y `EnlaceDeAviso` (con texto según el destino y blanco de 44 px) para marcar avisos como leídos (RF6.1). |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 | `ajustes/FormularioNombreDeUsuario` | `actual?` | Cambio de nombre de usuario de una cuenta individual (RF1.5.1). |
 | `ajustes/FormularioContrasenia` | — | Cambio de contraseña confirmando la actual y midiendo la fuerza de la nueva con `CampoContrasenia` (RF1.5.2). |
@@ -967,7 +1036,8 @@ para que no se lea como permiso general.
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. Se lee sin sesión: sin compatibilidad, con una invitación a crear cuenta. |
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
-| `/eventos` | `PaginaEventos` | Agenda de eventos próximos. Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
+| `/eventos` | `PaginaEventos` | Agenda de eventos próximos con mapa único arriba del listado (RF4.4). Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
+| `/eventos/[id]` | `PaginaDetalleEvento` | Detalle de un evento para el joven (RF4.4, RF4.5, RF4.6): descripción completa, mapa con su marcador, «Cómo llegar» e inscripción. Se lee con o sin sesión. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio, su edición y enlace a `/personas/<usuario>`. Incluye `Seccion` (privada). |
 | `/personas/[usuario]` | `PaginaPerfilPublico` | Perfil público de una persona con sesión (RF2.5, RF2.1.1): foto, `@nombre_usuario`, biografía e intereses, sin nombre, apellido, edad ni país. |
@@ -982,6 +1052,7 @@ para que no se lea como permiso general.
 | `/empresa/busquedas` | `PaginaBusquedas` | Mis búsquedas, con filtro por estado. `nueva`, `[id]` (postulantes ordenados por coincidencia), `[id]/editar` y `[id]/postulantes/[postulacionId]` (ficha y cambio de estado). RF3.1–RF3.4. |
 | `/empresa/eventos` | `PaginaEventos` | Próximos, pasados y cancelados. `nuevo`, `[id]` (inscriptos, mapa, cancelar) y `[id]/editar`. RF4. |
 | `/empresa/candidatos` | `PaginaCandidatos` | Postulantes propios filtrables por intereses (RF7.3). |
+| `/empresa/avisos` | `PaginaAvisosDeEmpresa` | Bandeja de avisos de la empresa: nuevas postulaciones e inscripciones a eventos (RF6.1). |
 | `/empresa/perfil` | `PaginaPerfilDeEmpresa` | Perfil de la empresa (RF7.1). |
 | `/empresa/resenias` | `PaginaResenias` | Reseñas recibidas, anónimas (RF7.4). |
 | `/empresa/cuenta` | `PaginaCuentaEmpresa` | Ajustes de cuenta de la empresa: contraseña, correo y eliminar cuenta (RF1.5, RF1.7). |
@@ -1091,6 +1162,27 @@ disparador sí ve `old` y `new`.
   revisión o entrevista siguen su curso (RF3.3.3).
 - **`notificar_cancelacion_evento()`** · disparador
   `eventos_notificar_cancelacion`: avisa a cada inscripto (RF4.3.2).
+
+#### Migración 007: avisos para los dos lados y correos
+
+- **`correos_pendientes`**: la cola de correos (RF6.3). RLS sin políticas y
+  sin permisos para `anon` ni `authenticated`.
+- **`avisar(destino, tipo, texto, enlace, asunto?)`** (`security definer`,
+  no se puede llamar desde la API): el único lugar que escribe avisos; con
+  `asunto`, encola además el correo.
+- **`notificar_cambio_estado_postulacion()`**, reescrita: tipos propios
+  (`postulacion_seleccionada`, `postulacion_descartada`…), texto con la
+  búsqueda y la empresa, enlace `/postulaciones#postulacion-<id>`; correo al
+  seleccionar y al descartar.
+- **`notificar_postulacion_recibida()`** · `postulaciones_notificar_recibida`
+  y **`notificar_inscripcion_recibida()`** ·
+  `inscripciones_notificar_recibida`: avisos a la empresa, con enlace a la
+  postulación o al evento; correo solo por la postulación.
+- **`reclamar_correos_pendientes(limite)`**: solo `service_role`; reparte la
+  cola con `for update skip locked`.
+
+Verificación: `db/verificar-007.sql` (12 comprobaciones, termina en
+`ROLLBACK`).
 
 #### Migración 006: cuenta y perfil público
 
@@ -1275,11 +1367,16 @@ apuntando a ella. Es una decisión de esquema que el equipo todavía no tomó.
 
 ### 7.9 Contenido provisional de la portada
 
-Con el rediseño «Recreo» (2026-09-27) la portada quedó con tres cosas que
-esperan contenido real, todas rotuladas en pantalla:
+Con el rediseño «Recreo» (2026-09-27) y la incorporación de fotos reales
+(2026-10-20), la portada quedó con tres cosas que esperan contenido propio,
+todas rotuladas en pantalla:
 
-1. **Fotos.** Los espacios usan `FotoProvisional`, con un rótulo que dice qué
-   foto va. La lista está en `docs/decisiones.md`, 2026-09-27.
+1. **Fotos propias.** Los seis espacios generales de la portada ya usan fotos
+   reales (`Foto` con `src/lib/imagenes.ts`). Quedan con `FotoProvisional`
+   únicamente los tres espacios que no pueden representarse con fotos de banco:
+   «el equipo de LinkYouth», «un taller de LinkYouth en la Universidad de
+   Montevideo» y «una captura real de la ficha en el teléfono». Ver
+   `docs/imagenes.md`.
 2. **Opiniones.** Son de ejemplo y lo dicen en cada tarjeta. Se reemplazan
    por opiniones verdaderas, con permiso.
 3. **Canal de contacto.** Desde la Etapa 2, `/contacto`, el pie y Legales
@@ -1308,8 +1405,8 @@ porque es un cambio de esquema.
    mensajes; vuelve cuando exista una tabla o un servicio de correo
    (historial de git: `src/components/landing/FormularioConsulta.tsx` y
    `src/lib/acciones/consultas.ts`).
-5. **Mapa único de eventos para el joven.** Las coordenadas ya se guardan;
-   falta la pantalla.
+5. ~~**Mapa único de eventos para el joven.**~~ Resuelto el 2026-10-20: mapa
+   en `/eventos`, en cada detalle y para elegir el lugar en el formulario.
 6. **La prueba de punta a punta corre en el servidor.** En el entorno de
    desarrollo de la Etapa 2 no había Supabase (sin GoTrue ni PostgREST): se
    probaron las políticas sobre Postgres 16 con sesiones simuladas

@@ -1,3 +1,5 @@
+import { ORIGEN_DE_TESELAS } from "@/lib/mapa/teselas";
+
 /**
  * Content-Security-Policy con nonce (CN-002 de la auditoría del 2026-09-12;
  * Fase 3 del incidente del 2026-10-08, ver `docs/seguridad.md`).
@@ -16,7 +18,10 @@
  *
  * Imágenes: las fotos de Storage llegan por el `rewrite` del mismo origen;
  * `blob:` es la vista previa del avatar antes de subirlo; `data:` lo usan
- * algunos íconos.
+ * algunos íconos. El único origen de afuera es el servidor de teselas del
+ * mapa (`ORIGEN_DE_TESELAS`, 2026-10-20): solo imágenes, sin scripts ni
+ * conexiones. La búsqueda de direcciones la hace el servidor, así que
+ * `connect-src` sigue cerrado.
  *
  * Sin `upgrade-insecure-requests`: la aplicación también se abre por
  * `http://` desde la tailnet, y esa directiva rompería esos accesos.
@@ -47,7 +52,7 @@ export function politicaDeContenido(nonce: string): string {
       ...(desarrollo ? ["'unsafe-eval'"] : []),
     ],
     "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", "blob:"],
+    "img-src": ["'self'", "data:", "blob:", ORIGEN_DE_TESELAS],
     "font-src": ["'self'", "data:"],
     // El navegador no habla con Supabase: todo pasa por el servidor de Next.
     "connect-src": ["'self'", ...(desarrollo ? ["ws:"] : [])],

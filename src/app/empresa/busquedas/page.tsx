@@ -80,6 +80,7 @@ export default async function PaginaBusquedas({
       {todas.length === 0 ? (
         <EstadoVacio
           nivel={2}
+          ilustracion="busquedas"
           titulo="Todavía no publicaste búsquedas"
           descripcion="Contá qué hace falta, qué habilidades pedís y dónde es. Vas a ver acá quiénes se postulan y cuánto declaran de lo que pedís."
           accion={
@@ -91,6 +92,7 @@ export default async function PaginaBusquedas({
       ) : busquedas.length === 0 ? (
         <EstadoVacio
           nivel={2}
+          ilustracion="busquedas"
           titulo={`No tenés búsquedas ${PLURAL[filtro!].toLowerCase()}`}
           descripcion="Probá con otro estado, o mirá todas juntas."
           accion={

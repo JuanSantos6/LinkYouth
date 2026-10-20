@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      correos_pendientes: {
+        Row: {
+          asunto: string
+          creado_en: string
+          cuenta_id: string
+          enlace: string | null
+          enviado_en: string | null
+          id: string
+          intentos: number
+          mensaje: string
+          notificacion_id: string | null
+          reclamado_en: string | null
+          ultimo_error: string | null
+        }
+        Insert: {
+          asunto: string
+          creado_en?: string
+          cuenta_id: string
+          enlace?: string | null
+          enviado_en?: string | null
+          id?: string
+          intentos?: number
+          mensaje: string
+          notificacion_id?: string | null
+          reclamado_en?: string | null
+          ultimo_error?: string | null
+        }
+        Update: {
+          asunto?: string
+          creado_en?: string
+          cuenta_id?: string
+          enlace?: string | null
+          enviado_en?: string | null
+          id?: string
+          intentos?: number
+          mensaje?: string
+          notificacion_id?: string | null
+          reclamado_en?: string | null
+          ultimo_error?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correos_pendientes_cuenta_id_fkey"
+            columns: ["cuenta_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correos_pendientes_notificacion_id_fkey"
+            columns: ["notificacion_id"]
+            isOneToOne: false
+            referencedRelation: "notificaciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cuentas: {
         Row: {
           creada_en: string
@@ -701,6 +758,22 @@ export type Database = {
           foto_url: string | null
           bio: string | null
           tags: string[]
+        }[]
+      }
+      reclamar_correos_pendientes: {
+        Args: { limite?: number }
+        Returns: {
+            asunto: string
+            creado_en: string
+            cuenta_id: string
+            enlace: string | null
+            enviado_en: string | null
+            id: string
+            intentos: number
+            mensaje: string
+            notificacion_id: string | null
+            reclamado_en: string | null
+            ultimo_error: string | null
         }[]
       }
       resenias_de_empresa: {

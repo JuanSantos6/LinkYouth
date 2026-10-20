@@ -39,7 +39,12 @@ export default async function PaginaPerfilPublico({
 
       <Tarjeta className="divide-y divide-filete">
         <header className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-          <Avatar nombre={persona.nombre_usuario} url={fotoUrl} tamano="lg" />
+          <Avatar
+            nombre={persona.nombre_usuario}
+            url={fotoUrl}
+            semilla={persona.id}
+            tamano="lg"
+          />
 
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[28px] leading-tight font-extrabold text-tinta sm:text-[32px]">
@@ -73,6 +78,7 @@ export default async function PaginaPerfilPublico({
           {persona.tags.length === 0 ? (
             <EstadoVacio
               nivel={3}
+              ilustracion="personas"
               titulo="Sin intereses cargados"
               descripcion="Todavía no eligió áreas de interés en su perfil."
             />

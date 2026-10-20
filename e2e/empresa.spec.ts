@@ -110,6 +110,9 @@ const PANTALLAS_DE_EMPRESA = [
 test("ninguna pantalla de empresa muestra datos de ejemplo", async ({
   page,
 }) => {
+  // Recorre todas las pantallas de empresa: en desarrollo cada una compila
+  // la primera vez, y con la suite en paralelo 30 s no alcanzan.
+  test.setTimeout(60_000);
   const errores: string[] = [];
   page.on("pageerror", (error) => errores.push(error.message));
 
@@ -149,6 +152,9 @@ test("la empresa publica una búsqueda (RF3.1)", async ({ page }) => {
 test("el joven se postula y la empresa lo lleva por los estados (RF3.6, RF3.4.3, RF6.2)", async ({
   page,
 }) => {
+  // Cuatro inicios de sesión y cinco cambios de estado: con la suite entera
+  // en paralelo, 30 s no alcanzan.
+  test.setTimeout(60_000);
   const { data: vacante } = await admin
     .from("vacantes")
     .select("id")

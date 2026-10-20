@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect x="0" y="0" width="256" height="256" fill="#1D3557" />
+  <path d="M76 148 A28 28 0 0 1 100 94 A38 38 0 0 1 172 100 A24 24 0 0 1 180 148 Z" fill="#A8DADC" />
+  <polygon points="128,110 138,124 128,138 118,124" fill="#1D3557" />
+  <rect x="84" y="162" width="88" height="6" rx="3" fill="#457B9D" />
+  <text x="128" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#F1FAEE">NS</text>
+</svg>

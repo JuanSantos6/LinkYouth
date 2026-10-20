@@ -44,6 +44,7 @@ export function FormularioDePerfilDeEmpresa({
         <Avatar
           nombre={empresa.razon_social}
           url={empresa.logo_url}
+          semilla={empresa.id}
           tamano="lg"
           forma="cuadrado"
         />

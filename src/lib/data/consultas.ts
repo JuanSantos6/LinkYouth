@@ -231,6 +231,38 @@ export async function obtenerVacante(
 
 // --- Eventos ----------------------------------------------------------------
 
+function consultarEventos(supabase: ClienteSupabase) {
+  return supabase.from("eventos").select(
+    `id, titulo, descripcion, fecha_hora, imagen_url, estado,
+     direccion, latitud, longitud,
+     ${EMPRESA},
+     evento_tags ( tags ( nombre ) )`,
+  );
+}
+
+type FilaDeEvento = NonNullable<
+  Awaited<ReturnType<typeof consultarEventos>>["data"]
+>[number];
+
+/** La fila de la base como `Evento`, o `null` si su empresa no se ve. */
+function comoEvento(fila: FilaDeEvento): Evento | null {
+  if (!fila.empresas) return null;
+  return {
+    id: fila.id,
+    titulo: fila.titulo,
+    descripcion: fila.descripcion,
+    fecha_hora: fila.fecha_hora,
+    imagen_url: fila.imagen_url,
+    estado: comoEstadoEvento(fila.estado),
+    direccion: fila.direccion,
+    // `numeric` llega como número o como texto según el driver: se fija.
+    latitud: fila.latitud === null ? null : Number(fila.latitud),
+    longitud: fila.longitud === null ? null : Number(fila.longitud),
+    empresa: fila.empresas,
+    tags: nombresDe(fila.evento_tags, "tags"),
+  };
+}
+
 /** RF4.4.1 — Eventos activos que todavía no ocurrieron, del más próximo. */
 export async function obtenerEventos(
   limite = 12,
@@ -240,14 +272,7 @@ export async function obtenerEventos(
     return ejemplo(EVENTOS_EJEMPLO.slice(0, limite), SIN_CREDENCIALES);
   }
 
-  const { data, error } = await supabase
-    .from("eventos")
-    .select(
-      `id, titulo, descripcion, fecha_hora, imagen_url, estado,
-       direccion, latitud, longitud,
-       ${EMPRESA},
-       evento_tags ( tags ( nombre ) )`,
-    )
+  const { data, error } = await consultarEventos(supabase)
     .eq("estado", "activo")
     .gte("fecha_hora", new Date().toISOString())
     .order("fecha_hora", { ascending: true })
@@ -258,28 +283,32 @@ export async function obtenerEventos(
     return ejemplo(EVENTOS_EJEMPLO.slice(0, limite), TABLA_VACIA);
   }
 
-  const eventos: Evento[] = data.flatMap((fila) => {
-    if (!fila.empresas) return [];
-
-    return [
-      {
-        id: fila.id,
-        titulo: fila.titulo,
-        descripcion: fila.descripcion,
-        fecha_hora: fila.fecha_hora,
-        imagen_url: fila.imagen_url,
-        estado: comoEstadoEvento(fila.estado),
-        direccion: fila.direccion,
-        // `numeric` llega como número o como texto según el driver: se fija.
-        latitud: fila.latitud === null ? null : Number(fila.latitud),
-        longitud: fila.longitud === null ? null : Number(fila.longitud),
-        empresa: fila.empresas,
-        tags: nombresDe(fila.evento_tags, "tags"),
-      },
-    ];
-  });
-
+  const eventos = data.flatMap((fila) => comoEvento(fila) ?? []);
   return { datos: eventos, origen: "supabase" };
+}
+
+/**
+ * RF4.4 — Un evento para su pantalla de detalle, o `null` si no existe o no
+ * se ve. La política de `eventos` deja ver los activos (también los que ya
+ * pasaron) y, a la empresa dueña, los suyos cancelados.
+ *
+ * Igual que `obtenerVacante`: los ids de `ejemplos.ts` abren el contenido de
+ * demostración, que es lo que muestra el listado cuando la base está vacía.
+ */
+export async function obtenerEvento(
+  id: string,
+): Promise<Resultado<Evento> | null> {
+  const deEjemplo = EVENTOS_EJEMPLO.find((evento) => evento.id === id);
+  if (deEjemplo) return ejemplo(deEjemplo, TABLA_VACIA);
+
+  const supabase = await createClient();
+  if (!supabase) return null;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+
+  const { data } = await consultarEventos(supabase).eq("id", id).maybeSingle();
+  const evento = data ? comoEvento(data) : null;
+
+  return evento ? { datos: evento, origen: "supabase" } : null;
 }
 
 // --- Perfil -----------------------------------------------------------------
@@ -392,7 +421,7 @@ export async function obtenerPostulaciones(
     .from("postulaciones")
     .select(
       `id, estado, creada_en,
-       vacantes ( id, titulo, empresas ( razon_social, logo_url ) )`,
+       vacantes ( id, titulo, empresas ( id, razon_social, logo_url ) )`,
     )
     .eq("perfil_id", id)
     .order("creada_en", { ascending: false });
@@ -409,6 +438,7 @@ export async function obtenerPostulaciones(
         id: fila.vacantes?.id ?? "",
         titulo: fila.vacantes?.titulo ?? "Vacante dada de baja",
         empresa: fila.vacantes?.empresas?.razon_social ?? "—",
+        empresa_id: fila.vacantes?.empresas?.id ?? null,
         empresa_logo_url: fila.vacantes?.empresas?.logo_url ?? null,
       },
     })),
@@ -487,6 +517,81 @@ export async function obtenerAvisos(
   if (error) return ejemplo(AVISOS_EJEMPLO, error.message);
 
   return { datos: data ?? [], origen: "supabase" };
+}
+
+// --- Identidad de la sesión -------------------------------------------------
+
+/** Lo que hace falta para dibujar el avatar de quien tiene la sesión. */
+export type IdentidadDeSesion = {
+  id: string;
+  nombre: string;
+  url: string | null;
+  forma: "redondo" | "cuadrado";
+};
+
+/**
+ * Nombre y foto (o logo) de la sesión, para el avatar del menú de la cuenta.
+ * Joven: nombre y apellido con su foto; empresa: razón social con su logo.
+ * `null` sin sesión o sin base. Cada política deja leer la fila propia.
+ */
+export async function obtenerIdentidadDeSesion(): Promise<IdentidadDeSesion | null> {
+  const supabase = await createClient();
+  if (!supabase) return null;
+  const id = await resolverUsuarioId(supabase);
+  if (!id) return null;
+
+  const [{ data: perfil }, { data: empresa }] = await Promise.all([
+    supabase
+      .from("perfiles")
+      .select("nombre, apellido, foto_url")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("empresas")
+      .select("razon_social, logo_url")
+      .eq("id", id)
+      .maybeSingle(),
+  ]);
+
+  if (perfil) {
+    return {
+      id,
+      nombre: `${perfil.nombre} ${perfil.apellido}`.trim(),
+      url: perfil.foto_url,
+      forma: "redondo",
+    };
+  }
+  if (empresa) {
+    return {
+      id,
+      nombre: empresa.razon_social,
+      url: empresa.logo_url,
+      forma: "cuadrado",
+    };
+  }
+  return null;
+}
+
+/**
+ * RF6.1 — Cuántos avisos sin leer tiene la sesión, para el contador de la
+ * campana. Sirve para las dos cuentas: la política
+ * `notificaciones_veo_las_mias` ya acota a los propios. Sin sesión o sin base,
+ * cero: la campana no anuncia avisos de ejemplo.
+ */
+export async function contarAvisosSinLeer(usuarioId?: string): Promise<number> {
+  const supabase = await createClient();
+  if (!supabase) return 0;
+
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return 0;
+
+  const { count } = await supabase
+    .from("notificaciones")
+    .select("id", { count: "exact", head: true })
+    .eq("cuenta_id", id)
+    .eq("leida", false);
+
+  return count ?? 0;
 }
 
 // --- Instituciones ----------------------------------------------------------
