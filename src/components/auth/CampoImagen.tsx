@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Campo } from "@/components/ui/Campo";
+import type { EstadoAccion } from "@/lib/acciones/tipos";
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 
 /**
@@ -21,27 +22,52 @@ export function CampoImagen({
   nombre,
   etiqueta,
   ayuda,
+  estado,
+  error,
 }: {
   /** Nombre del campo en el `FormData`: `avatar` o `logo`. */
   nombre: string;
   etiqueta: string;
   ayuda: string;
+  /** Estado actual del formulario, para avisar si un error vació el archivo. */
+  estado?: EstadoAccion;
+  error?: string;
 }) {
-  const [vista, setVista] = useState<string | null>(null);
+  const [elegido, setElegido] = useState<{
+    url: string;
+    estadoAlElegir?: EstadoAccion;
+  } | null>(null);
   const [problema, setProblema] = useState("");
 
   function elegir(archivo: File | undefined) {
-    setVista((anterior) => {
+    setElegido((anterior) => {
       // Cada objeto creado retiene el archivo en memoria hasta que se lo
       // revoca. Sin esto, probar cinco fotos deja cuatro colgadas.
-      if (anterior) URL.revokeObjectURL(anterior);
-      return archivo ? URL.createObjectURL(archivo) : null;
+      if (anterior) URL.revokeObjectURL(anterior.url);
+      return archivo
+        ? { url: URL.createObjectURL(archivo), estadoAlElegir: estado }
+        : null;
     });
 
     setProblema(
       archivo ? (ReglasDeRegistro.problemaDeImagen(archivo) ?? "") : "",
     );
   }
+
+  const perdioArchivo = Boolean(
+    elegido &&
+    estado &&
+    estado !== elegido.estadoAlElegir &&
+    estado.estado === "error",
+  );
+  const vista = perdioArchivo ? null : (elegido?.url ?? null);
+  const avisoReeleccion = perdioArchivo
+    ? nombre === "logo"
+      ? "El logo no se conserva si hubo un error: tenés que volver a elegirlo."
+      : "La foto no se conserva si hubo un error: tenés que volver a elegirla."
+    : "";
+  const mensaje = error || (!perdioArchivo && problema) || avisoReeleccion;
+  const idError = `error-${nombre}`;
 
   return (
     <Campo etiqueta={etiqueta} ayuda={ayuda}>
@@ -61,13 +87,21 @@ export function CampoImagen({
           type="file"
           name={nombre}
           accept={ReglasDeRegistro.FORMATOS_IMAGEN.join(",")}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={mensaje ? idError : undefined}
           onChange={(evento) => elegir(evento.target.files?.[0])}
           className="min-w-0 flex-1 text-[14px] text-apagado file:mr-3 file:rounded-control file:border file:border-borde-control file:bg-superficie file:px-3 file:py-1.5 file:text-[14px] file:font-medium file:text-tinta hover:file:bg-realce"
         />
       </div>
 
-      <p aria-live="polite" className="mt-1 text-[13px] text-tinta">
-        {problema}
+      <p
+        id={idError}
+        aria-live="polite"
+        className={`mt-1 text-[13px] ${
+          error ? "font-medium text-alerta" : "text-tinta"
+        }`}
+      >
+        {mensaje}
       </p>
     </Campo>
   );

@@ -161,10 +161,9 @@ test.describe("navegación pública", () => {
     await expect(
       pie.getByRole("link", { name: "Mis postulaciones" }),
     ).toHaveCount(0);
-    await expect(pie.getByRole("link", { name: "LinkYouth" })).toHaveAttribute(
-      "href",
-      "/",
-    );
+    await expect(
+      pie.getByRole("link", { name: "LinkYouth" }).first(),
+    ).toHaveAttribute("href", "/");
   });
 
   test("/empleos invita a crear cuenta y «Postularme» lleva al registro", async ({

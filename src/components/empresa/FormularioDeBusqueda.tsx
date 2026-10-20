@@ -6,8 +6,10 @@ import { useActionState, useState } from "react";
 import { Aviso } from "@/components/ui/AvisoOrigen";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
+import { EnfocarPrimerError } from "@/components/ui/EnfocarPrimerError";
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { SelectorDeOpciones } from "@/components/ui/SelectorDeOpciones";
+import { valoresDeFormulario } from "@/components/ui/valoresDeFormulario";
 import { guardarBusqueda } from "@/lib/acciones/busquedas";
 import { FORMULARIO_INICIAL } from "@/lib/acciones/tipos";
 import {
@@ -19,8 +21,6 @@ import {
   ETIQUETA_MODALIDAD,
   ReglasDeBusqueda,
 } from "@/lib/dominio/ReglasDeBusqueda";
-
-import { valoresDeFormulario } from "./valores";
 
 const ids = (opciones: { id: string }[] = []) => opciones.map((o) => o.id);
 
@@ -59,6 +59,7 @@ export function FormularioDeBusqueda({
 
   return (
     <form action={enviar} className="space-y-8">
+      <EnfocarPrimerError estado={estado} />
       {busqueda && <input type="hidden" name="id" value={busqueda.id} />}
 
       <fieldset className="space-y-4">

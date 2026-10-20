@@ -844,6 +844,8 @@ para que no se lea como permiso general.
 | `DetallesSuaves` | `resumen`, `children`, `abiertoAlInicio?` | Un `<details>` que se despliega y se pliega con transición. Sin JavaScript, un `<details>` común. |
 | `EsqueletoDePantalla` | `tarjetas?`, `columnas?` | Silueta de carga para los `loading.tsx`. |
 | `ConexionAnillos` | — | Los dos anillos del isotipo uniéndose: la única «celebración» de la app. |
+| `EnfocarPrimerError` | `estado` | Cuando la acción devuelve errores por campo (`estado.campos`), lleva el foco al primer elemento con `aria-invalid="true"` dentro del `<form>`. |
+| `valoresDeFormulario` | `estado` | Qué mostrar en cada campo de un formulario largo: lo mandado si hubo error, lo guardado si no. |
 
 #### `layout/` — estructura
 
