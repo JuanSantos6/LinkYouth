@@ -15,6 +15,29 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-10-20 — Imágenes en toda la página
 
+- **Fotos de Pexels, verificadas y servidas desde el servidor**
+  (`scripts/imagenes/`, `public/imagenes/`, `src/lib/imagenes.ts`): 14 para
+  la página (portada y una por rubro) y 14 para la demo (8 personas, 6
+  eventos), en WebP de 640 y 1280 px (1,1 MB en total para la página). agy las
+  propuso y las eligió mirándolas; el autor y la página de cada una se
+  verificaron contra Pexels (4 autores estaban mal anotados y una foto ya no
+  existía). Registro en [`imagenes.md`](./imagenes.md). Por qué fotos de
+  banco ahora: [`decisiones.md`](./decisiones.md), 2026-10-20.
+- **Avatar automático** (`src/lib/diseno/avatar.ts`): iniciales sobre un par
+  de tokens de la paleta elegido por un hash del id de la cuenta, así el
+  color no cambia con el nombre y nadie queda sin imagen.
+- **Carga de la demo con imágenes** (`scripts/demo/sembrar.mjs`): logos SVG
+  propios de las 8 empresas, foto para 8 de los 15 jóvenes (los otros 7
+  muestran el avatar automático, como cualquier cuenta sin foto) y para 6 de
+  los 8 eventos; todo como WebP en Storage, guardado con ruta relativa.
+- **`obtenerIdentidadDeSesion()`** y `empresa_id` en `PostulacionResumen`:
+  los datos que faltaban para el avatar del menú y el color de la empresa en
+  «Mis postulaciones».
+- **Skill de diseño**: la regla «nada de fotos de banco» pasa a «fotos de
+  Pexels o Unsplash, verificadas y propias del servidor; lo que sería propio
+  de LinkYouth sigue provisional».
+- **`e2e/empresa.spec.ts`**: 60 s para el recorrido de todas las pantallas de
+  empresa, que en desarrollo compila cada una.
 - **`Avatar` con color determinista por semilla y tamaño `xs`** (`src/components/ui/Avatar.tsx`): recibe `semilla` (el id de la cuenta o el nombre) y usa `colorDeAvatar` tanto en las iniciales como detrás de la imagen para que ninguna cuenta quede sin imagen ni con un hueco roto si la foto falla.
 - **Avatar de la sesión en la cabecera** (`src/components/layout/AvatarDeLaSesion.tsx`, `src/components/layout/CabeceraGlobal.tsx`): componente servidor asíncrono en su propio `<Suspense>` que consulta `obtenerIdentidadDeSesion()` y muestra el avatar en `MenuCuenta` con `IconoPerfil` como respaldo, sin volver asíncrona `CabeceraGlobal`.
 - **Unificación de avatares e iniciales** (`CintaDeOrganizaciones`, `TarjetaUsuario`, `FilaVacante`, `AvatarEditable`, `ListaFormacion`, `FilaDePostulante`, `FormularioDePerfilDeEmpresa` y pantallas de joven y empresa): se pasa `semilla` en todos los usos de `Avatar` y se reemplazan las iniciales dibujadas a mano por `Avatar`.

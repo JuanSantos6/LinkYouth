@@ -110,6 +110,9 @@ const PANTALLAS_DE_EMPRESA = [
 test("ninguna pantalla de empresa muestra datos de ejemplo", async ({
   page,
 }) => {
+  // Recorre todas las pantallas de empresa: en desarrollo cada una compila
+  // la primera vez, y con la suite en paralelo 30 s no alcanzan.
+  test.setTimeout(60_000);
   const errores: string[] = [];
   page.on("pageerror", (error) => errores.push(error.message));
 

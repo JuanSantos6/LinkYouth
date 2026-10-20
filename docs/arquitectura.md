@@ -408,6 +408,14 @@ fuente, y cada uno pagaría una revalidación de token.
 Un solo lugar para el servidor de teselas: lo leen el mapa y la CSP, que así
 no pueden quedar en desacuerdo. Ver `docs/decisiones.md`, 2026-10-20.
 
+### 5.3d `src/lib/imagenes.ts`
+
+`imagen(espacio)` e `imagenDeRubro(rubro)` → `{ src, srcSet, ancho, alto,
+alt }` de las fotos de `public/imagenes/` (o `null` si el rubro no tiene
+foto: no se muestra la de otro). Los datos salen de `imagenes.generado.ts`,
+que escribe `scripts/imagenes/preparar.mjs` desde el manifiesto. Ver
+`docs/imagenes.md`.
+
 ### 5.4 `src/lib/formato.ts`
 
 Funciones puras. No tocan la base ni el DOM. Todas usan `es-UY` y la zona
@@ -524,6 +532,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
 | `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
 | `obtenerAvisos(usuarioId?, limite?)` | `Resultado<Aviso[]>` | RF6.1. Sirve para las dos cuentas. Las filas las crean los disparadores de la base: `notificaciones` no tiene política de insert, así que ningún navegador puede fabricar un aviso. |
+| `obtenerIdentidadDeSesion()` | `IdentidadDeSesion \| null` | Nombre, foto o logo e id de la sesión, para el avatar del menú de la cuenta. Joven o empresa según la fila que exista. |
 | `contarAvisosSinLeer(usuarioId?)` | `number` | RF6.1. El contador de la campana; 0 sin sesión o sin base. |
 | `obtenerTipoCuenta(usuarioId?)` | `TipoCuenta \| null` | En qué mitad de la aplicación está la sesión. La cabecera y el pie lo necesitan para no ofrecerle a una cuenta de empresa enlaces que el middleware le va a rebotar. |
 | `obtenerCatalogos()` | `Resultado<Catalogos>` | RF2.3, RF2.4.3. Los dos catálogos cerrados enteros, sin filtro ni paginado: 36 tags y 20 habilidades. |
@@ -868,6 +877,13 @@ cada par en comentarios; `TEMAS` (`sistema`, `claro`, `oscuro`),
 `TEMA_POR_DEFECTO`, `CLAVE_TEMA`, `esTema()` y `temaSiguiente()`, el orden en
 que el botón del encabezado recorre los temas. Los mismos valores están en
 `globals.css` como `--ly-*`. Ya no hay acentos elegibles.
+
+#### `avatar.ts`
+
+`colorDeAvatar(semilla)` → `{ fondo, texto }`: un par de clases de tokens de
+`COLORES_DE_AVATAR` (5 pares, AA en los dos temas, sin mandarina ni alerta)
+elegido por un hash FNV-1a de la semilla. La semilla es el id de la cuenta:
+el color no cambia si cambia el nombre. Lo usa `Avatar`.
 
 #### `PreferenciasDeApariencia`
 
