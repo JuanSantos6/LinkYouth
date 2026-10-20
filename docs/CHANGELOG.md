@@ -54,6 +54,13 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   promedio y listado de reseñas (`Estrellas` extraído a `ui/`), formulario
   `FormularioDeResenia` para jóvenes que se postularon, y enlaces desde el
   detalle de vacante y las tarjetas de evento.
+## 2026-10-20 — Datos de la demo
+
+- **`scripts/demo/sembrar.mjs` y `contenido.json`**: carga reproducible de la
+  demo de la defensa (borra todas las cuentas y crea 8 empresas, 15 jóvenes,
+  20 búsquedas, 40 postulaciones, 8 eventos y 16 reseñas, ficticios y
+  uruguayos). Por qué: los datos de prueba no mostraban cada función, y hace
+  falta poder restaurar la demo en un minuto. Ver [`demo.md`](./demo.md).
 
 ## 2026-10-20 — Formularios que no pierden datos
 
