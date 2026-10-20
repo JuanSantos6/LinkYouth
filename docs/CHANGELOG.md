@@ -22,6 +22,20 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   instalado, salen sin error. Antes fallaban en cada Bash, Grep, Read y Glob.
 - **Prettier** en `como-funciona/page.tsx` y `AnimacionesDePortada.tsx`, los
   dos archivos que no pasaban `format:check`.
+## 2026-10-20 — Recuperación de contraseña, correo y acceso con usuario
+
+- **`/recuperar`, `/recuperar/nueva` y `/auth/callback` (RF1.8)**: pedir el
+  enlace, elegir la contraseña nueva y verificar los enlaces del correo. El
+  correo sale por Gmail con plantillas en español. Por qué: no había ninguna
+  forma de recuperar el acceso. Decisión en [`decisiones.md`](./decisiones.md)
+  y armado en [`correo.md`](./correo.md).
+- **Acceso con nombre de usuario (RF1.3.1)**: el campo del login acepta correo
+  o nombre de usuario; el correo se resuelve en el servidor con la clave de
+  servicio (`src/lib/supabase/admin.ts`). Un usuario inexistente da el mismo
+  mensaje que una contraseña mala.
+- **Playwright en el puerto 3100** y `e2e/recuperacion.spec.ts`: en el
+  servidor el 3000 es producción, y esta suite escribe en la base (una cuenta
+  descartable que borra al terminar).
 
 ## 2026-10-20 — Delegación a Antigravity y tests del dominio
 

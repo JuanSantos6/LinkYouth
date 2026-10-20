@@ -138,16 +138,18 @@ export function correspondeA(
 /** Parámetro con el aviso de llegada: «Tu cuenta es de empresa, te llevamos…». */
 export const PARAMETRO_AVISO = "aviso";
 
-export type AvisoDeLlegada = "cuenta-empresa" | "cuenta-joven";
+export type AvisoDeLlegada =
+  "cuenta-empresa" | "cuenta-joven" | "contrasenia-nueva";
 
 export const TEXTO_DE_AVISO: Record<AvisoDeLlegada, string> = {
   "cuenta-empresa": "Tu cuenta es de empresa, así que te llevamos a tu panel.",
   "cuenta-joven":
     "Tu cuenta es para buscar trabajo, así que te llevamos a tu inicio.",
+  "contrasenia-nueva": "Listo, ya tenés tu contraseña nueva.",
 };
 
 export function esAvisoDeLlegada(valor: unknown): valor is AvisoDeLlegada {
-  return valor === "cuenta-empresa" || valor === "cuenta-joven";
+  return typeof valor === "string" && Object.hasOwn(TEXTO_DE_AVISO, valor);
 }
 
 /**

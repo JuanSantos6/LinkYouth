@@ -299,6 +299,23 @@ está envuelto en `try/catch` a propósito: un Server Component no puede
 escribir cookies, y el middleware ya refrescó la sesión, así que ese error
 específico se puede ignorar sin perder nada.
 
+### 5.2b `src/lib/supabase/admin.ts`
+
+`server-only`. El único lugar del código con la clave de servicio, que saltea
+RLS.
+
+#### `crearClienteDeServicio()`
+
+Cliente con `SUPABASE_SERVICE_ROLE_KEY`, sin sesión persistida. `null` si
+falta la clave.
+
+#### `async correoDeUsuario(nombreUsuario): string | null`
+
+El correo de la cuenta con ese nombre de usuario (comparación exacta, como el
+índice único). Lo usa `iniciarSesion` para RF1.3.1. El correo nunca sale del
+servidor: una vista o una función `security definer` que hiciera lo mismo le
+daría a cualquiera el correo de cualquier persona.
+
 ### 5.3 `src/middleware.ts`
 
 #### `async middleware(request)`
@@ -340,6 +357,13 @@ salida —página, redirección o la vía sin credenciales—.
 refresco en caliente. `CABECERA_NONCE` (`x-nonce`) es el header interno con el
 que el middleware le pasa el nonce a los Server Components; no sale al
 navegador. Ver `docs/decisiones.md`, 2026-10-09.
+
+#### `RECUPERACION` · `CONTRASENIA_NUEVA`
+
+`/auth/callback` y `/recuperar` pasan siempre, con o sin sesión, antes de
+separar las dos mitades: no son de ninguna. `/recuperar/nueva` exige sesión
+(la abre el enlace del correo) de cualquier tipo de cuenta; sin ella, vuelve a
+`/recuperar`.
 
 #### `ENTRADA` · `INFORMATIVAS` · `EXPLORABLES`
 
@@ -546,6 +570,18 @@ seguir», que son **distintas a propósito**:
 - `SIN_PERFIL` para el guardia de tipo de cuenta: hay sesión, pero no es una
   cuenta de postulante con perfil creado. Decirle «iniciá sesión» a alguien
   que ya la tiene lo manda a buscar el problema al lugar equivocado.
+
+#### `recuperacion.ts` (RF1.8)
+
+| Función | Qué hace |
+| --- | --- |
+| `pedirRecuperacion` | Pide a GoTrue el correo de recuperación. Responde lo mismo exista o no la cuenta: decirlo serviría para averiguar quién está registrado. |
+| `guardarContraseniaNueva` | Con la sesión que abrió el enlace, valida con `FuerzaDeContrasenia` y guarda la contraseña con `auth.updateUser`. Vuelve a `/inicio` con el aviso `contrasenia-nueva`. |
+
+`iniciarSesion` (en `auth.ts`) acepta en el campo `email` el correo o el
+nombre de usuario (RF1.3.1): sin «@» lo resuelve `correoDeUsuario`. Si no
+existe, sigue con un correo imposible para que el mensaje sea el mismo que con
+una contraseña equivocada.
 
 #### `sesion.ts`
 
@@ -890,6 +926,9 @@ para que no se lea como permiso general.
 | `/` | `Portada` | Portada narrativa: slider de bienvenida, panel que emerge, «Así funciona», búsquedas abiertas, quiénes publican, opiniones de ejemplo, preguntas y llamada final. La única pantalla con animaciones ligadas al scroll. |
 | `/login` | `PaginaLogin` | Inicio de sesión. Layout propio de `(auth)/`: una columna centrada, sin barra lateral. |
 | `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
+| `/recuperar` | `PaginaRecuperar` | RF1.8: pide el correo y manda el enlace. `?motivo=vencido` explica por qué hay que pedir otro. |
+| `/recuperar/nueva` | `PaginaContraseniaNueva` | RF1.8.4: elegir y confirmar la contraseña nueva, con la sesión del enlace. |
+| `/auth/callback` | `GET` (route handler) | Verifica el `token_hash` de los correos de GoTrue (recuperación, confirmación, cambio de correo) y redirige con una ruta relativa: detrás del Funnel el servidor se ve como `localhost`. Ver `docs/correo.md`. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. Se lee sin sesión: sin compatibilidad, con una invitación a crear cuenta. |
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
@@ -1079,10 +1118,12 @@ Resuelto el Hito 1: `(auth)/login` y `(auth)/registro` existen, `auth.ts` tiene
 `registrarse`, `iniciarSesion` y `cerrarSesion`, y el middleware manda a
 `/login` a quien entre a `(app)/` sin sesión.
 
-Queda afuera: el registro de empresa (`cuentas.tipo = 'empresa'`), la
-recuperación de contraseña y la confirmación de correo como paso propio —hoy,
-si el proyecto de Supabase la tiene activada, el alta de `cuentas` y `perfiles`
-se completa recién en el primer inicio de sesión.
+El registro de empresa entró con la Etapa 2. La recuperación de contraseña y
+la confirmación de correo entraron el 2026-10-20 (`/recuperar`,
+`/auth/callback`, `docs/correo.md`). Sigue en pie una parte: con la
+confirmación activada, el alta de `cuentas` y `perfiles` se completa en el
+primer inicio de sesión y no al confirmar, porque esa lógica vive en
+`iniciarSesion`.
 
 ### 7.4 La subida de archivos sube, pero falla en silencio
 
