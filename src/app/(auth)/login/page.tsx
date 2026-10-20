@@ -8,6 +8,14 @@ import { conSiguiente, destinoSeguro } from "@/lib/navegacion";
 
 export const metadata: Metadata = { title: "Iniciar sesión" };
 
+/** Lo que vuelve de `/auth/callback` al confirmar el correo del registro. */
+const AVISOS_DE_CORREO: Record<string, string> = {
+  confirmado:
+    "Tu correo quedó confirmado. Iniciá sesión para terminar el alta.",
+  vencido:
+    "El enlace ya no sirve: se usa una sola vez y vence. Iniciá sesión y, si hace falta, registrate de nuevo.",
+};
+
 /**
  * El formulario es uno solo para los dos tipos de cuenta: la contraseña se
  * verifica igual y el tipo ya lo sabe la base, que es la que decide a qué
@@ -21,9 +29,10 @@ export const metadata: Metadata = { title: "Iniciar sesión" };
 export default async function PaginaLogin({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string; next?: string }>;
+  searchParams: Promise<{ tipo?: string; next?: string; correo?: string }>;
 }) {
-  const { tipo, next } = await searchParams;
+  const { tipo, next, correo } = await searchParams;
+  const avisoDeCorreo = correo ? AVISOS_DE_CORREO[correo] : undefined;
   const esEmpresa = tipo === "empresa";
   const siguiente = destinoSeguro(next);
 
@@ -54,6 +63,14 @@ export default async function PaginaLogin({
       }
     >
       <div className="space-y-6">
+        {avisoDeCorreo && (
+          <p
+            role="status"
+            className="rounded-control border border-borde bg-superficie p-3 text-[15px] text-tinta"
+          >
+            {avisoDeCorreo}
+          </p>
+        )}
         <PestanasDeCuenta
           activo={esEmpresa ? "empresa" : "individual"}
           destinos={{

@@ -6,6 +6,36 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-20 — Correo y acceso con nombre de usuario
+
+### 1. Los enlaces del correo van a la aplicación, con `token_hash`
+
+**Decisión.** Plantillas propias de GoTrue que enlazan a `/auth/callback`
+con `token_hash`, servidas desde un bucket público de Storage. Detalle en
+[`correo.md`](./correo.md).
+
+**Alternativas.** *El enlace por defecto de GoTrue*: apunta a la API de
+Supabase, que solo escucha en la tailnet; habría que publicarla por el Funnel
+y cambiar `API_EXTERNAL_URL`, que también es el emisor de los JWT. *Servir
+las plantillas desde la aplicación*: GoTrue no llega al puerto 3000 del host.
+
+**Por qué.** No expone nada nuevo y es el recorrido que recomienda Supabase
+para aplicaciones con el servidor de por medio.
+
+### 2. Nombre de usuario → correo, con la clave de servicio en el servidor
+
+**Decisión.** `correoDeUsuario` en `src/lib/supabase/admin.ts`
+(`server-only`).
+
+**Alternativas.** *Una función `security definer` abierta a `anon`*: le
+devolvería a cualquiera el correo de cualquier nombre de usuario. *Una
+función que valide la contraseña en la base*: obliga a reimplementar el
+inicio de sesión de GoTrue.
+
+**Por qué.** El correo nunca sale del servidor y GoTrue sigue siendo quien
+valida la contraseña. Un nombre inexistente da el mismo mensaje que una
+contraseña mala.
+
 ## 2026-10-20 — Vitest para los tests unitarios del dominio
 
 **Decisión.** Los tests unitarios usan Vitest (`npm test`, archivos

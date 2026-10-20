@@ -28,6 +28,10 @@ import type { Database } from "@/types/database";
 /** Rutas de entrada. Sin sesión son públicas; con sesión ya no tienen sentido. */
 const ENTRADA = ["/login", "/registro"];
 
+/** Recuperación de contraseña y enlaces de correo: abiertas con o sin sesión. */
+const RECUPERACION = ["/auth/callback", "/recuperar"];
+const CONTRASENIA_NUEVA = "/recuperar/nueva";
+
 /** Prefijo del panel de empresa. Todo lo demás es territorio del postulante. */
 const AREA_EMPRESA = "/empresa";
 
@@ -149,6 +153,15 @@ async function controlDeAcceso(request: NextRequest) {
 
     return redireccion;
   };
+
+  // RF1.8 y confirmación de correo. `/auth/callback` abre la sesión del enlace
+  // y `/recuperar` se pide con o sin sesión: ninguna es de una mitad de la
+  // aplicación. `/recuperar/nueva` necesita la sesión que abrió el enlace, sea
+  // de la cuenta que sea.
+  if (RECUPERACION.includes(ruta)) return response;
+  if (ruta === CONTRASENIA_NUEVA) {
+    return user ? response : redirigirA("/recuperar");
+  }
 
   if (!user) {
     const abierta =
