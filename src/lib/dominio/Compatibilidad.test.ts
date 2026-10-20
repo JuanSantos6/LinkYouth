@@ -155,26 +155,17 @@ describe("Compatibilidad (RF3.5.2)", () => {
     ]);
   });
 
-  it("documenta la diferencia entre porcentaje y cantidadCubierta cuando hay requisitos repetidos en la vacante", () => {
-    // Si un mismo requisito aparece tanto en habilidades como en tags (o repetido),
-    // `requisitos` conserva los duplicados (largo 2), mientras que `cubiertos` es un
-    // Set sin duplicados (tamaño 1). Por eso `cantidadCubierta` filtra el arreglo y
-    // cuenta las 2 apariciones, pero `porcentaje` divide `cubiertos.size` (1) por
-    // `requisitos.length` (2) y da 50 % en vez de 100 %.
-    const vacanteConRepetidos = {
-      habilidades: ["Inglés"],
-      tags: ["inglés"],
-    };
-    const perfil = {
-      habilidades: ["Inglés"],
-      tags: [],
-    };
-
-    const compatibilidad = Compatibilidad.entre(vacanteConRepetidos, perfil);
+  it("cuenta una sola vez un requisito repetido como habilidad y como tag", () => {
+    // Antes «Inglés» como habilidad y «inglés» como tag contaban dos veces en
+    // el medidor («Tenés 2 de 2») y una en el porcentaje (50 %).
+    const compatibilidad = Compatibilidad.entre(
+      { habilidades: ["Inglés"], tags: ["inglés", "Excel"] },
+      { habilidades: ["Inglés"], tags: [] },
+    );
 
     expect(compatibilidad.cantidadRequerida).toBe(2);
-    expect(compatibilidad.cantidadCubierta).toBe(2);
+    expect(compatibilidad.cantidadCubierta).toBe(1);
     expect(compatibilidad.porcentaje).toBe(50);
-    expect(compatibilidad.faltantes).toEqual([]);
+    expect(compatibilidad.faltantes).toEqual(["Excel"]);
   });
 });

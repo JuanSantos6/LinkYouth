@@ -57,10 +57,10 @@ export default function PaginaComoFunciona() {
         <p className="mt-2 text-[15px] leading-relaxed text-apagado">
           El proyecto está en construcción. Ya podés crear tu cuenta, como
           persona o como empresa, e iniciar sesión. Con tu cuenta recorrés el
-          feed de vacantes y eventos, armás tu ficha y seguís tus
-          postulaciones. Mientras la plataforma se va llenando de búsquedas y
-          eventos, algunas pantallas pueden mostrar contenido de demostración,
-          y lo aclaran cada vez que lo es.
+          feed de vacantes y eventos, armás tu ficha y seguís tus postulaciones.
+          Mientras la plataforma se va llenando de búsquedas y eventos, algunas
+          pantallas pueden mostrar contenido de demostración, y lo aclaran cada
+          vez que lo es.
         </p>
       </section>
 

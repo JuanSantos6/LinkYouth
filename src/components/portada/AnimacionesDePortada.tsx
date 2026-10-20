@@ -177,21 +177,19 @@ export function AnimacionesDePortada() {
           }
 
           // Bloques que aparecen una sola vez al entrar en pantalla.
-          gsap.utils
-            .toArray<HTMLElement>("[data-revelar]")
-            .forEach((bloque) =>
-              gsap.from(bloque, {
-                y: 22,
-                opacity: 0,
-                duration: 0.6,
-                ease: "power2.out",
-                scrollTrigger: {
-                  trigger: bloque,
-                  start: "top 90%",
-                  once: true,
-                },
-              }),
-            );
+          gsap.utils.toArray<HTMLElement>("[data-revelar]").forEach((bloque) =>
+            gsap.from(bloque, {
+              y: 22,
+              opacity: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: bloque,
+                start: "top 90%",
+                once: true,
+              },
+            }),
+          );
         },
       );
 
