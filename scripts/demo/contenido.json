@@ -1,0 +1,1510 @@
+{
+  "empresas": [
+    {
+      "clave": "nube",
+      "demo": true,
+      "razon_social": "Nube Sur S.A.",
+      "rut": "211234560018",
+      "rubro": "Tecnología",
+      "descripcion": "Desarrollamos productos digitales y plataformas de gestión para empresas de toda la región desde nuestro estudio en Montevideo. Buscamos jóvenes con curiosidad técnica que quieran dar sus primeros pasos en desarrollo de software, diseño de interfaces, análisis de datos y soporte. Trabajamos en equipos chicos con revisión de código compartida y acompañamiento de un referente desde la primera semana.",
+      "sitio_web": "https://nubesur.example.com",
+      "email": "rrhh@nubesur.example.com",
+      "color": "#6541e0"
+    },
+    {
+      "clave": "ceibo",
+      "demo": false,
+      "razon_social": "Tostadores del Ceibo S.R.L.",
+      "rut": "212345670019",
+      "rubro": "Gastronomía",
+      "descripcion": "Tostamos café de especialidad y gestionamos tres locales de cafetería y panadería artesanal en Montevideo. Incorporamos perfiles jóvenes para barra, atención en salón y comunicación digital, con turnos compatibles con los horarios de estudio. No exigimos experiencia previa porque damos capacitación práctica durante el primer mes.",
+      "sitio_web": "https://tostadoresdelceibo.example.com",
+      "email": "personas@tostadoresdelceibo.example.com",
+      "color": "#8b3a1e"
+    },
+    {
+      "clave": "puerto",
+      "demo": false,
+      "razon_social": "Puerto Sur Logística S.A.",
+      "rut": "213456780010",
+      "rubro": "Logística",
+      "descripcion": "Operamos centros de distribución y transporte de última milla entre Montevideo y el área metropolitana de Canelones. Sumamos estudiantes y recién egresados para operativa de depósito, seguimiento de envíos y atención a comercios. Ofrecemos horarios fijos, traslado desde puntos clave y formación en herramientas de gestión logística.",
+      "sitio_web": "https://puertosur.example.com",
+      "email": "seleccion@puertosur.example.com",
+      "color": "#0d5c75"
+    },
+    {
+      "clave": "vital",
+      "demo": false,
+      "razon_social": "Clínica Parque Rodó S.A.",
+      "rut": "214567890011",
+      "rubro": "Salud",
+      "descripcion": "Somos un centro ambulatorio de diagnóstico, fisioterapia y medicina general enfocado en una atención cercana y ordenada. Buscamos jóvenes organizados y con buen trato para recepción de pacientes, gestión de agenda médica y tareas administrativas de facturación. Acompañamos el ingreso con inducción paso a paso en nuestros sistemas.",
+      "sitio_web": "https://clinicaparquerodo.example.com",
+      "email": "talento@clinicaparquerodo.example.com",
+      "color": "#0a7a73"
+    },
+    {
+      "clave": "rambla",
+      "demo": false,
+      "razon_social": "Almacén y Bazar La Rambla S.R.L.",
+      "rut": "215678900012",
+      "rubro": "Comercio",
+      "descripcion": "Comercializamos artículos de hogar, ferretería liviana y equipamiento cotidiano en locales propios y a través de nuestra tienda en línea. Buscamos personas dinámicas para atención en salón, manejo de caja y preparación de pedidos web. Valoramos la buena disposición para trabajar en equipo y asesorar a cada cliente con paciencia.",
+      "sitio_web": "https://bazarlarambla.example.com",
+      "email": "rrhh@bazarlarambla.example.com",
+      "color": "#9e1f47"
+    },
+    {
+      "clave": "mirador",
+      "demo": false,
+      "razon_social": "Posada del Mirador S.A.",
+      "rut": "216789010013",
+      "rubro": "Hotelería y Turismo",
+      "descripcion": "Gestionamos un hotel boutique y un espacio de eventos corporativos y culturales en la costa de Maldonado. Recibimos jóvenes con interés en hospitalidad, idiomas y organización de actividades para recepción bilingüe y coordinación de salones. Brindamos entrenamiento continuo en servicio al huésped y estándares de hotelería.",
+      "sitio_web": "https://posadadelmirador.example.com",
+      "email": "equipo@posadadelmirador.example.com",
+      "color": "#1d4ed8"
+    },
+    {
+      "clave": "cimiento",
+      "demo": false,
+      "razon_social": "Estudio Cimiento Constructora S.R.L.",
+      "rut": "217890120014",
+      "rubro": "Construcción y Arquitectura",
+      "descripcion": "Proyectamos y ejecutamos obras de vivienda colectiva y reformas comerciales en Montevideo y Canelones. Buscamos estudiantes avanzados de arquitectura, ingeniería civil o carreras técnicas de construcción para dibujo de planos, cómputo de materiales y apoyo en seguimiento de obra. Promovemos un entorno de aprendizaje técnico en oficina y en terreno.",
+      "sitio_web": "https://estudiocimiento.example.com",
+      "email": "ingreso@estudiocimiento.example.com",
+      "color": "#5c4033"
+    },
+    {
+      "clave": "trebol",
+      "demo": false,
+      "razon_social": "Agrotecnia El Trébol S.A.",
+      "rut": "218901230015",
+      "rubro": "Agro y Sustentabilidad",
+      "descripcion": "Asesoramos a productores del litoral uruguayo en monitoreo de cultivos, uso eficiente del agua y trazabilidad ambiental. Incorporamos perfiles jóvenes con formación agronómica, ambiental o de análisis de datos para trabajo de campo y elaboración de reportes técnicos. Fomentamos el vínculo directo entre la tecnología y la producción sustentable.",
+      "sitio_web": "https://agrotecniaeltrebol.example.com",
+      "email": "rrhh@agrotecniaeltrebol.example.com",
+      "color": "#2e6b22"
+    }
+  ],
+  "jovenes": [
+    {
+      "clave": "lucia",
+      "demo": true,
+      "nombre": "Lucía",
+      "apellido": "Fernández",
+      "nombre_usuario": "lucia.fernandez",
+      "email": "lucia.fernandez@example.com",
+      "fecha_nacimiento": "2004-03-18",
+      "pais": "Uruguay",
+      "bio": "Estudio Ingeniería en Informática y me interesa el cruce entre desarrollo web y diseño de interfaces. Busco mi primera experiencia en un equipo donde pueda aprender buenas prácticas y aportar en proyectos reales.",
+      "tags": [
+        "Tecnología",
+        "UX",
+        "Diseño",
+        "Datos",
+        "Sistemas",
+        "Educación y Enseñanza"
+      ],
+      "habilidades": [
+        "Desarrollo web (HTML, CSS, JavaScript)",
+        "Figma",
+        "Inglés",
+        "Trabajo en equipo",
+        "Excel y Google Sheets"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de Montevideo",
+          "titulo": "Ingeniería en Informática",
+          "estado": "en_curso"
+        },
+        {
+          "institucion": "Plan Ceibal — Jóvenes a Programar",
+          "titulo": "Desarrollo Web",
+          "estado": "finalizado"
+        }
+      ],
+      "color": "#0a7a73"
+    },
+    {
+      "clave": "mateo",
+      "demo": false,
+      "nombre": "Mateo",
+      "apellido": "Silveira",
+      "nombre_usuario": "mateo.silveira",
+      "email": "mateo.silveira@example.com",
+      "fecha_nacimiento": "2003-07-12",
+      "pais": "Uruguay",
+      "bio": "Curso la carrera de Computación y armo proyectos propios con JavaScript y bases de datos. Quiero sumarme a un equipo técnico donde pueda crecer como desarrollador.",
+      "tags": [
+        "Tecnología",
+        "Sistemas",
+        "Datos",
+        "Inteligencia Artificial",
+        "Ingeniería"
+      ],
+      "habilidades": [
+        "Desarrollo web (HTML, CSS, JavaScript)",
+        "Python",
+        "SQL",
+        "Inglés",
+        "Trabajo en equipo"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República",
+          "titulo": "Ingeniería en Computación",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#6541e0"
+    },
+    {
+      "clave": "valentina",
+      "demo": false,
+      "nombre": "Valentina",
+      "apellido": "Rodríguez",
+      "nombre_usuario": "valentina.rodriguez",
+      "email": "valentina.rodriguez@example.com",
+      "fecha_nacimiento": "2005-01-24",
+      "pais": "Uruguay",
+      "bio": "Estudio Diseño y Comunicación Visual en Montevideo. Me gusta prototipar pantallas en Figma, crear piezas gráficas y pensar contenidos claros para redes sociales.",
+      "tags": [
+        "Diseño",
+        "UX",
+        "Comunicación",
+        "Marketing",
+        "Publicidad",
+        "Medios"
+      ],
+      "habilidades": [
+        "Figma",
+        "Canva",
+        "Manejo de redes sociales",
+        "Edición de video (CapCut o Premiere)",
+        "Redacción y ortografía"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República",
+          "titulo": "Licenciatura en Diseño de Comunicación Visual",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#9e1f47"
+    },
+    {
+      "clave": "santiago",
+      "demo": false,
+      "nombre": "Santiago",
+      "apellido": "Pereira",
+      "nombre_usuario": "santiago.pereira",
+      "email": "santiago.pereira@example.com",
+      "fecha_nacimiento": "2001-11-05",
+      "pais": "Uruguay",
+      "bio": "Estudiante avanzado de Arquitectura con manejo fluido de planos y herramientas digitales. Busco una pasantía o empleo de medio horario en estudio o constructora.",
+      "tags": [
+        "Arquitectura",
+        "Construcción",
+        "Diseño",
+        "Ingeniería",
+        "Sustentabilidad"
+      ],
+      "habilidades": [
+        "AutoCAD y lectura de planos",
+        "Excel y Google Sheets",
+        "Organización y planificación",
+        "Trabajo en equipo"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República",
+          "titulo": "Arquitectura",
+          "estado": "en_curso"
+        },
+        {
+          "institucion": "UTU — Escuela Superior de la Construcción",
+          "titulo": "Ayudante de Arquitecto e Ingeniero",
+          "estado": "finalizado"
+        }
+      ],
+      "color": "#5c4033"
+    },
+    {
+      "clave": "camila",
+      "demo": false,
+      "nombre": "Camila",
+      "apellido": "Bentancur",
+      "nombre_usuario": "camila.bentancur",
+      "email": "camila.bentancur@example.com",
+      "fecha_nacimiento": "2004-09-30",
+      "pais": "Uruguay",
+      "bio": "Me apasionan el marketing digital y el comercio electrónico. Disfruto planificar campañas, redactar textos y analizar qué contenidos funcionan mejor.",
+      "tags": [
+        "Marketing",
+        "Publicidad",
+        "Comunicación",
+        "Comercio",
+        "Ventas",
+        "Diseño"
+      ],
+      "habilidades": [
+        "Manejo de redes sociales",
+        "Publicidad digital (Meta Ads, Google Ads)",
+        "Canva",
+        "Redacción y ortografía",
+        "CRM (Salesforce o HubSpot)"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad Católica del Uruguay",
+          "titulo": "Licenciatura en Comunicación",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#1d4ed8"
+    },
+    {
+      "clave": "joaquin",
+      "demo": false,
+      "nombre": "Joaquín",
+      "apellido": "Cabrera",
+      "nombre_usuario": "joaquin.cabrera",
+      "email": "joaquin.cabrera@example.com",
+      "fecha_nacimiento": "2002-05-19",
+      "pais": "Uruguay",
+      "bio": "Terminé el bachillerato tecnológico en logística y busco sumarme a un equipo operativo de depósito, inventario o distribución en Montevideo o Canelones.",
+      "tags": [
+        "Logística",
+        "Depósito",
+        "Producción",
+        "Comercio",
+        "Administración y Gestión"
+      ],
+      "habilidades": [
+        "Excel y Google Sheets",
+        "Organización y planificación",
+        "Google Workspace / Office",
+        "Trabajo en equipo"
+      ],
+      "formaciones": [
+        {
+          "institucion": "UTU — Instituto Tecnológico Superior",
+          "titulo": "Tecnicatura en Logística",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#0d5c75"
+    },
+    {
+      "clave": "agustina",
+      "demo": false,
+      "nombre": "Agustina",
+      "apellido": "Morales",
+      "nombre_usuario": "agustina.morales",
+      "email": "agustina.morales@example.com",
+      "fecha_nacimiento": "2006-02-14",
+      "pais": "Uruguay",
+      "bio": "Recién terminé el liceo y quiero empezar a trabajar en atención al público, cafetería o recepción. Me llevo muy bien con la gente y aprendo rápido.",
+      "tags": [
+        "Atención al Cliente",
+        "Gastronomía",
+        "Comercio",
+        "Salud",
+        "Eventos",
+        "Recreación"
+      ],
+      "habilidades": [
+        "Atención al público",
+        "Caja y punto de venta (POS)",
+        "Trabajo en equipo",
+        "Google Workspace / Office"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Liceo N.º 35 IAVA",
+          "titulo": "Bachillerato Diversificado",
+          "estado": "finalizado"
+        }
+      ],
+      "color": "#8b3a1e"
+    },
+    {
+      "clave": "facundo",
+      "demo": false,
+      "nombre": "Facundo",
+      "apellido": "Olivera",
+      "nombre_usuario": "facundo.olivera",
+      "email": "facundo.olivera@example.com",
+      "fecha_nacimiento": "2000-08-22",
+      "pais": "Uruguay",
+      "bio": "Estudio Ciencias Económicas y me especializo en planillas, indicadores de gestión y visualización de datos. Busco un puesto analítico en finanzas, logística o tecnología.",
+      "tags": [
+        "Datos",
+        "Finanzas",
+        "Contabilidad",
+        "Administración y Gestión",
+        "Logística"
+      ],
+      "habilidades": [
+        "Excel y Google Sheets",
+        "Power BI",
+        "SQL",
+        "Contabilidad básica y facturación",
+        "Inglés"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República",
+          "titulo": "Licenciatura en Economía",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#2e6b22"
+    },
+    {
+      "clave": "florencia",
+      "demo": false,
+      "nombre": "Florencia",
+      "apellido": "Duarte",
+      "nombre_usuario": "florencia.duarte",
+      "email": "florencia.duarte@example.com",
+      "fecha_nacimiento": "2003-12-03",
+      "pais": "Uruguay",
+      "bio": "Curso Administración y me destaco por el orden en agendas, atención telefónica y coordinación de equipos. Busco desarrollarme en recepción médica, eventos o gestión.",
+      "tags": [
+        "Administración y Gestión",
+        "Salud",
+        "Atención al Cliente",
+        "Recursos Humanos",
+        "Eventos"
+      ],
+      "habilidades": [
+        "Organización y planificación",
+        "Atención al público",
+        "Google Workspace / Office",
+        "Excel y Google Sheets",
+        "Redacción y ortografía"
+      ],
+      "formaciones": [
+        {
+          "institucion": "UTU — Escuela Superior de Administración",
+          "titulo": "Tecnicatura en Administración",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#4f46e5"
+    },
+    {
+      "clave": "nicolas",
+      "demo": false,
+      "nombre": "Nicolás",
+      "apellido": "Techera",
+      "nombre_usuario": "nicolas.techera",
+      "email": "nicolas.techera@example.com",
+      "fecha_nacimiento": "2005-06-28",
+      "pais": "Uruguay",
+      "bio": "Me formé en soporte informático y reparación de equipos. Busco mi primer empleo en mesa de ayuda, ventas técnicas o depósito tecnológico.",
+      "tags": [
+        "Soporte Técnico",
+        "Sistemas",
+        "Tecnología",
+        "Atención al Cliente",
+        "Ventas",
+        "Depósito"
+      ],
+      "habilidades": [
+        "Atención al público",
+        "Google Workspace / Office",
+        "Trabajo en equipo",
+        "Caja y punto de venta (POS)"
+      ],
+      "formaciones": [
+        {
+          "institucion": "UTU — Escuela Técnica de Buceo",
+          "titulo": "Bachillerato en Informática",
+          "estado": "finalizado"
+        }
+      ],
+      "color": "#0f766e"
+    },
+    {
+      "clave": "micaela",
+      "demo": false,
+      "nombre": "Micaela",
+      "apellido": "Sosa",
+      "nombre_usuario": "micaela.sosa",
+      "email": "micaela.sosa@example.com",
+      "fecha_nacimiento": "2001-04-09",
+      "pais": "Uruguay",
+      "bio": "Vivo en Maldonado y estudio Gestión Turística. Tengo buen nivel de inglés y vocación de servicio para recepción de hoteles, gastronomía y atención al visitante.",
+      "tags": [
+        "Turismo",
+        "Hotelería",
+        "Eventos",
+        "Atención al Cliente",
+        "Gastronomía",
+        "Recreación"
+      ],
+      "habilidades": [
+        "Inglés",
+        "Atención al público",
+        "Organización y planificación",
+        "Caja y punto de venta (POS)",
+        "Trabajo en equipo"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República — CURE Maldonado",
+          "titulo": "Licenciatura en Turismo",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#b45309"
+    },
+    {
+      "clave": "bruno",
+      "demo": false,
+      "nombre": "Bruno",
+      "apellido": "Cardozo",
+      "nombre_usuario": "bruno.cardozo",
+      "email": "bruno.cardozo@example.com",
+      "fecha_nacimiento": "2004-10-15",
+      "pais": "Uruguay",
+      "bio": "Estudio Ingeniería Civil y programación básica. Me interesa participar en proyectos de infraestructura, dibujo técnico o desarrollo de herramientas para ingeniería.",
+      "tags": [
+        "Ingeniería",
+        "Construcción",
+        "Arquitectura",
+        "Tecnología",
+        "Datos"
+      ],
+      "habilidades": [
+        "AutoCAD y lectura de planos",
+        "Python",
+        "Excel y Google Sheets",
+        "Trabajo en equipo"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República",
+          "titulo": "Ingeniería Civil",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#374151"
+    },
+    {
+      "clave": "sofia",
+      "demo": false,
+      "nombre": "Sofía",
+      "apellido": "Methol",
+      "nombre_usuario": "sofia.methol",
+      "email": "sofia.methol@example.com",
+      "fecha_nacimiento": "2002-01-17",
+      "pais": "Uruguay",
+      "bio": "Me dedico al análisis de datos y la estadística aplicada. Disfruto limpiar bases de datos, armar tableros en Power BI y encontrar patrones útiles para tomar decisiones.",
+      "tags": [
+        "Datos",
+        "Inteligencia Artificial",
+        "Tecnología",
+        "Sistemas",
+        "Agro",
+        "Sustentabilidad"
+      ],
+      "habilidades": [
+        "Python",
+        "SQL",
+        "Power BI",
+        "Excel y Google Sheets",
+        "Inglés"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República",
+          "titulo": "Licenciatura en Estadística",
+          "estado": "en_curso"
+        },
+        {
+          "institucion": "Instituto Anglo Uruguayo",
+          "titulo": "Certificación B2 First",
+          "estado": "finalizado"
+        }
+      ],
+      "color": "#7c3aed"
+    },
+    {
+      "clave": "martin",
+      "demo": false,
+      "nombre": "Martín",
+      "apellido": "Alzugaray",
+      "nombre_usuario": "martin.alzugaray",
+      "email": "martin.alzugaray@example.com",
+      "fecha_nacimiento": "2006-07-08",
+      "pais": "Uruguay",
+      "bio": "Curso programación web y busco combinar el estudio con un empleo de medio tiempo en ventas, atención comercial o tecnología.",
+      "tags": [
+        "Ventas",
+        "Comercio",
+        "Atención al Cliente",
+        "Tecnología",
+        "Datos"
+      ],
+      "habilidades": [
+        "Atención al público",
+        "Desarrollo web (HTML, CSS, JavaScript)",
+        "CRM (Salesforce o HubSpot)",
+        "Trabajo en equipo"
+      ],
+      "formaciones": [
+        {
+          "institucion": "ORT Uruguay",
+          "titulo": "Analista Programador",
+          "estado": "en_curso"
+        }
+      ],
+      "color": "#be123c"
+    },
+    {
+      "clave": "paula",
+      "demo": false,
+      "nombre": "Paula",
+      "apellido": "Piñeyro",
+      "nombre_usuario": "paula.pineyro",
+      "email": "paula.pineyro@example.com",
+      "fecha_nacimiento": "2000-11-27",
+      "pais": "Uruguay",
+      "bio": "Soy estudiante de Agronomía y tengo formación en gestión contable. Me interesa trabajar en proyectos vinculados al agro sustentable o en administración de empresas.",
+      "tags": [
+        "Agro",
+        "Sustentabilidad",
+        "Administración y Gestión",
+        "Contabilidad",
+        "Salud",
+        "Producción"
+      ],
+      "habilidades": [
+        "Contabilidad básica y facturación",
+        "Excel y Google Sheets",
+        "Organización y planificación",
+        "Google Workspace / Office"
+      ],
+      "formaciones": [
+        {
+          "institucion": "Universidad de la República — Facultad de Agronomía",
+          "titulo": "Ingeniería Agronómica",
+          "estado": "en_curso"
+        },
+        {
+          "institucion": "BIOS",
+          "titulo": "Auxiliar Contable y Facturación",
+          "estado": "finalizado"
+        }
+      ],
+      "color": "#15803d"
+    }
+  ],
+  "vacantes": [
+    {
+      "clave": "nube-frontend",
+      "empresa": "nube",
+      "titulo": "Desarrollador/a frontend junior",
+      "descripcion": "Vas a sumarte al equipo que construye las interfaces de nuestros productos web para clientes de Uruguay y la región. Durante los primeros meses vas a maquetar pantallas accesibles, armar componentes reutilizables y resolver mejoras visuales junto a diseño.\nBuscamos a alguien con base en HTML, CSS y JavaScript, ganas de aprender en equipo y atención al detalle.\nOfrecemos mentoría técnica semanal, horario flexible para rendir exámenes y equipamiento completo para trabajar cómodo tanto en la oficina como desde tu casa.",
+      "tipo": "empleo",
+      "modalidad": "hibrida",
+      "ubicacion": "Ciudad Vieja, Montevideo",
+      "posiciones": 3,
+      "estado": "activa",
+      "habilidades": [
+        "Desarrollo web (HTML, CSS, JavaScript)",
+        "Figma",
+        "Inglés",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Tecnología", "Sistemas", "UX"],
+      "tagsOcultos": ["Diseño", "Educación y Enseñanza"]
+    },
+    {
+      "clave": "nube-datos",
+      "empresa": "nube",
+      "titulo": "Pasantía en análisis de datos",
+      "descripcion": "Te proponemos una pasantía de seis meses en nuestro equipo de datos para colaborar en el armado de tableros de seguimiento y en la limpieza de bases operativas. Vas a escribir consultas en SQL, automatizar reportes sencillos en Python y participar en las reuniones donde analizamos el uso de las plataformas.\nNo hace falta experiencia laboral previa: valoramos que estés cursando una carrera afín y que tengas curiosidad por entender qué cuentan los números.\nOfrecemos horarios adaptados a la facultad y acompañamiento constante.",
+      "tipo": "pasantia",
+      "modalidad": "remota",
+      "ubicacion": null,
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": ["SQL", "Python", "Power BI", "Excel y Google Sheets"],
+      "tags": ["Datos", "Tecnología", "Inteligencia Artificial"],
+      "tagsOcultos": ["Finanzas"]
+    },
+    {
+      "clave": "nube-ux",
+      "empresa": "nube",
+      "titulo": "Diseñador/a de interfaces y UX trainee",
+      "descripcion": "Buscamos a una persona que quiera dar sus primeros pasos profesionales en diseño de producto digital. Vas a colaborar en el mantenimiento de nuestro sistema de diseño en Figma, armar prototipos navegables y participar en pruebas de usabilidad con usuarios reales.\nQueremos conocer tu criterio visual, tu capacidad de escuchar devoluciones y cómo ordenás la información en pantalla.\nTe ofrecemos un entorno de trabajo colaborativo junto a desarrolladores y diseñadores con recorrido que te van a guiar en cada entrega.",
+      "tipo": "empleo",
+      "modalidad": "hibrida",
+      "ubicacion": "Parque Rodó, Montevideo",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": ["Figma", "Redacción y ortografía", "Trabajo en equipo"],
+      "tags": ["UX", "Diseño", "Tecnología"],
+      "tagsOcultos": ["Comunicación"]
+    },
+    {
+      "clave": "nube-soporte",
+      "empresa": "nube",
+      "titulo": "Pasantía en soporte técnico de aplicaciones",
+      "descripcion": "En esta pasantía vas a ser el primer punto de contacto para las personas que usan nuestros sistemas de gestión a diario. Tu tarea principal va a ser recibir consultas por tiques, reproducir casos en el entorno de pruebas, guiar a los usuarios paso a paso y documentar las preguntas frecuentes.\nBuscamos buen trato, claridad al escribir y paciencia para explicar procesos técnicos de forma sencilla.\nBrindamos dos semanas de capacitación inicial paga y días libres por estudio.",
+      "tipo": "pasantia",
+      "modalidad": "presencial",
+      "ubicacion": "Cordón, Montevideo",
+      "posiciones": 2,
+      "estado": "pausada",
+      "habilidades": [
+        "Atención al público",
+        "Google Workspace / Office",
+        "Redacción y ortografía",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Soporte Técnico", "Atención al Cliente", "Sistemas"],
+      "tagsOcultos": ["Tecnología"]
+    },
+    {
+      "clave": "ceibo-barista",
+      "empresa": "ceibo",
+      "titulo": "Barista y atención en barra",
+      "descripcion": "Sumate al equipo de nuestra cafetería de Cordón para preparar café de especialidad, despachar pastelería del día y recibir a quienes nos visitan cada mañana. Durante las primeras tres semanas vas a aprender a calibrar el molino, texturizar leche y cuidar el orden de la estación de trabajo.\nBuscamos jóvenes puntuales, con gusto por la gastronomía y ganas de trabajar en un ambiente dinámico de salón.\nOfrecemos turnos fijos de seis horas, uniforme completo y capacitación práctica en barismo desde el primer día.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Cordón, Montevideo",
+      "posiciones": 3,
+      "estado": "activa",
+      "habilidades": [
+        "Atención al público",
+        "Caja y punto de venta (POS)",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Gastronomía", "Atención al Cliente", "Comercio"],
+      "tagsOcultos": ["Eventos"]
+    },
+    {
+      "clave": "ceibo-redes",
+      "empresa": "ceibo",
+      "titulo": "Pasantía en contenidos y redes sociales",
+      "descripcion": "Queremos incorporar a un estudiante de comunicación, diseño o marketing para contar el día a día de nuestro tostadero y de las tres cafeterías. Vas a sacar fotos y grabar videos cortos en los locales, editar piezas dinámicas, armar el calendario mensual de publicaciones y responder mensajes de nuestra comunidad.\nValoramos la creatividad, el cuidado estético y la buena ortografía.\nOfrecemos horario flexible de veinte horas semanales y modalidad híbrida combinando visitas a los locales con trabajo desde casa.",
+      "tipo": "pasantia",
+      "modalidad": "hibrida",
+      "ubicacion": "Pocitos, Montevideo",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": [
+        "Manejo de redes sociales",
+        "Edición de video (CapCut o Premiere)",
+        "Canva",
+        "Redacción y ortografía"
+      ],
+      "tags": ["Comunicación", "Marketing", "Gastronomía", "Medios"],
+      "tagsOcultos": ["Publicidad", "Diseño"]
+    },
+    {
+      "clave": "ceibo-caja",
+      "empresa": "ceibo",
+      "titulo": "Encargado/a de caja y mostrador de tarde",
+      "descripcion": "En este rol vas a estar al frente del mostrador en el turno vespertino de nuestro local del Centro. Tus responsabilidades incluyen el cobro en punto de venta, el armado de pedidos para llevar, el control de stock de bolsas de café en grano y el cierre diario de caja.\nBuscamos a alguien ordenado con los números, amable en el trato y capaz de mantener la calma en las horas de mayor movimiento.\nOfrecemos ingreso inmediato en planilla, descanso fijo los domingos y posibilidades reales de crecimiento.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Centro, Montevideo",
+      "posiciones": 2,
+      "estado": "cerrada",
+      "habilidades": [
+        "Caja y punto de venta (POS)",
+        "Atención al público",
+        "Organización y planificación"
+      ],
+      "tags": ["Gastronomía", "Comercio", "Atención al Cliente"],
+      "tagsOcultos": []
+    },
+    {
+      "clave": "puerto-deposito",
+      "empresa": "puerto",
+      "titulo": "Auxiliar operativo de depósito y expedición",
+      "descripcion": "Buscamos jóvenes para integrarse a nuestro centro logístico sobre Ruta 101 en tareas de recepción de mercadería, control de remitos, preparación de pedidos con lector de código de barras y armado de recorridos de reparto.\nNo pedimos experiencia previa en logística, pero sí compromiso con las normas de seguridad, orden en el trabajo diario y manejo básico de planillas para registrar ingresos.\nContamos con camioneta de acercamiento desde Tres Cruces y Paso Carrasco, comedor en planta y horarios rotativos avisados con anticipación.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Ruta 101, Canelones",
+      "posiciones": 4,
+      "estado": "activa",
+      "habilidades": [
+        "Organización y planificación",
+        "Excel y Google Sheets",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Logística", "Depósito", "Producción"],
+      "tagsOcultos": ["Comercio"]
+    },
+    {
+      "clave": "puerto-planificacion",
+      "empresa": "puerto",
+      "titulo": "Pasantía en seguimiento de rutas e indicadores",
+      "descripcion": "Te invitamos a sumarte al área de planificación de entregas para colaborar en el monitoreo diario de las camionetas de reparto y en el análisis de tiempos de entrega. Vas a actualizar tableros operativos en planillas y Power BI, detectar demoras en ruta y coordinar soluciones con el equipo de choferes.\nEs una oportunidad ideal para estudiantes de logística, administración o economía que quieran aplicar herramientas de datos a una operación real.\nOfrecemos jornada de seis horas y tutoría de nuestro coordinador de tráfico.",
+      "tipo": "pasantia",
+      "modalidad": "hibrida",
+      "ubicacion": "Aguada, Montevideo",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": [
+        "Excel y Google Sheets",
+        "Power BI",
+        "Organización y planificación"
+      ],
+      "tags": ["Logística", "Datos", "Administración y Gestión"],
+      "tagsOcultos": ["Ingeniería"]
+    },
+    {
+      "clave": "puerto-atencion",
+      "empresa": "puerto",
+      "titulo": "Asistente de atención a comercios adheridos",
+      "descripcion": "Desde nuestra oficina en Ciudad de la Costa damos soporte a las tiendas que envían sus ventas con nosotros. Vas a atender consultas sobre estados de paquetes, coordinar retiros programados, cargar novedades en nuestro CRM y hacer seguimiento de casos especiales hasta su resolución.\nBuscamos una persona comunicativa, prolija para dejar registro escrito de cada gestión y con buen manejo de herramientas de oficina.\nOfrecemos horario de lunes a viernes y capacitación integral sobre nuestra red de envíos.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Ciudad de la Costa, Canelones",
+      "posiciones": 2,
+      "estado": "pausada",
+      "habilidades": [
+        "Atención al público",
+        "CRM (Salesforce o HubSpot)",
+        "Google Workspace / Office",
+        "Redacción y ortografía"
+      ],
+      "tags": ["Atención al Cliente", "Logística", "Comercio"],
+      "tagsOcultos": ["Administración y Gestión"]
+    },
+    {
+      "clave": "vital-recepcion",
+      "empresa": "vital",
+      "titulo": "Recepcionista y gestión de agenda médica",
+      "descripcion": "Buscamos incorporar a una persona cálida y organizada para la recepción principal de nuestra clínica en Parque Rodó. Vas a dar la bienvenida a los pacientes, confirmar consultas presenciales y telefónicas, coordinar estudios con los distintos consultorios y realizar el cobro de órdenes médicas.\nValoramos especialmente la empatía, la discreción y la claridad para orientar a personas de todas las edades.\nOfrecemos estabilidad laboral, capacitación en nuestro sistema de historia clínica y un ambiente de trabajo tranquilo y respetuoso.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Parque Rodó, Montevideo",
+      "posiciones": 3,
+      "estado": "activa",
+      "habilidades": [
+        "Atención al público",
+        "Organización y planificación",
+        "Caja y punto de venta (POS)",
+        "Google Workspace / Office"
+      ],
+      "tags": [
+        "Salud",
+        "Atención al Cliente",
+        "Cuidados",
+        "Administración y Gestión"
+      ],
+      "tagsOcultos": []
+    },
+    {
+      "clave": "vital-administracion",
+      "empresa": "vital",
+      "titulo": "Pasantía en administración y facturación médica",
+      "descripcion": "Abrimos una pasantía pensada para estudiantes de administración, contabilidad o carreras afines que quieran adquirir práctica en el sector salud. Vas a colaborar en el control de convenios con mutualistas y seguros, la emisión de facturas, la conciliación de cobros en planillas y el archivo digital de documentación.\nNo necesitás haber trabajado antes en clínicas: te enseñamos toda la operatoria desde cero.\nEl horario se acuerda según tus clases y permite combinar días presenciales con trabajo remoto.",
+      "tipo": "pasantia",
+      "modalidad": "hibrida",
+      "ubicacion": "Tres Cruces, Montevideo",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": [
+        "Contabilidad básica y facturación",
+        "Excel y Google Sheets",
+        "Google Workspace / Office",
+        "Organización y planificación"
+      ],
+      "tags": ["Administración y Gestión", "Contabilidad", "Salud", "Finanzas"],
+      "tagsOcultos": ["Datos"]
+    },
+    {
+      "clave": "rambla-ventas",
+      "empresa": "rambla",
+      "titulo": "Vendedor/a de salón y atención en caja",
+      "descripcion": "Para nuestra sucursal sobre Avenida 8 de Octubre buscamos jóvenes con ganas de aprender el oficio comercial. Vas a asesorar a los clientes en las secciones de bazar y ferretería liviana, reponer mercadería en góndola, mantener la cartelería de precios al día y colaborar en la línea de cajas cuando sea necesario.\nBuscamos personas activas, con buen trato interpersonal y disposición para trabajar en equipo.\nOfrecemos sueldo base más incentivo por objetivos grupales y días libres adicionales en época de parciales.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Unión, Montevideo",
+      "posiciones": 3,
+      "estado": "activa",
+      "habilidades": [
+        "Atención al público",
+        "Caja y punto de venta (POS)",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Ventas", "Comercio", "Atención al Cliente"],
+      "tagsOcultos": ["Depósito"]
+    },
+    {
+      "clave": "rambla-ecommerce",
+      "empresa": "rambla",
+      "titulo": "Pasantía en tienda online y marketing digital",
+      "descripcion": "Nuestra tienda web crece todos los meses y buscamos a alguien que nos ayude a mantener el catálogo actualizado y difundir las novedades. Vas a redactar descripciones claras de productos, actualizar precios y stock desde planillas, armar gráficas promocionales en Canva y colaborar en la configuración de campañas en Meta Ads y Google Ads.\nEs una búsqueda ideal para quienes quieren su primera experiencia en comercio electrónico trabajando de forma remota.\nBrindamos acompañamiento directo de la responsable comercial.",
+      "tipo": "pasantia",
+      "modalidad": "remota",
+      "ubicacion": null,
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": [
+        "Publicidad digital (Meta Ads, Google Ads)",
+        "Manejo de redes sociales",
+        "Canva",
+        "Excel y Google Sheets",
+        "Redacción y ortografía"
+      ],
+      "tags": ["Comercio", "Marketing", "Publicidad", "Ventas"],
+      "tagsOcultos": ["Comunicación"]
+    },
+    {
+      "clave": "mirador-recepcion",
+      "empresa": "mirador",
+      "titulo": "Recepcionista bilingüe de posada",
+      "descripcion": "En Posada del Mirador recibimos viajeros de todo el mundo durante todo el año y buscamos sumar a una persona joven a nuestro mostrador de recepción en Punta Ballena. Vas a gestionar reservas, realizar el ingreso y egreso de huéspedes, recomendar paseos por el departamento de Maldonado y coordinar pedidos con cocina y mantenimiento.\nRequerimos nivel fluido de inglés para conversar con naturalidad y gusto por la hospitalidad.\nOfrecemos transporte cubierto desde Maldonado y San Carlos, comidas en el turno y formación hotelera.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Punta Ballena, Maldonado",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": [
+        "Inglés",
+        "Atención al público",
+        "Organización y planificación",
+        "Caja y punto de venta (POS)"
+      ],
+      "tags": ["Hotelería", "Turismo", "Atención al Cliente"],
+      "tagsOcultos": ["Recreación", "Eventos"]
+    },
+    {
+      "clave": "mirador-eventos",
+      "empresa": "mirador",
+      "titulo": "Pasantía en producción de eventos y recreación",
+      "descripcion": "Sumamos a un estudiante de turismo, comunicación o gestión cultural para apoyar la organización de encuentros corporativos y ciclos acústicos en nuestro salón mirador. Vas a participar en el armado de cronogramas, el contacto con proveedores gastronómicos y técnicos, la recepción de acreditaciones y la difusión previa en redes.\nBuscamos proactividad, orden y facilidad para resolver imprevistos en equipo.\nLa pasantía se desarrolla en Maldonado con horarios concentrados de jueves a domingo.",
+      "tipo": "pasantia",
+      "modalidad": "presencial",
+      "ubicacion": "Maldonado, Maldonado",
+      "posiciones": 2,
+      "estado": "cerrada",
+      "habilidades": [
+        "Organización y planificación",
+        "Atención al público",
+        "Manejo de redes sociales",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Eventos", "Turismo", "Recreación", "Hotelería"],
+      "tagsOcultos": ["Comunicación"]
+    },
+    {
+      "clave": "cimiento-cadista",
+      "empresa": "cimiento",
+      "titulo": "Dibujante técnico y cadista junior",
+      "descripcion": "Buscamos a un estudiante de arquitectura, ingeniería o bachillerato de construcción para integrarse a nuestra oficina técnica en el Centro de Montevideo. Vas a pasar a limpio relevamientos, actualizar planos de albañilería e instalaciones en AutoCAD y armar planillas de metraje de materiales junto a los directores de obra.\nEs una excelente escuela para entender cómo pasa un proyecto del plano a la realidad.\nOfrecemos horario de medio tiempo adaptable a las entregas de taller y modalidad híbrida.",
+      "tipo": "pasantia",
+      "modalidad": "hibrida",
+      "ubicacion": "Centro, Montevideo",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": [
+        "AutoCAD y lectura de planos",
+        "Excel y Google Sheets",
+        "Organización y planificación"
+      ],
+      "tags": ["Arquitectura", "Construcción", "Ingeniería", "Diseño"],
+      "tagsOcultos": []
+    },
+    {
+      "clave": "cimiento-obra",
+      "empresa": "cimiento",
+      "titulo": "Auxiliar técnico de seguimiento de obra",
+      "descripcion": "Para una obra de vivienda colectiva en Las Piedras incorporamos a un perfil joven con formación técnica en construcción. Vas a colaborar con el sobrestante y la arquitecta residente en el control de acopio de materiales, la lectura de planos en sitio, el registro fotográfico de avances semanales y la actualización del cronograma.\nBuscamos responsabilidad, ganas de aprender en terreno y buen relacionamiento con los subcontratos.\nProveemos todos los elementos de protección personal y viático de transporte.",
+      "tipo": "empleo",
+      "modalidad": "presencial",
+      "ubicacion": "Las Piedras, Canelones",
+      "posiciones": 3,
+      "estado": "activa",
+      "habilidades": [
+        "AutoCAD y lectura de planos",
+        "Excel y Google Sheets",
+        "Organización y planificación",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Construcción", "Ingeniería", "Arquitectura"],
+      "tagsOcultos": ["Logística", "Sustentabilidad"]
+    },
+    {
+      "clave": "trebol-datos",
+      "empresa": "trebol",
+      "titulo": "Analista junior de datos agroambientales",
+      "descripcion": "Desde nuestra base en Paysandú trabajamos con datos de estaciones meteorológicas, sensores de humedad de suelo e imágenes satelitales. Buscamos a una persona joven con manejo de SQL, Python o Power BI para procesar estas series de datos y construir reportes claros para los técnicos de campo y productores.\nNo hace falta venir del rubro agropecuario si tenés buena base analítica y ganas de aprender sobre producción sustentable.\nOfrecemos modalidad híbrida en Paysandú y capacitación específica en indicadores ambientales.",
+      "tipo": "empleo",
+      "modalidad": "hibrida",
+      "ubicacion": "Paysandú, Paysandú",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": ["Python", "SQL", "Power BI", "Excel y Google Sheets"],
+      "tags": ["Agro", "Datos", "Sustentabilidad", "Tecnología"],
+      "tagsOcultos": ["Ingeniería"]
+    },
+    {
+      "clave": "trebol-campo",
+      "empresa": "trebol",
+      "titulo": "Pasantía en monitoreo de cultivos y sustentabilidad",
+      "descripcion": "Convocamos a estudiantes de agronomía o tecnicaturas agropecuarias radicados en Salto para realizar salidas semanales de monitoreo junto a nuestro equipo de ingenieros agrónomos. Vas a relevar el estado de los lotes, cargar registros en planillas digitales, colaborar en el control de uso de insumos y preparar informes de trazabilidad.\nBuscamos entusiasmo por el trabajo al aire libre, prolijidad en la toma de muestras y compromiso con el cuidado del suelo.\nCubrimos traslados a los predios y ofrecemos horarios compatibles con la facultad.",
+      "tipo": "pasantia",
+      "modalidad": "presencial",
+      "ubicacion": "Salto, Salto",
+      "posiciones": 2,
+      "estado": "activa",
+      "habilidades": [
+        "Excel y Google Sheets",
+        "Organización y planificación",
+        "Google Workspace / Office",
+        "Trabajo en equipo"
+      ],
+      "tags": ["Agro", "Sustentabilidad", "Producción"],
+      "tagsOcultos": ["Datos"]
+    }
+  ],
+  "postulaciones": [
+    {
+      "joven": "lucia",
+      "vacante": "nube-frontend",
+      "estado": "entrevista"
+    },
+    {
+      "joven": "lucia",
+      "vacante": "nube-ux",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "lucia",
+      "vacante": "ceibo-redes",
+      "estado": "en_revision"
+    },
+    {
+      "joven": "lucia",
+      "vacante": "rambla-ecommerce",
+      "estado": "aceptada"
+    },
+    {
+      "joven": "lucia",
+      "vacante": "vital-administracion",
+      "estado": "rechazada"
+    },
+    {
+      "joven": "lucia",
+      "vacante": "puerto-planificacion",
+      "estado": "cancelada"
+    },
+    {
+      "joven": "mateo",
+      "vacante": "nube-frontend",
+      "estado": "aceptada"
+    },
+    {
+      "joven": "santiago",
+      "vacante": "nube-frontend",
+      "estado": "en_revision"
+    },
+    {
+      "joven": "bruno",
+      "vacante": "nube-frontend",
+      "estado": "rechazada"
+    },
+    {
+      "joven": "sofia",
+      "vacante": "nube-datos",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "facundo",
+      "vacante": "nube-datos",
+      "estado": "entrevista"
+    },
+    {
+      "joven": "martin",
+      "vacante": "nube-datos",
+      "estado": "cancelada"
+    },
+    {
+      "joven": "camila",
+      "vacante": "nube-ux",
+      "estado": "en_revision"
+    },
+    {
+      "joven": "valentina",
+      "vacante": "nube-ux",
+      "estado": "aceptada"
+    },
+    {
+      "joven": "nicolas",
+      "vacante": "nube-soporte",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "agustina",
+      "vacante": "nube-soporte",
+      "estado": "rechazada"
+    },
+    {
+      "joven": "valentina",
+      "vacante": "ceibo-redes",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "agustina",
+      "vacante": "ceibo-barista",
+      "estado": "aceptada"
+    },
+    {
+      "joven": "joaquin",
+      "vacante": "ceibo-barista",
+      "estado": "en_revision"
+    },
+    {
+      "joven": "micaela",
+      "vacante": "ceibo-caja",
+      "estado": "rechazada"
+    },
+    {
+      "joven": "paula",
+      "vacante": "ceibo-caja",
+      "estado": "aceptada"
+    },
+    {
+      "joven": "joaquin",
+      "vacante": "puerto-deposito",
+      "estado": "entrevista"
+    },
+    {
+      "joven": "facundo",
+      "vacante": "puerto-deposito",
+      "estado": "aceptada"
+    },
+    {
+      "joven": "nicolas",
+      "vacante": "puerto-deposito",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "florencia",
+      "vacante": "puerto-planificacion",
+      "estado": "en_revision"
+    },
+    {
+      "joven": "micaela",
+      "vacante": "puerto-atencion",
+      "estado": "cancelada"
+    },
+    {
+      "joven": "florencia",
+      "vacante": "vital-recepcion",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "agustina",
+      "vacante": "vital-recepcion",
+      "estado": "entrevista"
+    },
+    {
+      "joven": "paula",
+      "vacante": "vital-administracion",
+      "estado": "en_revision"
+    },
+    {
+      "joven": "martin",
+      "vacante": "rambla-ventas",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "nicolas",
+      "vacante": "rambla-ventas",
+      "estado": "rechazada"
+    },
+    {
+      "joven": "camila",
+      "vacante": "rambla-ecommerce",
+      "estado": "en_revision"
+    },
+    {
+      "joven": "micaela",
+      "vacante": "mirador-recepcion",
+      "estado": "entrevista"
+    },
+    {
+      "joven": "florencia",
+      "vacante": "mirador-eventos",
+      "estado": "rechazada"
+    },
+    {
+      "joven": "santiago",
+      "vacante": "cimiento-cadista",
+      "estado": "aceptada"
+    },
+    {
+      "joven": "bruno",
+      "vacante": "cimiento-cadista",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "joaquin",
+      "vacante": "cimiento-obra",
+      "estado": "cancelada"
+    },
+    {
+      "joven": "sofia",
+      "vacante": "trebol-datos",
+      "estado": "entrevista"
+    },
+    {
+      "joven": "mateo",
+      "vacante": "trebol-datos",
+      "estado": "pendiente"
+    },
+    {
+      "joven": "paula",
+      "vacante": "trebol-campo",
+      "estado": "en_revision"
+    }
+  ],
+  "eventos": [
+    {
+      "clave": "nube-charla",
+      "empresa": "nube",
+      "titulo": "Charla: tu primer trabajo en tecnología",
+      "descripcion": "Una conversación abierta con desarrolladores y diseñadores que entraron a Nube Sur como su primera experiencia laboral. Vamos a repasar cómo armamos nuestros equipos, qué miramos en un perfil junior y cómo es una entrevista técnica sin misterios. Es para estudiantes o autodidactas de cualquier área digital; solo tenés que traer tus preguntas y un cuaderno si querés tomar notas.",
+      "en_dias": 5,
+      "hora": "18:30",
+      "direccion": "Rincón 487, Ciudad Vieja, Montevideo",
+      "latitud": -34.9062,
+      "longitud": -56.2081,
+      "estado": "activo",
+      "tags": ["Tecnología", "Sistemas", "Educación y Enseñanza"]
+    },
+    {
+      "clave": "nube-taller-cv",
+      "empresa": "nube",
+      "titulo": "Taller práctico: armá tu porfolio y perfil técnico",
+      "descripcion": "En este encuentro de dos horas vamos a revisar cómo presentar proyectos académicos o personales de programación, datos y diseño de interfaces. Trabajamos en mesas chicas con integrantes de nuestro equipo de selección y producto para que te lleves comentarios concretos sobre tu perfil. Está pensado para quienes buscan su primera pasantía o empleo; traé tu computadora o tus enlaces a mano.",
+      "en_dias": 16,
+      "hora": "17:30",
+      "direccion": "Bulevar España 2290, Parque Rodó, Montevideo",
+      "latitud": -34.9118,
+      "longitud": -56.1642,
+      "estado": "activo",
+      "tags": ["Tecnología", "UX", "Datos", "Recursos Humanos"]
+    },
+    {
+      "clave": "ceibo-cata",
+      "empresa": "ceibo",
+      "titulo": "Introducción al barismo y tostado de café",
+      "descripcion": "Abrimos las puertas de nuestro tostadero en Cordón para mostrar el recorrido del grano desde el origen hasta la taza. Vamos a explicar los métodos de extracción más usados en cafetería, probar distintas variedades y contar qué habilidades valoramos al sumar gente nueva a la barra. Está dirigido a jóvenes interesados en gastronomía y atención al cliente; no hace falta llevar materiales.",
+      "en_dias": 8,
+      "hora": "16:00",
+      "direccion": "Maldonado 1742, Cordón, Montevideo",
+      "latitud": -34.9089,
+      "longitud": -56.1774,
+      "estado": "activo",
+      "tags": ["Gastronomía", "Atención al Cliente", "Educación y Enseñanza"]
+    },
+    {
+      "clave": "puerto-puertas-abiertas",
+      "empresa": "puerto",
+      "titulo": "Recorrida por el centro de distribución y logística",
+      "descripcion": "Una visita guiada por nuestra planta logística sobre Ruta 101 para conocer cómo se organizan la recepción, el almacenamiento y el despacho de miles de pedidos diarios. Charlaremos con el equipo de operaciones y planificación sobre las salidas laborales en logística. Está orientado a estudiantes de logística, administración e ingeniería; se recomienda asistir con calzado cerrado y cómodo.",
+      "en_dias": 12,
+      "hora": "10:00",
+      "direccion": "Ruta 101 Km 24.500, Canelones",
+      "latitud": -34.8195,
+      "longitud": -56.0128,
+      "estado": "cancelado",
+      "tags": ["Logística", "Depósito", "Administración y Gestión"]
+    },
+    {
+      "clave": "vital-jornada",
+      "empresa": "vital",
+      "titulo": "Encuentro sobre gestión y atención en centros de salud",
+      "descripcion": "Coordinadores de recepción y administración de Clínica Parque Rodó comparten cómo se organiza la atención al paciente, el manejo de agendas médicas y el trabajo junto a los equipos profesionales. Es una actividad pensada para jóvenes que buscan su primer empleo en recepción, cuidados o administración en salud. No requiere inscripción con experiencia previa; traé documento de identidad para el ingreso.",
+      "en_dias": 24,
+      "hora": "15:00",
+      "direccion": "Acevedo Díaz 1180, Tres Cruces, Montevideo",
+      "latitud": -34.8994,
+      "longitud": -56.1665,
+      "estado": "activo",
+      "tags": [
+        "Salud",
+        "Cuidados",
+        "Atención al Cliente",
+        "Administración y Gestión"
+      ]
+    },
+    {
+      "clave": "trebol-sustentabilidad",
+      "empresa": "trebol",
+      "titulo": "Charla abierta: datos y tecnología en el agro uruguayo",
+      "descripcion": "Presentamos casos reales de cómo usamos sensores de suelo, estaciones meteorológicas y tableros de datos para mejorar el riego y cuidar los recursos naturales en predios del litoral. La charla está destinada a estudiantes de agronomía, informática, estadística y carreras ambientales que quieran conocer el cruce entre campo y tecnología. Traé tus consultas para el espacio de intercambio final.",
+      "en_dias": 33,
+      "hora": "14:00",
+      "direccion": "18 de Julio 1045, Paysandú",
+      "latitud": -32.3214,
+      "longitud": -58.0756,
+      "estado": "activo",
+      "tags": ["Agro", "Sustentabilidad", "Datos", "Tecnología"]
+    },
+    {
+      "clave": "cimiento-recorrida",
+      "empresa": "cimiento",
+      "titulo": "De la oficina técnica a la obra: encuentro con estudiantes",
+      "descripcion": "Un recorrido guiado por nuestros arquitectos e ingenieros residentes para ver cómo se coordinan los planos ejecutivos con el avance diario en el obrador. Repasamos los roles de sobrestante, cadista y auxiliar técnico para quienes están estudiando construcción, arquitectura o ingeniería civil. Asistir con calzado cerrado; los cascos de visita los entrega el estudio en la entrada.",
+      "en_dias": -9,
+      "hora": "11:00",
+      "direccion": "Av. Artigas 612, Las Piedras, Canelones",
+      "latitud": -34.7264,
+      "longitud": -56.2192,
+      "estado": "activo",
+      "tags": ["Construcción", "Arquitectura", "Ingeniería"]
+    },
+    {
+      "clave": "mirador-turismo",
+      "empresa": "mirador",
+      "titulo": "Jornada de hospitalidad y turismo de temporada baja",
+      "descripcion": "Un espacio de charla y práctica sobre recepción hotelera, atención a visitantes extranjeros y organización de eventos culturales fuera de la temporada de verano. Pensado para jóvenes de Maldonado que buscan formarse y trabajar todo el año en hotelería y turismo. Solo necesitás traer libreta para apuntar y ganas de conversar con el equipo de la posada.",
+      "en_dias": -21,
+      "hora": "17:00",
+      "direccion": "Ruta Panorámica Km 2, Punta Ballena, Maldonado",
+      "latitud": -34.9041,
+      "longitud": -55.0412,
+      "estado": "activo",
+      "tags": ["Turismo", "Hotelería", "Eventos"]
+    }
+  ],
+  "inscripciones": [
+    {
+      "joven": "lucia",
+      "evento": "nube-charla"
+    },
+    {
+      "joven": "mateo",
+      "evento": "nube-charla"
+    },
+    {
+      "joven": "valentina",
+      "evento": "nube-charla"
+    },
+    {
+      "joven": "santiago",
+      "evento": "nube-charla"
+    },
+    {
+      "joven": "camila",
+      "evento": "nube-charla"
+    },
+    {
+      "joven": "sofia",
+      "evento": "nube-charla"
+    },
+    {
+      "joven": "martin",
+      "evento": "nube-charla"
+    },
+    {
+      "joven": "mateo",
+      "evento": "nube-taller-cv"
+    },
+    {
+      "joven": "facundo",
+      "evento": "nube-taller-cv"
+    },
+    {
+      "joven": "nicolas",
+      "evento": "nube-taller-cv"
+    },
+    {
+      "joven": "bruno",
+      "evento": "nube-taller-cv"
+    },
+    {
+      "joven": "sofia",
+      "evento": "nube-taller-cv"
+    },
+    {
+      "joven": "paula",
+      "evento": "nube-taller-cv"
+    },
+    {
+      "joven": "lucia",
+      "evento": "ceibo-cata"
+    },
+    {
+      "joven": "valentina",
+      "evento": "ceibo-cata"
+    },
+    {
+      "joven": "joaquin",
+      "evento": "ceibo-cata"
+    },
+    {
+      "joven": "agustina",
+      "evento": "ceibo-cata"
+    },
+    {
+      "joven": "micaela",
+      "evento": "ceibo-cata"
+    },
+    {
+      "joven": "lucia",
+      "evento": "puerto-puertas-abiertas"
+    },
+    {
+      "joven": "joaquin",
+      "evento": "puerto-puertas-abiertas"
+    },
+    {
+      "joven": "facundo",
+      "evento": "puerto-puertas-abiertas"
+    },
+    {
+      "joven": "florencia",
+      "evento": "puerto-puertas-abiertas"
+    },
+    {
+      "joven": "nicolas",
+      "evento": "puerto-puertas-abiertas"
+    },
+    {
+      "joven": "agustina",
+      "evento": "vital-jornada"
+    },
+    {
+      "joven": "florencia",
+      "evento": "vital-jornada"
+    },
+    {
+      "joven": "micaela",
+      "evento": "vital-jornada"
+    },
+    {
+      "joven": "paula",
+      "evento": "vital-jornada"
+    },
+    {
+      "joven": "santiago",
+      "evento": "trebol-sustentabilidad"
+    },
+    {
+      "joven": "camila",
+      "evento": "trebol-sustentabilidad"
+    },
+    {
+      "joven": "bruno",
+      "evento": "trebol-sustentabilidad"
+    }
+  ],
+  "resenias": [
+    {
+      "joven": "lucia",
+      "empresa": "nube",
+      "calificacion": 5,
+      "comentario": "Me postulé para el puesto de desarrollo frontend y a los pocos días me escribieron para coordinar una entrevista. La charla fue muy clara, me contaron cómo trabajan en el día a día y respetaron mis horarios de facultad."
+    },
+    {
+      "joven": "mateo",
+      "empresa": "nube",
+      "calificacion": 5,
+      "comentario": "El proceso de selección estuvo muy bien organizado de principio a fin. En la entrevista técnica revisamos un ejercicio práctico sin presiones y recibí una devolución detallada sobre mi código."
+    },
+    {
+      "joven": "santiago",
+      "empresa": "nube",
+      "calificacion": 4,
+      "comentario": "Me anoté a su charla sobre primer empleo y además envié mi postulación por la plataforma. Destaco la transparencia con la que explican qué buscan en un perfil junior, aunque el proceso lleva un par de semanas."
+    },
+    {
+      "joven": "bruno",
+      "empresa": "nube",
+      "calificacion": 3,
+      "comentario": "No quedé seleccionado en esta búsqueda, pero me avisaron por la plataforma y me explicaron que priorizaban perfiles con más práctica en maquetado web. Agradezco que se hayan tomado el tiempo de responder."
+    },
+    {
+      "joven": "lucia",
+      "empresa": "ceibo",
+      "calificacion": 4,
+      "comentario": "Me postulé a la pasantía de contenidos y el trato inicial fue muy cordial. Todavía estoy en etapa de revisión, pero me explicaron bien los pasos siguientes y los tiempos del llamado."
+    },
+    {
+      "joven": "agustina",
+      "empresa": "ceibo",
+      "calificacion": 5,
+      "comentario": "Entré sin experiencia previa en cafetería y desde la entrevista me transmitieron mucha tranquilidad. Me hicieron una prueba corta en el local de Cordón y ya acordamos el inicio de la capacitación."
+    },
+    {
+      "joven": "micaela",
+      "empresa": "ceibo",
+      "calificacion": 2,
+      "comentario": "Mandé mi postulación para el puesto de mostrador y demoraron bastante en actualizar el estado hasta que la búsqueda cerró. Me hubiera gustado tener una respuesta un poco antes para organizarme."
+    },
+    {
+      "joven": "facundo",
+      "empresa": "puerto",
+      "calificacion": 5,
+      "comentario": "Muy buena experiencia en el proceso para el centro logístico de Ruta 101. En la entrevista me mostraron cómo organizan los turnos y cumplieron con todo lo que decía el aviso."
+    },
+    {
+      "joven": "florencia",
+      "empresa": "puerto",
+      "calificacion": 3,
+      "comentario": "Me postulé a la pasantía de planificación y también me había anotado a la recorrida por la planta que luego se reprogramó. La comunicación fue correcta, aunque el proceso avanza un poco lento."
+    },
+    {
+      "joven": "agustina",
+      "empresa": "vital",
+      "calificacion": 4,
+      "comentario": "Tuve una entrevista presencial en Parque Rodó para el puesto de recepción y me recibieron en hora. Me explicaron con claridad las tareas de agenda médica y cómo es el acompañamiento inicial."
+    },
+    {
+      "joven": "lucia",
+      "empresa": "vital",
+      "calificacion": 3,
+      "comentario": "Me postulé a la pasantía administrativa y a la semana me avisaron que buscaban a alguien con formación contable más específica. Aunque no avancé, valoro que cierren el proceso avisando a cada postulante."
+    },
+    {
+      "joven": "camila",
+      "empresa": "rambla",
+      "calificacion": 4,
+      "comentario": "El llamado para la tienda online está muy bien explicado y piden cosas razonables para una primera experiencia. Me contactaron rápido cuando mi postulación pasó a revisión."
+    },
+    {
+      "joven": "nicolas",
+      "empresa": "rambla",
+      "calificacion": 2,
+      "comentario": "Me postulé para ventas de salón en el local de Unión y no llegué a pasar a entrevista. El aviso era claro, pero no recibí comentarios sobre qué me faltó para el puesto."
+    },
+    {
+      "joven": "micaela",
+      "empresa": "mirador",
+      "calificacion": 4,
+      "comentario": "En la entrevista para recepción en Punta Ballena conversamos una parte en inglés y otra en español en un clima muy ameno. Tienen muy en cuenta la locomoción para quienes vivimos en Maldonado."
+    },
+    {
+      "joven": "santiago",
+      "empresa": "cimiento",
+      "calificacion": 5,
+      "comentario": "Me postulé como dibujante técnico y los arquitectos del estudio fueron muy atentos con mis entregas de facultad. Revisamos juntos algunos planos que había hecho en el curso y quedé seleccionado."
+    },
+    {
+      "joven": "sofia",
+      "empresa": "trebol",
+      "calificacion": 4,
+      "comentario": "Tuve una primera entrevista virtual para el puesto de datos agroambientales y me resultó muy interesante el trabajo que hacen en el litoral. Explicaron con detalle las herramientas que usan y los próximos pasos."
+    }
+  ]
+}
