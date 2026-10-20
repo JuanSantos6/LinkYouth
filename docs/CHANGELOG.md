@@ -13,6 +13,23 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Avisos para los dos lados
+
+- **Campana con contador en `CabeceraGlobal` (`CampanaDeAvisos`, RF6.1)**:
+  muestra la cantidad de avisos sin leer en la cabecera tanto para el joven
+  (`/avisos`) como para la empresa (`/empresa/avisos`), con blanco táctil de
+  44×44 px y nombre accesible de `TipoDeAviso.nombreDeLaCampana`, para que no
+  haga falta entrar a la bandeja a ciegas.
+- **Bandeja compartida `BandejaDeAvisos` y pantalla `/empresa/avisos` (RF6.1,
+  RF6.2)**: extrae el listado con rótulo y tono según `TipoDeAviso` (destacando
+  los avisos sin leer de `logro` y `baja`), enlaces con texto según el destino y
+  estados vacíos propios de cada cuenta, sumando «Avisos» al menú y al pie de la
+  empresa.
+- **Anclas por postulación en `/postulaciones` (RF3.7, RF6.2)**: cada fila lleva
+  `id="postulacion-<id>"`, `scroll-mt-28` y resaltado `:target` en lavanda para
+  que el enlace del aviso lleve directo a la postulación sin que la cabecera la
+  tape.
+
 ## 2026-10-20 — Nivel 2: base de datos, acciones y confirmación de correo
 
 - **Migración 006** (`db/migraciones/006-cuenta-y-perfil-publico.sql`):

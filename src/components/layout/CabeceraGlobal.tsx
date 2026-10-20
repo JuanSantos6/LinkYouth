@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CampanaDeAvisos } from "@/components/avisos/CampanaDeAvisos";
 import { BotonTema } from "@/components/layout/BotonTema";
 import { EncabezadoFlotante } from "@/components/navegacion/EncabezadoFlotante";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/navegacion/NavPrincipal";
 import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
 import { cerrarSesion } from "@/lib/acciones/auth";
+import { contarAvisosSinLeer } from "@/lib/data/consultas";
 import { type Area, inicioDe } from "@/lib/navegacion";
 
 import {
@@ -53,9 +55,6 @@ const SECCIONES: Record<Area, readonly Seccion[]> = {
     { href: "/empresa/candidatos", etiqueta: "Candidatos" },
   ],
 };
-
-const ICONO =
-  "h-9 w-9 flex items-center justify-center rounded-full text-tinta transition-colors duration-150 hover:bg-realce";
 
 function MenuSecciones({ secciones }: { secciones: readonly Seccion[] }) {
   return (
@@ -148,6 +147,13 @@ function MenuCuenta({ area }: { area: "postulante" | "empresa" }) {
             <IconoPerfil className="h-4 w-4" /> Perfil de la empresa
           </EnlaceTransicion>
           <EnlaceTransicion
+            href="/empresa/avisos"
+            role="menuitem"
+            className={OPCION_MENU}
+          >
+            <IconoAvisos className="h-4 w-4" /> Avisos
+          </EnlaceTransicion>
+          <EnlaceTransicion
             href="/empresa/resenias"
             role="menuitem"
             className={OPCION_MENU}
@@ -173,7 +179,7 @@ function MenuCuenta({ area }: { area: "postulante" | "empresa" }) {
   );
 }
 
-export function CabeceraGlobal({
+export async function CabeceraGlobal({
   area = "postulante",
   secciones: propias,
 }: {
@@ -182,6 +188,7 @@ export function CabeceraGlobal({
   secciones?: readonly Seccion[];
 }) {
   const secciones = propias ?? SECCIONES[area];
+  const avisosSinLeer = area === "publico" ? 0 : await contarAvisosSinLeer();
 
   return (
     <EncabezadoFlotante>
@@ -212,10 +219,7 @@ export function CabeceraGlobal({
 
         {area === "postulante" && (
           <>
-            <EnlaceTransicion href="/avisos" className={ICONO}>
-              <IconoAvisos className="h-[18px] w-[18px]" />
-              <span className="sr-only">Avisos</span>
-            </EnlaceTransicion>
+            <CampanaDeAvisos href="/avisos" sinLeer={avisosSinLeer} />
             <MenuCuenta area="postulante" />
           </>
         )}
@@ -226,6 +230,7 @@ export function CabeceraGlobal({
 
         {area === "empresa" && (
           <>
+            <CampanaDeAvisos href="/empresa/avisos" sinLeer={avisosSinLeer} />
             <MenuSecciones secciones={secciones} />
             <MenuCuenta area="empresa" />
           </>
