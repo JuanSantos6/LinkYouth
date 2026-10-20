@@ -63,10 +63,11 @@ export const OCULTAS_PARA_EMPRESA = ["/como-funciona"];
 
 /**
  * Pantallas de exploración: se leen con o sin sesión (el listado de vacantes,
- * su detalle y los eventos). Lo que pide cuenta es postularse o inscribirse, y
+ * su detalle, los eventos y el perfil público de cada empresa, RF2.5 y RF8.2).
+ * Lo que pide cuenta es postularse, inscribirse o reseñar, y
  * eso lo resuelve cada botón. Ver `docs/decisiones.md`, 2026-09-26.
  */
-export const EXPLORABLES = ["/empleos", "/eventos"];
+export const EXPLORABLES = ["/empleos", "/eventos", "/organizaciones"];
 
 export function esExplorable(ruta: string): boolean {
   return EXPLORABLES.some(
