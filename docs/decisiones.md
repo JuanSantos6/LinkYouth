@@ -6,6 +6,30 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-20 — Avisos de los dos lados y correos con una cola en la base
+
+**Decisión.** Los disparadores escriben el aviso y, para los tres casos
+importantes (seleccionado, descartado, postulación recibida), una fila en
+`correos_pendientes`; la aplicación la despacha por SMTP con nodemailer
+justo después de la acción (`after()`), con la clave de servicio. La
+empresa recibe avisos por postulación e inscripción con nuevos disparadores
+`after insert`.
+
+**Alternativas.** *Mandar el correo desde la acción de servidor, sin cola*:
+se pierde si la acción falla después del `update`, y no cubre los cambios
+que hace la base sola (cerrar una búsqueda rechaza las pendientes).
+*`pg_net` o una Edge Function disparada por la base*: mete otro servicio y
+otra superficie en Supabase, que no se publica. *Un proceso aparte en PM2
+que lea la cola cada minuto*: un servicio más para mantener en el servidor;
+queda como opción si `after()` no alcanza. *Un correo por cada aviso*:
+llena la casilla de cosas menores; los demás avisos quedan en la campana.
+
+**Por qué.** El aviso y su correo nacen en la misma transacción, así que no
+hay correo de algo que no pasó ni cambio sin correo. La cola guarda
+`cuenta_id` y no la dirección: el correo se busca al mandarlo. Nadie la lee
+desde la API (RLS sin políticas, sin permisos para `anon` ni
+`authenticated`).
+
 ## 2026-10-20 — Mapa embebido con Leaflet y OpenStreetMap
 
 Reemplaza la decisión 6 de la Etapa 2 («Mapa con un enlace a

@@ -84,7 +84,7 @@ export function BandejaDeAvisos({
               return (
                 <li
                   key={aviso.id}
-                  className={`flex flex-wrap items-start justify-between gap-3 py-4 ${
+                  className={`flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3 ${
                     aviso.leida ? "" : FILA_SIN_LEER[tipo.tono]
                   }`}
                 >
@@ -113,7 +113,7 @@ export function BandejaDeAvisos({
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <div className="-ml-3 flex flex-wrap items-center gap-1 sm:ml-0 sm:shrink-0 sm:gap-2">
                     {!aviso.leida && (
                       <BotonMarcarAvisoLeido
                         id={aviso.id}

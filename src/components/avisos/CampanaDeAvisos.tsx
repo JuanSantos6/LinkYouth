@@ -1,5 +1,8 @@
+import { Suspense } from "react";
+
 import { IconoAvisos } from "@/components/layout/Iconos";
 import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
+import { contarAvisosSinLeer } from "@/lib/data/consultas";
 import { TipoDeAviso } from "@/lib/dominio/TipoDeAviso";
 
 /**
@@ -39,5 +42,25 @@ export function CampanaDeAvisos({
         </span>
       )}
     </EnlaceTransicion>
+  );
+}
+
+async function CampanaConContador({ href }: { href: string }) {
+  return <CampanaDeAvisos href={href} sinLeer={await contarAvisosSinLeer()} />;
+}
+
+/**
+ * La campana con el número de avisos sin leer, leído de la base.
+ *
+ * La consulta va dentro de su propio `Suspense`: la cabecera se manda entera
+ * de entrada (con la campana sin número) y el contador llega cuando la base
+ * responde. Con la cabecera entera asíncrona, la página esperaba esa consulta
+ * y en desarrollo aparecían errores de hidratación del layout.
+ */
+export function CampanaDeAvisosDeLaSesion({ href }: { href: string }) {
+  return (
+    <Suspense fallback={<CampanaDeAvisos href={href} sinLeer={0} />}>
+      <CampanaConContador href={href} />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { CampanaDeAvisos } from "@/components/avisos/CampanaDeAvisos";
+import { CampanaDeAvisosDeLaSesion } from "@/components/avisos/CampanaDeAvisos";
 import { BotonTema } from "@/components/layout/BotonTema";
 import { EncabezadoFlotante } from "@/components/navegacion/EncabezadoFlotante";
 import {
@@ -13,7 +13,6 @@ import {
 } from "@/components/navegacion/NavPrincipal";
 import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
 import { cerrarSesion } from "@/lib/acciones/auth";
-import { contarAvisosSinLeer } from "@/lib/data/consultas";
 import { type Area, inicioDe } from "@/lib/navegacion";
 
 import {
@@ -179,7 +178,7 @@ function MenuCuenta({ area }: { area: "postulante" | "empresa" }) {
   );
 }
 
-export async function CabeceraGlobal({
+export function CabeceraGlobal({
   area = "postulante",
   secciones: propias,
 }: {
@@ -188,7 +187,6 @@ export async function CabeceraGlobal({
   secciones?: readonly Seccion[];
 }) {
   const secciones = propias ?? SECCIONES[area];
-  const avisosSinLeer = area === "publico" ? 0 : await contarAvisosSinLeer();
 
   return (
     <EncabezadoFlotante>
@@ -219,7 +217,7 @@ export async function CabeceraGlobal({
 
         {area === "postulante" && (
           <>
-            <CampanaDeAvisos href="/avisos" sinLeer={avisosSinLeer} />
+            <CampanaDeAvisosDeLaSesion href="/avisos" />
             <MenuCuenta area="postulante" />
           </>
         )}
@@ -230,7 +228,7 @@ export async function CabeceraGlobal({
 
         {area === "empresa" && (
           <>
-            <CampanaDeAvisos href="/empresa/avisos" sinLeer={avisosSinLeer} />
+            <CampanaDeAvisosDeLaSesion href="/empresa/avisos" />
             <MenuSecciones secciones={secciones} />
             <MenuCuenta area="empresa" />
           </>

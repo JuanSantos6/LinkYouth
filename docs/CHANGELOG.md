@@ -15,6 +15,24 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-10-20 — Avisos para los dos lados
 
+- **Por qué no se veían** (diagnóstico): no era RLS ni faltaban datos del
+  joven (había 61 avisos); la empresa no tenía ningún disparador que le
+  escribiera, ni campana ni bandeja, y la campana del joven no mostraba
+  cuántos había sin leer. Además el texto decía «fue aceptada» y el enlace
+  llevaba a la lista entera.
+- **Migración 007** (`db/migraciones/007-avisos-y-correos.sql`): avisos a la
+  empresa por postulación e inscripción, textos con palabras («Te
+  seleccionaron en…», «no siguió adelante») y enlace a la postulación, y
+  cola `correos_pendientes`. Aplicada en el servidor;
+  `db/verificar-007.sql` da 12/12 y `verificar-etapa2.sql` sigue en 25/25
+  (se actualizó el texto esperado). Por qué una cola:
+  [`decisiones.md`](./decisiones.md), 2026-10-20.
+- **Correos por SMTP** (`src/lib/correo/`, nodemailer 7.0.9): solo
+  seleccionado, descartado y postulación recibida, para no mandar un correo
+  por cada aviso menor. Detalle en [`correo.md`](./correo.md).
+- **`e2e/avisos.spec.ts`**: los avisos de los dos lados, la campana, el
+  enlace a la postulación y la cola de correos. La carga de la demo cierra
+  sin mandar los correos que generan sus propias postulaciones.
 - **Campana con contador en `CabeceraGlobal` (`CampanaDeAvisos`, RF6.1)**:
   muestra la cantidad de avisos sin leer en la cabecera tanto para el joven
   (`/avisos`) como para la empresa (`/empresa/avisos`), con blanco táctil de

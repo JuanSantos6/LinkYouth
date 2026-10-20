@@ -191,6 +191,15 @@ en internet. Las fotos y logos se guardan y se muestran como rutas relativas
 trae de Storage por la red interna con el `rewrite` de `next.config.ts`. El
 middleware deja pasar esas rutas sin pedir sesión.
 
+**Los avisos y los correos.** Ningún código de la aplicación escribe un
+aviso: los escriben los disparadores de la base cuando cambia una
+postulación, alguien se postula o se inscribe, o se cancela un evento. Los
+tres avisos importantes dejan además un correo en `correos_pendientes`, que
+la aplicación despacha por SMTP después de responder (`after()` y
+`src/lib/correo/`). Es el único lugar donde el servidor usa la clave de
+servicio sin que lo pida una persona por su nombre de usuario. Ver
+`docs/correo.md`.
+
 **Los alias de tipo.** El esquema usa `text` + `check` en vez de enums de
 Postgres, así que `supabase gen types` devuelve esas columnas como `string`.
 Los alias (`TipoOportunidad`, `EstadoPostulacion`, `EstadoFormacion`…) viven
@@ -514,7 +523,8 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
 | `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
-| `obtenerAvisos(usuarioId?, limite?)` | `Resultado<Aviso[]>` | RF6.1. Las filas las crea el disparador de la base: `notificaciones` no tiene política de insert, así que ningún navegador puede fabricar un aviso. |
+| `obtenerAvisos(usuarioId?, limite?)` | `Resultado<Aviso[]>` | RF6.1. Sirve para las dos cuentas. Las filas las crean los disparadores de la base: `notificaciones` no tiene política de insert, así que ningún navegador puede fabricar un aviso. |
+| `contarAvisosSinLeer(usuarioId?)` | `number` | RF6.1. El contador de la campana; 0 sin sesión o sin base. |
 | `obtenerTipoCuenta(usuarioId?)` | `TipoCuenta \| null` | En qué mitad de la aplicación está la sesión. La cabecera y el pie lo necesitan para no ofrecerle a una cuenta de empresa enlaces que el middleware le va a rebotar. |
 | `obtenerCatalogos()` | `Resultado<Catalogos>` | RF2.3, RF2.4.3. Los dos catálogos cerrados enteros, sin filtro ni paginado: 36 tags y 20 habilidades. |
 
@@ -605,6 +615,13 @@ Nominatim desde el servidor (un `User-Agent` propio, una consulta por
 segundo por proceso, solo Uruguay al buscar) y solo para cuentas de empresa,
 para que el servidor no quede de intermediario abierto. Las usa
 `SelectorDeUbicacion` (RF4.1).
+
+#### `src/lib/correo/` (no son acciones)
+
+`despacharCorreos(limite?)` (`despachar.ts`, `server-only`): manda la cola
+`correos_pendientes` por SMTP (RF6.3); nunca lanza. `armarCorreo`,
+`enlaceAbsoluto` y `esDireccionDePrueba` (`plantilla.ts`): asunto, texto y
+HTML del correo, con los enlaces solo a rutas propias. Ver `docs/correo.md`.
 
 #### `formacion.ts` · `avisos.ts` · `resenias.ts`
 
@@ -756,6 +773,13 @@ habilidades, áreas, intereses clave), `pideUbicacion(modalidad)`,
 `validar(datos)`, `acciones(estado)`, `estadoTras(estado, accion)`,
 `puedeEliminar(postulaciones)` y `puedeEditar(estado)`. Exporta
 `ETIQUETA_MODALIDAD`, `ETIQUETA_ESTADO_BUSQUEDA` y el tipo `ErroresDeCampo`.
+
+#### `TipoDeAviso`
+
+`new TipoDeAviso(tipo)` con `etiqueta` y `tono` (`logro`, `baja`, `novedad`,
+`neutro`) para cada `notificaciones.tipo`; los avisos viejos (`postulacion`,
+`evento`) se leen como genéricos. `textoDelContador(n)` («9+») y
+`nombreDeLaCampana(n)` («Avisos, 3 sin leer»).
 
 #### `ReglasDeEvento`
 
@@ -1118,6 +1142,27 @@ disparador sí ve `old` y `new`.
   revisión o entrevista siguen su curso (RF3.3.3).
 - **`notificar_cancelacion_evento()`** · disparador
   `eventos_notificar_cancelacion`: avisa a cada inscripto (RF4.3.2).
+
+#### Migración 007: avisos para los dos lados y correos
+
+- **`correos_pendientes`**: la cola de correos (RF6.3). RLS sin políticas y
+  sin permisos para `anon` ni `authenticated`.
+- **`avisar(destino, tipo, texto, enlace, asunto?)`** (`security definer`,
+  no se puede llamar desde la API): el único lugar que escribe avisos; con
+  `asunto`, encola además el correo.
+- **`notificar_cambio_estado_postulacion()`**, reescrita: tipos propios
+  (`postulacion_seleccionada`, `postulacion_descartada`…), texto con la
+  búsqueda y la empresa, enlace `/postulaciones#postulacion-<id>`; correo al
+  seleccionar y al descartar.
+- **`notificar_postulacion_recibida()`** · `postulaciones_notificar_recibida`
+  y **`notificar_inscripcion_recibida()`** ·
+  `inscripciones_notificar_recibida`: avisos a la empresa, con enlace a la
+  postulación o al evento; correo solo por la postulación.
+- **`reclamar_correos_pendientes(limite)`**: solo `service_role`; reparte la
+  cola con `for update skip locked`.
+
+Verificación: `db/verificar-007.sql` (12 comprobaciones, termina en
+`ROLLBACK`).
 
 #### Migración 006: cuenta y perfil público
 

@@ -29,7 +29,10 @@ const EMPRESA = {
   email: `e2e-av-empresa-${sufijo}@linkyouth.invalid`,
   razon: `Empresa Avisos ${sufijo}`,
 };
-const ELEGIDA = { email: `e2e-av-a-${sufijo}@linkyouth.invalid`, nombre: "Ana" };
+const ELEGIDA = {
+  email: `e2e-av-a-${sufijo}@linkyouth.invalid`,
+  nombre: "Ana",
+};
 const OTRO = { email: `e2e-av-b-${sufijo}@linkyouth.invalid`, nombre: "Beto" };
 const BUSQUEDA = `Búsqueda Avisos ${sufijo}`;
 const EVENTO = `Evento Avisos ${sufijo}`;
@@ -77,7 +80,7 @@ async function crearJoven(email: string, nombre: string) {
   return id;
 }
 
-test.describe.configure({ mode: "serial" });
+test.describe.configure({ mode: "serial", timeout: 60_000 });
 
 test.beforeAll(async () => {
   empresaId = await crearCuenta(EMPRESA.email);
@@ -147,7 +150,10 @@ test("la empresa recibe un aviso al recibir una postulación y una inscripción"
   await expect(page.getByText("Ya te postulaste").first()).toBeVisible();
 
   await page.goto(`/eventos/${eventoId}`);
-  await page.getByRole("button", { name: /Inscribirme/ }).first().click();
+  await page
+    .getByRole("button", { name: /Inscribirme/ })
+    .first()
+    .click();
   await expect(page.getByText(/inscripto|inscripta/i).first()).toBeVisible();
 
   await entrar(page, EMPRESA.email);
@@ -173,14 +179,19 @@ test("la empresa recibe un aviso al recibir una postulación y una inscripción"
 
   // Solo la postulación encola correo, y el despacho no le escribe a un
   // dominio de prueba: lo cierra sin mandarlo.
+  // El despacho corre después de responder (`after()`): con la suite entera
+  // en paralelo puede tardar unos segundos.
   await expect
-    .poll(async () => {
-      const { data } = await admin
-        .from("correos_pendientes")
-        .select("enviado_en, ultimo_error")
-        .eq("cuenta_id", empresaId);
-      return data?.map((c) => [Boolean(c.enviado_en), c.ultimo_error]);
-    })
+    .poll(
+      async () => {
+        const { data } = await admin
+          .from("correos_pendientes")
+          .select("enviado_en, ultimo_error")
+          .eq("cuenta_id", empresaId);
+        return data?.map((c) => [Boolean(c.enviado_en), c.ultimo_error]);
+      },
+      { timeout: 20_000 },
+    )
     .toEqual([[true, "omitido: sin dirección válida"]]);
 });
 
@@ -240,9 +251,12 @@ test("el joven recibe un aviso claro al quedar seleccionado o descartado", async
   await entrar(page, OTRO.email);
   await page.goto("/avisos");
   await expect(
-    page.getByText(`Tu postulación a «${BUSQUEDA}» en ${EMPRESA.razon} no siguió adelante.`, {
-      exact: false,
-    }),
+    page.getByText(
+      `Tu postulación a «${BUSQUEDA}» en ${EMPRESA.razon} no siguió adelante.`,
+      {
+        exact: false,
+      },
+    ),
   ).toBeVisible();
 
   // Seleccionada y descartada encolan un correo cada una.
