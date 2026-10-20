@@ -59,7 +59,7 @@ export function FilaDePostulante({
 
   return (
     <li className="relative flex flex-col gap-3 py-5 sm:flex-row sm:items-start sm:gap-4">
-      <Avatar nombre={nombre} url={persona.foto_url} />
+      <Avatar nombre={nombre} url={persona.foto_url} semilla={persona.id} />
 
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">

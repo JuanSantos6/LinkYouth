@@ -161,6 +161,7 @@ export default async function PaginaEmpresa() {
 
         {recomendados.length === 0 ? (
           <EstadoVacio
+            ilustracion="personas"
             titulo={
               activas.length === 0
                 ? "Sin búsquedas activas no hay a quién recomendar"
@@ -193,7 +194,11 @@ export default async function PaginaEmpresa() {
                   key={postulacion.id}
                   className="relative flex gap-4 rounded-tarjeta border border-borde bg-superficie p-5 transition-shadow duration-150 hover:shadow-elevada"
                 >
-                  <Avatar nombre={nombre} url={persona.foto_url} />
+                  <Avatar
+                    nombre={nombre}
+                    url={persona.foto_url}
+                    semilla={persona.id}
+                  />
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <h3 className="text-[17px] font-semibold text-tinta">
@@ -230,6 +235,7 @@ export default async function PaginaEmpresa() {
 
           {activas.length === 0 ? (
             <EstadoVacio
+              ilustracion="busquedas"
               titulo="No tenés búsquedas activas"
               descripcion={
                 panel.busquedas.length === 0
@@ -281,6 +287,7 @@ export default async function PaginaEmpresa() {
 
           {proximos.length === 0 ? (
             <EstadoVacio
+              ilustracion="eventos"
               titulo="No tenés eventos próximos"
               descripcion="Una charla o un taller es la forma más directa de que te conozcan antes de postularse."
               accion={

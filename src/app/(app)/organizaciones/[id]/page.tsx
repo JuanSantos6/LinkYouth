@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Estrellas } from "@/components/ui/Estrellas";
+import { Foto } from "@/components/ui/Foto";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import {
   obtenerPerfilActual,
@@ -19,6 +20,7 @@ import { obtenerOrganizacion } from "@/lib/data/publico";
 import { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
 import { ResumenDeResenias } from "@/lib/dominio/ResumenDeResenias";
 import { tiempoRelativo } from "@/lib/formato";
+import { imagenDeRubro } from "@/lib/imagenes";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +64,7 @@ export default async function PaginaOrganizacion({ params }: Props) {
   const feed = FeedDeVacantes.armar(organizacion.vacantes, perfil);
   const resumen = new ResumenDeResenias(organizacion.resenias);
   const logo = rutaDeImagen(organizacion.logo_url);
+  const fotoRubro = imagenDeRubro(organizacion.rubro);
 
   return (
     <article className="mx-auto max-w-4xl space-y-10">
@@ -74,11 +77,18 @@ export default async function PaginaOrganizacion({ params }: Props) {
 
       <AvisoOrigen resultado={resultado} />
 
-      <Tarjeta como="header" className="p-6 sm:p-8">
+      <Tarjeta como="header" className="space-y-5 p-6 sm:p-8">
+        {fotoRubro && (
+          <div className="aspect-[16/9] w-full overflow-hidden rounded-tarjeta border border-borde sm:aspect-[21/9] sm:max-h-56">
+            <Foto imagen={fotoRubro} sizes="(min-width: 896px) 832px, 100vw" />
+          </div>
+        )}
+
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <Avatar
             nombre={organizacion.razon_social}
             url={logo}
+            semilla={organizacion.id}
             tamano="lg"
             forma="cuadrado"
           />
@@ -127,6 +137,7 @@ export default async function PaginaOrganizacion({ params }: Props) {
 
         {feed.vacio ? (
           <EstadoVacio
+            ilustracion="busquedas"
             titulo="No tiene búsquedas activas en este momento"
             descripcion="Cuando esta organización publique un empleo o una pasantía, la vas a ver acá."
           />
@@ -166,6 +177,7 @@ export default async function PaginaOrganizacion({ params }: Props) {
 
         {resumen.total === 0 ? (
           <EstadoVacio
+            ilustracion="postulaciones"
             titulo="Todavía no tiene reseñas"
             descripcion="Las escriben los jóvenes que se postularon a alguna búsqueda de esta empresa. Cuando llegue la primera, la vas a ver acá."
           />

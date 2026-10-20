@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { Foto } from "@/components/ui/Foto";
+import type { ImagenDePagina } from "@/lib/imagenes";
+
 import { FotoProvisional } from "./FotoProvisional";
 
 export type Diapositiva = {
@@ -10,7 +13,8 @@ export type Diapositiva = {
   titulo: string;
   texto: string;
   acciones: { href: string; etiqueta: string; primaria?: boolean }[];
-  foto: {
+  imagen?: ImagenDePagina;
+  foto?: {
     que: string;
     tono: "turquesa" | "violeta" | "mandarina" | "mixto";
     semilla: number;
@@ -105,7 +109,26 @@ export function SliderBienvenida({
               }
             >
               <div className="diapositiva-imagen absolute inset-0">
-                <FotoProvisional {...diapositiva.foto} rotuloArriba={false} />
+                {diapositiva.imagen ? (
+                  <>
+                    <Foto
+                      imagen={diapositiva.imagen}
+                      sizes="100vw"
+                      prioridad={indice === 0}
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-[linear-gradient(180deg,rgb(21_19_42/0.4)_0%,rgb(21_19_42/0.25)_50%,rgb(21_19_42/0.65)_100%)]"
+                    />
+                  </>
+                ) : (
+                  diapositiva.foto && (
+                    <FotoProvisional
+                      {...diapositiva.foto}
+                      rotuloArriba={false}
+                    />
+                  )
+                )}
               </div>
 
               <div className="diapositiva-texto absolute bottom-32 left-4 right-4 grid max-w-[620px] gap-3 rounded-[24px] bg-[#15132A]/80 p-6 text-white backdrop-blur-md sm:left-[max(24px,calc((100%-1180px)/2))] sm:p-8">

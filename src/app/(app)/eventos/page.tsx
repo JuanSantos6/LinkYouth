@@ -82,6 +82,7 @@ export default async function PaginaEventos() {
       <section className="space-y-4">
         {eventos.datos.length === 0 ? (
           <EstadoVacio
+            ilustracion="eventos"
             titulo="No hay eventos en agenda"
             descripcion="Cuando una organización publique una actividad, vas a verla acá con su fecha y su organizador."
           />

@@ -13,6 +13,15 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Imágenes en toda la página
+
+- **`Avatar` con color determinista por semilla y tamaño `xs`** (`src/components/ui/Avatar.tsx`): recibe `semilla` (el id de la cuenta o el nombre) y usa `colorDeAvatar` tanto en las iniciales como detrás de la imagen para que ninguna cuenta quede sin imagen ni con un hueco roto si la foto falla.
+- **Avatar de la sesión en la cabecera** (`src/components/layout/AvatarDeLaSesion.tsx`, `src/components/layout/CabeceraGlobal.tsx`): componente servidor asíncrono en su propio `<Suspense>` que consulta `obtenerIdentidadDeSesion()` y muestra el avatar en `MenuCuenta` con `IconoPerfil` como respaldo, sin volver asíncrona `CabeceraGlobal`.
+- **Unificación de avatares e iniciales** (`CintaDeOrganizaciones`, `TarjetaUsuario`, `FilaVacante`, `AvatarEditable`, `ListaFormacion`, `FilaDePostulante`, `FormularioDePerfilDeEmpresa` y pantallas de joven y empresa): se pasa `semilla` en todos los usos de `Avatar` y se reemplazan las iniciales dibujadas a mano por `Avatar`.
+- **Fotos reales en la portada y componente `Foto`** (`src/components/ui/Foto.tsx`, `src/app/page.tsx`, `SliderBienvenida.tsx`, `TarjetasPasos.tsx`): se reemplaza `FotoProvisional` por fotos WebP propias (`portada-estudiantes`, `portada-pasante`, `portada-busqueda`, `portada-primer-dia`, `portada-feria`, `portada-cierre`) con prioridad en la primera diapositiva y velo oscuro para contraste AA, manteniendo `FotoProvisional` en los tres espacios que requieren fotos propias (equipo, taller en la UM y captura de la ficha).
+- **Cabeceras por rubro y atributos de imagen en eventos** (`src/app/(app)/empleos/[id]/page.tsx`, `src/app/(app)/organizaciones/[id]/page.tsx`, `TarjetaEvento.tsx`, `/eventos/[id]`, `/empresa/eventos/[id]`): se suma la foto de `imagenDeRubro` cuando el rubro tiene imagen asociada, y se completan `alt` descriptivo, dimensiones y `loading="lazy"` en las fotos de eventos.
+- **Ilustraciones en estados vacíos** (`src/components/ui/Ilustracion.tsx`, `src/components/ui/EstadoVacio.tsx` y todas las pantallas con `EstadoVacio`): cinco SVG en el estilo del isotipo (`postulaciones`, `avisos`, `eventos`, `busquedas`, `personas`) coloreados con tokens de tema.
+
 ## 2026-10-20 — Avisos para los dos lados
 
 - **Por qué no se veían** (diagnóstico): no era RLS ni faltaban datos del

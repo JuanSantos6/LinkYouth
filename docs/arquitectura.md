@@ -897,14 +897,16 @@ para que no se lea como permiso general.
 | `Tarjeta` | `como?`, `elevada?`, + props del elemento | Superficie con borde, radio de tarjeta. `elevada` solo para lo que está realmente por encima del plano. |
 | `Boton` | `variante?`, + props de `<button>` | Botón de acción. `primario` es mandarina con texto tinta y es el único lugar de la app con mandarina: uno por pantalla. Baja 1 px al presionar. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
-| `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
+| `Avatar` | `nombre`, `url?`, `semilla?`, `tamano?`, `forma?` | Foto o iniciales con color determinista (`colorDeAvatar(semilla ?? nombre)`), incluido detrás del `<img>` por si falla la carga. Tamaños `xs` (28 px), `sm`, `md`, `lg`. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
+| `Foto` | `imagen`, `sizes`, `prioridad?`, `className?` | Imagen estática de la página (`ImagenDePagina` de `src/lib/imagenes.ts`) con `srcSet` WebP (640/1280/1920), dimensiones intrínsecas y `object-cover`. Con `prioridad`, `loading="eager"` y `fetchPriority="high"`. |
+| `Ilustracion` | `variante`, `className?` | Cinco ilustraciones SVG de 96 px en el estilo del isotipo (`postulaciones`, `avisos`, `eventos`, `busquedas`, `personas`) con tokens del tema (`fill-lavanda`, `stroke-violeta`, `stroke-turquesa`) para acompañar estados vacíos. |
 | `Etiqueta` | `children`, `coincide?`, `marcada?` | Un tag o una habilidad, en píldora. Lo que el perfil ya declara va en turquesa (suave en claro) con ✓ y un texto para lectores de pantalla: nunca solo color. `marcada` la marca en violeta con ✓ y ese texto: es la de las pantallas de empresa, donde el turquesa no se usa en habilidades declaradas. |
 | `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es turquesa, para lo ya logrado (postulación aceptada o seleccionada). Una búsqueda activa va en `acento`. Siempre con palabra. |
 | `SelectorDeOpciones` | `nombre`, `leyenda`, `opciones`, `inicial?`, `minimo?`, `maximo?`, `error?`, `tono?`, … | Elegir varias opciones de un catálogo como etiquetas que se prenden; lo elegido viaja en campos ocultos. Contador en `aria-live`. Lo usan el registro (`SelectorIntereses`) y los formularios de empresa (`tono="acento"`). |
 | `BotonConfirmado` | `accion`, `campos`, `textos`, `variante?`, `deshabilitado?` | Para lo que no tiene vuelta atrás: el primer toque abre la confirmación en la misma pantalla; el foco va al botón que confirma y vuelve con Esc. |
 | `Campo` | `etiqueta`, `ayuda?`, `error?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
 | `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?`, `celebrar?`, `extras?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Con `celebrar`, al salir bien aparecen los anillos del isotipo uniéndose (`ConexionAnillos`). No conoce vacantes ni eventos. |
-| `EstadoVacio` | `titulo`, `descripcion`, `accion?`, `nivel?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
+| `EstadoVacio` | `titulo`, `descripcion`, `accion?`, `nivel?`, `ilustracion?` | Qué se ve cuando una lista viene vacía, con ilustración opcional (`Ilustracion`) arriba del título. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
 | `Aviso` | `titulo?`, `children` | Aviso discreto: una línea con filete a la izquierda. Lo que la aplicación aclara sobre sí misma se ve igual, sin dominar la pantalla. |
 | `MensajeDeAccion` | `estado`, `className?` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
@@ -921,7 +923,8 @@ para que no se lea como permiso general.
 
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
-| `CabeceraGlobal` | `area?`, `umbralId?`, `secciones?` | Un solo menú por tipo de cuenta, dentro de `EncabezadoFlotante`. La empresa no ve Empleos ni Eventos del postulante. A la derecha: tema, y según el área, Entrar y Crear cuenta, o avisos y el menú de la cuenta. En el teléfono, el menú «Secciones». La portada pasa sus propias anclas en `secciones`. |
+| `CabeceraGlobal` | `area?`, `umbralId?`, `secciones?` | Un solo menú por tipo de cuenta, dentro de `EncabezadoFlotante`. La empresa no ve Empleos ni Eventos del postulante. A la derecha: tema, y según el área, Entrar y Crear cuenta, o avisos y el menú de la cuenta (`AvatarDeLaSesion`). En el teléfono, el menú «Secciones». La portada pasa sus propias anclas en `secciones`. |
+| `AvatarDeLaSesion` | — | Servidor asíncrono dentro de su propio `<Suspense>`: llama a `obtenerIdentidadDeSesion()` y muestra el `Avatar` (`xs`, 28 px) de quien tiene la sesión en el botón del menú de cuenta, con `IconoPerfil` en círculo lavanda como respaldo. |
 | `PieDeSitio` | `area?` | Columnas por área: a una empresa, «Tu empresa» en lugar de «Para jóvenes» y sin «Cómo funciona». Abajo, el correo de contacto. Ningún enlace lleva a una página vacía. |
 | `Marca` | `href`, `variante?`, `alto?` | Logo oficial desde `public/marca/`: la versión clara y la oscura como imágenes, y el CSS muestra la del tema (`.logo-claro`, `.logo-oscuro`). Imágenes y no SVG en línea para no repetir ids de degradado si aparece dos veces. |
 | `Encabezado` | `titulo`, `descripcion?` | Encabezado de sección. |
@@ -1348,11 +1351,16 @@ apuntando a ella. Es una decisión de esquema que el equipo todavía no tomó.
 
 ### 7.9 Contenido provisional de la portada
 
-Con el rediseño «Recreo» (2026-09-27) la portada quedó con tres cosas que
-esperan contenido real, todas rotuladas en pantalla:
+Con el rediseño «Recreo» (2026-09-27) y la incorporación de fotos reales
+(2026-10-20), la portada quedó con tres cosas que esperan contenido propio,
+todas rotuladas en pantalla:
 
-1. **Fotos.** Los espacios usan `FotoProvisional`, con un rótulo que dice qué
-   foto va. La lista está en `docs/decisiones.md`, 2026-09-27.
+1. **Fotos propias.** Los seis espacios generales de la portada ya usan fotos
+   reales (`Foto` con `src/lib/imagenes.ts`). Quedan con `FotoProvisional`
+   únicamente los tres espacios que no pueden representarse con fotos de banco:
+   «el equipo de LinkYouth», «un taller de LinkYouth en la Universidad de
+   Montevideo» y «una captura real de la ficha en el teléfono». Ver
+   `docs/imagenes.md`.
 2. **Opiniones.** Son de ejemplo y lo dicen en cada tarjeta. Se reemplazan
    por opiniones verdaderas, con permiso.
 3. **Canal de contacto.** Desde la Etapa 2, `/contacto`, el pie y Legales

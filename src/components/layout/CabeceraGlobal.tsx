@@ -15,6 +15,7 @@ import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
 import { cerrarSesion } from "@/lib/acciones/auth";
 import { type Area, inicioDe } from "@/lib/navegacion";
 
+import { AvatarDeLaSesion } from "./AvatarDeLaSesion";
 import {
   IconoAjustes,
   IconoAvisos,
@@ -102,9 +103,7 @@ function MenuCuenta({ area }: { area: "postulante" | "empresa" }) {
       etiqueta="Menú de tu cuenta"
       boton={
         <>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-lavanda">
-            <IconoPerfil className="h-4 w-4" />
-          </span>
+          <AvatarDeLaSesion />
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"

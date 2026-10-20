@@ -146,6 +146,7 @@ export default async function PaginaBusqueda({
 
           {ordenadas.length === 0 ? (
             <EstadoVacio
+              ilustracion="postulaciones"
               titulo="Nadie se postuló todavía"
               descripcion={
                 busqueda.estado === "activa"
@@ -168,6 +169,7 @@ export default async function PaginaBusqueda({
 
               {visibles.length === 0 ? (
                 <EstadoVacio
+                  ilustracion="postulaciones"
                   titulo="No hay postulaciones en este estado"
                   descripcion="Probá con otro estado, o mirá todas."
                 />

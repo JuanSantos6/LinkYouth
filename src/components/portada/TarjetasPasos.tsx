@@ -2,12 +2,16 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
+import { Foto } from "@/components/ui/Foto";
+import type { ImagenDePagina } from "@/lib/imagenes";
+
 import { FotoProvisional } from "./FotoProvisional";
 
 export type Paso = {
   titulo: string;
   texto: string;
-  foto: {
+  imagen?: ImagenDePagina;
+  foto?: {
     que: string;
     tono: "turquesa" | "violeta" | "mandarina" | "mixto";
     semilla: number;
@@ -84,8 +88,12 @@ function TarjetaPaso({ paso, numero }: { paso: Paso; numero: number }) {
       data-parallax-tarjeta
       className="flex flex-col overflow-hidden rounded-[24px] border border-borde bg-superficie will-change-transform"
     >
-      <div className="aspect-[4/3]">
-        <FotoProvisional {...paso.foto} />
+      <div className="aspect-[4/3] overflow-hidden">
+        {paso.imagen ? (
+          <Foto imagen={paso.imagen} sizes="(min-width: 768px) 380px, 100vw" />
+        ) : (
+          paso.foto && <FotoProvisional {...paso.foto} />
+        )}
       </div>
       <div className="flex flex-col gap-2 p-6">
         <span

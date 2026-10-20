@@ -73,6 +73,7 @@ export function BandejaDeAvisos({
       <section>
         {avisos.datos.length === 0 ? (
           <EstadoVacio
+            ilustracion="avisos"
             titulo="No tenés avisos"
             descripcion={descripcionVacia}
           />
