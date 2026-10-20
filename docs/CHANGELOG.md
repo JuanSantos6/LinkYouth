@@ -13,6 +13,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Datos de la demo
+
+- **`scripts/demo/sembrar.mjs` y `contenido.json`**: carga reproducible de la
+  demo de la defensa (borra todas las cuentas y crea 8 empresas, 15 jóvenes,
+  20 búsquedas, 40 postulaciones, 8 eventos y 16 reseñas, ficticios y
+  uruguayos). Por qué: los datos de prueba no mostraban cada función, y hace
+  falta poder restaurar la demo en un minuto. Ver [`demo.md`](./demo.md).
+
 ## 2026-10-20 — Formularios que no pierden datos
 
 - **Los formularios de registro conservan lo escrito ante un error (RF1.1,
