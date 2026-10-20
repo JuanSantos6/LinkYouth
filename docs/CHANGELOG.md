@@ -13,6 +13,13 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Tests unitarios del dominio
+
+- **Vitest** (`vitest.config.mts`, script `npm test`): runner de tests
+  unitarios; hasta ahora solo había e2e con Playwright. Decisión en
+  [`decisiones.md`](./decisiones.md), 2026-10-20.
+- **`src/lib/dominio/Compatibilidad.test.ts` (RF3.5.2)**: tests unitarios del cálculo de compatibilidad entre vacante y perfil (perfil por defecto, vacante no medible, redondeo de porcentaje, umbral de compatibilidad alta en 70 %, normalización, cruce entre tags y habilidades, faltantes en orden y comportamiento ante requisitos repetidos), para cubrir las reglas del dominio sin depender de la interfaz.
+
 ## 2026-10-15 — Etapa 2: el lado de la empresa
 
 Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
