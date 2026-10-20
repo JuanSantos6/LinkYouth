@@ -27,21 +27,21 @@ portada, donde el fondo no depende del tema.
 
 ## La paleta
 
-| Token | Claro | Oscuro | Para qué |
-| --- | --- | --- | --- |
-| `tinta` | `#1E1A38` | `#F3F1FA` | Texto, botón secundario activo |
-| `papel` | `#F7F6FB` | `#15132A` | Fondo de página |
-| `superficie` | `#FFFFFF` | `#1F1C38` | Tarjetas |
-| `apagado` | `#5B5770` | `#B4B0C9` | Texto secundario |
-| `violeta` | `#8C66FA` | `#9D7BFF` | **Marca**, del logo: menú activo, indicadores. **Nunca texto** |
-| `acento` (violeta texto) | `#6541E0` | `#B39DFF` | Enlaces, foco, texto de acento |
-| `turquesa` | `#19DDD2` | `#19DDD2` | **«Ya lo tenés»**, del logo: medidor, coincidencias. Siempre con ✓ o texto |
-| `coincide-fondo` | `#C8F5F2` | `#19DDD2` | Etiqueta que coincide (suave en claro) |
-| `turquesa-texto` | `#0A7A73` | `#19DDD2` | Borde e ícono de lo que ya tenés |
-| `mandarina` | `#F25C1A` | `#FF8A4C` | **Solo el botón principal**, con texto tinta |
-| `lavanda` | `#EFEAFF` | `#2C2752` | Fondo suave: fecha de evento, invitación |
-| `alerta` | `#B8123F` | `#FF7A99` | Errores, siempre con «No se pudo» |
-| `borde-control` | `#8A86A0` | `#817C9C` | Borde de campo o botón (3:1) |
+| Token                    | Claro     | Oscuro    | Para qué                                                                   |
+| ------------------------ | --------- | --------- | -------------------------------------------------------------------------- |
+| `tinta`                  | `#1E1A38` | `#F3F1FA` | Texto, botón secundario activo                                             |
+| `papel`                  | `#F7F6FB` | `#15132A` | Fondo de página                                                            |
+| `superficie`             | `#FFFFFF` | `#1F1C38` | Tarjetas                                                                   |
+| `apagado`                | `#5B5770` | `#B4B0C9` | Texto secundario                                                           |
+| `violeta`                | `#8C66FA` | `#9D7BFF` | **Marca**, del logo: menú activo, indicadores. **Nunca texto**             |
+| `acento` (violeta texto) | `#6541E0` | `#B39DFF` | Enlaces, foco, texto de acento                                             |
+| `turquesa`               | `#19DDD2` | `#19DDD2` | **«Ya lo tenés»**, del logo: medidor, coincidencias. Siempre con ✓ o texto |
+| `coincide-fondo`         | `#C8F5F2` | `#19DDD2` | Etiqueta que coincide (suave en claro)                                     |
+| `turquesa-texto`         | `#0A7A73` | `#19DDD2` | Borde e ícono de lo que ya tenés                                           |
+| `mandarina`              | `#F25C1A` | `#FF8A4C` | **Solo el botón principal**, con texto tinta                               |
+| `lavanda`                | `#EFEAFF` | `#2C2752` | Fondo suave: fecha de evento, invitación                                   |
+| `alerta`                 | `#B8123F` | `#FF7A99` | Errores, siempre con «No se pudo»                                          |
+| `borde-control`          | `#8A86A0` | `#817C9C` | Borde de campo o botón (3:1)                                               |
 
 Reglas de uso:
 
@@ -123,16 +123,16 @@ extrabold; título de tarjeta 19 px.
 
 Nada aparece de golpe, y nada se mueve si no responde a algo que hiciste.
 
-| Qué | Cómo |
-| --- | --- |
-| Abrir | 200 ms, `cubic-bezier(.2,.7,.2,1)` (`--ly-entrar`) |
-| Cerrar | 150 ms, `cubic-bezier(.4,0,1,1)` (`--ly-salir`) |
-| Menú, panel emergente | clase `.emergente` + `data-abierto` |
-| Desplegable (preguntas, «Ver más») | `.plegable` + `data-abierto`, o `DetallesSuaves` |
-| Cambio de pantalla | `EnlaceTransicion` (`document.startViewTransition`) |
-| Filtros y pestañas | `FiltroDeslizante`: la marca se desliza |
-| Postularse, inscribirse | `BotonAccion celebrar`: los anillos se unen |
-| Carga | `loading.tsx` con `EsqueletoDePantalla` |
+| Qué                                | Cómo                                                |
+| ---------------------------------- | --------------------------------------------------- |
+| Abrir                              | 200 ms, `cubic-bezier(.2,.7,.2,1)` (`--ly-entrar`)  |
+| Cerrar                             | 150 ms, `cubic-bezier(.4,0,1,1)` (`--ly-salir`)     |
+| Menú, panel emergente              | clase `.emergente` + `data-abierto`                 |
+| Desplegable (preguntas, «Ver más») | `.plegable` + `data-abierto`, o `DetallesSuaves`    |
+| Cambio de pantalla                 | `EnlaceTransicion` (`document.startViewTransition`) |
+| Filtros y pestañas                 | `FiltroDeslizante`: la marca se desliza             |
+| Postularse, inscribirse            | `BotonAccion celebrar`: los anillos se unen         |
+| Carga                              | `loading.tsx` con `EsqueletoDePantalla`             |
 
 Solo `transform` y `opacity` (y `clip-path` en la portada). Con
 `prefers-reduced-motion`, todo instantáneo: lo resuelve `globals.css`.
@@ -168,24 +168,24 @@ Sin signos de exclamación ni emojis.
 
 ## Patrones ya resueltos
 
-| Necesidad | Componente |
-| --- | --- |
-| Botón / enlace con forma de botón | `ui/Boton` · `ui/BotonEnlace` |
-| Acción de servidor sobre un ítem | `ui/BotonAccion` |
-| Tag o habilidad | `ui/Etiqueta` (`coincide`) |
-| Estado | `ui/Insignia` |
-| Compatibilidad | `ui/Medidor` |
-| Filtros, pestañas | `ui/FiltroDeslizante` |
-| Desplegable | `ui/DetallesSuaves` |
-| Carga | `ui/Esqueleto` |
-| Lista vacía | `ui/EstadoVacio` |
-| Datos de ejemplo | `ui/AvisoOrigen` |
-| Logo | `layout/Marca` |
-| Cabecera, pie | `layout/CabeceraGlobal` · `layout/PieDeSitio` |
-| Menú que se abre | `navegacion/MenuDesplegable` |
-| Enlace con transición | `navegacion/EnlaceTransicion` |
-| Tema | `layout/BotonTema` |
-| Foto que falta | `portada/FotoProvisional` |
+| Necesidad                         | Componente                                    |
+| --------------------------------- | --------------------------------------------- |
+| Botón / enlace con forma de botón | `ui/Boton` · `ui/BotonEnlace`                 |
+| Acción de servidor sobre un ítem  | `ui/BotonAccion`                              |
+| Tag o habilidad                   | `ui/Etiqueta` (`coincide`)                    |
+| Estado                            | `ui/Insignia`                                 |
+| Compatibilidad                    | `ui/Medidor`                                  |
+| Filtros, pestañas                 | `ui/FiltroDeslizante`                         |
+| Desplegable                       | `ui/DetallesSuaves`                           |
+| Carga                             | `ui/Esqueleto`                                |
+| Lista vacía                       | `ui/EstadoVacio`                              |
+| Datos de ejemplo                  | `ui/AvisoOrigen`                              |
+| Logo                              | `layout/Marca`                                |
+| Cabecera, pie                     | `layout/CabeceraGlobal` · `layout/PieDeSitio` |
+| Menú que se abre                  | `navegacion/MenuDesplegable`                  |
+| Enlace con transición             | `navegacion/EnlaceTransicion`                 |
+| Tema                              | `layout/BotonTema`                            |
+| Foto que falta                    | `portada/FotoProvisional`                     |
 
 Detalle en `references/tokens.md`, `references/componentes.md` y, antes de
 dar algo por terminado, `references/revision.md`.
