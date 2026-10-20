@@ -13,13 +13,20 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
-## 2026-10-20 — Delegación a Antigravity
+## 2026-10-20 — Delegación a Antigravity y tests del dominio
 
-- **`AGENTS.md`, `GEMINI.md` y skill `delegar-a-gemini`** (sin commit): reglas
-  para que Antigravity CLI (`agy`) trabaje en tareas de bajo riesgo dentro de un
+- **`AGENTS.md`, `GEMINI.md` y skill `delegar-a-gemini`**: reglas para que
+  Antigravity CLI (`agy`) trabaje en tareas de bajo riesgo dentro de un
   worktree `gemini/<tarea>`, sin tocar `db/`, RLS, middleware ni seguridad, y
   sin push ni merge. Por qué: ahorrar tokens en trabajo mecánico sin ceder la
-  revisión. `GEMINI.md` es un enlace a `AGENTS.md` para que no haya dos copias que se desincronicen.
+  revisión. `GEMINI.md` es un enlace a `AGENTS.md` para que no haya dos copias
+  que se desincronicen.
+- **Vitest** (`vitest.config.mts`, script `npm test`): runner de tests
+  unitarios; hasta ahora solo había e2e con Playwright. Decisión en
+  [`decisiones.md`](./decisiones.md), 2026-10-20.
+- **`src/lib/dominio/Compatibilidad.test.ts` (RF3.5.2)**: tests del cálculo de
+  compatibilidad entre vacante y perfil, para cubrir las reglas del dominio
+  sin depender de la interfaz.
 
 ## 2026-10-15 — Etapa 2: el lado de la empresa
 

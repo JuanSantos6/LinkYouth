@@ -6,6 +6,19 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-20 — Vitest para los tests unitarios del dominio
+
+**Decisión.** Los tests unitarios usan Vitest (`npm test`, archivos
+`src/**/*.test.ts` junto a la clase que prueban). Los e2e siguen en Playwright.
+
+**Alternativas.** *`node:test` con `--experimental-transform-types`*: no suma
+dependencias, pero no resuelve el alias `@/` y obliga a importar con extensión
+`.ts`, lo que pide cambiar `tsconfig.json`. *Jest*: necesita un transformador
+para TypeScript y ESM y es más lento de configurar.
+
+**Por qué.** Vitest lee TypeScript y ESM sin configuración extra, resuelve el
+alias con tres líneas y es lo que recomienda la documentación de Next.js.
+
 ## 2026-10-15 — Etapa 2: el lado de la empresa
 
 Migración `db/migraciones/005-etapa2-empresa.sql`, ya incluida en
