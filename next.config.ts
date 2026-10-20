@@ -29,6 +29,9 @@ const STORAGE_INTERNO = "http://127.0.0.1:8000";
  */
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Es el valor por defecto; queda escrito para que nadie lo active sin ver
+  // que publicaría el código fuente original en las DevTools.
+  productionBrowserSourceMaps: false,
   async headers() {
     return [
       {

@@ -79,10 +79,14 @@ interfaz antes de tener la base cargada.
 
 ## Variables de entorno
 
-| Variable                        | Dónde se obtiene                                              |
-| ------------------------------- | ------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase Dashboard > Project Settings > API > Project URL     |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard > Project Settings > API > `anon` `public` |
+| Variable            | Dónde se obtiene                                              |
+| ------------------- | ------------------------------------------------------------- |
+| `SUPABASE_URL`      | Supabase Dashboard > Project Settings > API > Project URL     |
+| `SUPABASE_ANON_KEY` | Supabase Dashboard > Project Settings > API > `anon` `public` |
+
+No llevan prefijo `NEXT_PUBLIC_`: solo las usa el servidor de Next, y con el
+prefijo Next las incrustaría en el JavaScript del navegador si algún componente
+de cliente las nombrara (ver `docs/seguridad.md`).
 
 `.env.local` está ignorado por Git y nunca debe versionarse. La clave `anon` es
 pública por diseño: el control de acceso real se hace con Row Level Security en
