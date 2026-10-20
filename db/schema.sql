@@ -249,43 +249,118 @@ create table notificaciones (
   creada_en  timestamptz not null default now()
 );
 
--- Genera la notificación de RF6.2 automáticamente cuando una
--- empresa cambia el estado de una postulación. Corre con permisos
--- elevados (security definer) porque inserta en la cuenta del
--- postulante, no en la de quien ejecuta la acción.
-create or replace function notificar_cambio_estado_postulacion()
+-- Cola de correos (migración 007, RF6.3). Los disparadores dejan acá el
+-- correo de los avisos importantes, en la misma transacción que el aviso, y
+-- la aplicación lo despacha por SMTP con la clave de servicio
+-- (`src/lib/correo/`). Nadie la lee desde la API: ver politicas.sql. El
+-- destinatario va por `cuenta_id`: la dirección se busca en `auth.users` al
+-- despachar.
+create table if not exists public.correos_pendientes (
+  id              uuid primary key default gen_random_uuid(),
+  cuenta_id       uuid not null references public.cuentas(id) on delete cascade,
+  notificacion_id uuid references public.notificaciones(id) on delete set null,
+  asunto          text not null,
+  mensaje         text not null,
+  enlace          text,
+  creado_en       timestamptz not null default now(),
+  -- Quién lo tomó para mandarlo, así dos despachos a la vez no lo
+  -- mandan dos veces (ver `reclamar_correos_pendientes`).
+  reclamado_en    timestamptz,
+  enviado_en      timestamptz,
+  intentos        int not null default 0,
+  ultimo_error    text
+);
+
+create index if not exists idx_correos_pendientes_sin_enviar
+  on public.correos_pendientes (creado_en) where enviado_en is null;
+
+-- Un solo lugar que escribe en `notificaciones` (migración 007): el texto, el
+-- enlace y el correo salen siempre juntos. Con `asunto`, además encola el
+-- correo. Corre con permisos elevados porque escribe en la cuenta de otro; no
+-- se puede llamar desde la API (ver politicas.sql).
+create or replace function public.avisar(
+  destino     uuid,
+  tipo_aviso  text,
+  texto       text,
+  destino_url text,
+  asunto      text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_id uuid;
+begin
+  insert into notificaciones (cuenta_id, tipo, mensaje, enlace)
+  values (destino, tipo_aviso, texto, destino_url)
+  returning id into v_id;
+
+  if asunto is not null then
+    insert into correos_pendientes (cuenta_id, notificacion_id, asunto, mensaje, enlace)
+    values (destino, v_id, asunto, texto, destino_url);
+  end if;
+end;
+$$;
+
+-- RF6.2 — Al joven, cuando una empresa cambia el estado de su postulación.
+-- Con palabras y nombrando la búsqueda y la empresa, nunca el valor crudo de
+-- la base, y con enlace a esa postulación. Seleccionada y descartada llevan
+-- correo; revisión y entrevista quedan solo en la página. 'cancelada' no
+-- avisa: es la única transición que hace el propio postulante (ver
+-- politicas.sql), y sería avisarle de su propia acción.
+create or replace function public.notificar_cambio_estado_postulacion()
 returns trigger
 language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
 declare
-  v_titulo text;
-  v_estado text;
+  v_titulo  text;
+  v_empresa text;
+  v_texto   text;
+  v_tipo    text;
+  v_asunto  text;
 begin
-  -- 'cancelada' es la unica transicion que hace el propio postulante
-  -- (ver politicas.sql). Notificarsela seria avisarle de su propia accion.
-  if new.estado is distinct from old.estado and new.estado <> 'cancelada' then
-    select titulo into v_titulo from vacantes where id = new.vacante_id;
-
-    -- Con palabras y nombrando la búsqueda (migración 005): antes mostraba el
-    -- valor crudo de la base y enlazaba a una ruta que no existe.
-    v_estado := case new.estado
-      when 'en_revision' then 'está en revisión'
-      when 'entrevista'  then 'pasó a la etapa de entrevista'
-      when 'aceptada'    then 'fue aceptada'
-      when 'rechazada'   then 'no fue seleccionada'
-      else 'cambió de estado'
-    end;
-
-    insert into notificaciones (cuenta_id, tipo, mensaje, enlace)
-    values (
-      new.perfil_id,
-      'postulacion',
-      'Tu postulación a «' || coalesce(v_titulo, 'una búsqueda') || '» ' || v_estado || '.',
-      '/postulaciones'
-    );
+  if new.estado is not distinct from old.estado or new.estado = 'cancelada' then
+    return new;
   end if;
+
+  select v.titulo, e.razon_social into v_titulo, v_empresa
+  from vacantes v join empresas e on e.id = v.empresa_id
+  where v.id = new.vacante_id;
+  v_titulo := '«' || coalesce(v_titulo, 'una búsqueda') || '»';
+  v_empresa := coalesce(v_empresa, 'la empresa');
+
+  case new.estado
+    when 'en_revision' then
+      v_tipo := 'postulacion_en_revision';
+      v_texto := v_empresa || ' está revisando tu postulación a ' || v_titulo || '.';
+    when 'entrevista' then
+      v_tipo := 'postulacion_entrevista';
+      v_texto := v_empresa || ' quiere conocerte: tu postulación a ' || v_titulo
+        || ' pasó a la etapa de entrevista.';
+    when 'aceptada' then
+      v_tipo := 'postulacion_seleccionada';
+      v_texto := 'Te seleccionaron en ' || v_empresa || ' para ' || v_titulo
+        || '. La empresa se va a comunicar con vos para los próximos pasos.';
+      v_asunto := 'Te seleccionaron para ' || v_titulo;
+    when 'rechazada' then
+      v_tipo := 'postulacion_descartada';
+      v_texto := 'Tu postulación a ' || v_titulo || ' en ' || v_empresa
+        || ' no siguió adelante. Gracias por postularte: hay más búsquedas esperándote.';
+      v_asunto := 'Novedades sobre tu postulación a ' || v_titulo;
+    else
+      v_tipo := 'postulacion';
+      v_texto := 'Tu postulación a ' || v_titulo || ' cambió de estado.';
+  end case;
+
+  perform avisar(
+    new.perfil_id, v_tipo, v_texto,
+    '/postulaciones#postulacion-' || new.id,
+    v_asunto
+  );
   return new;
 end;
 $$;
@@ -293,6 +368,90 @@ $$;
 create trigger postulaciones_notificar_cambio
 after update on postulaciones
 for each row execute function notificar_cambio_estado_postulacion();
+
+-- RF6.1 — A la empresa, cuando alguien se postula a una de sus búsquedas
+-- (migración 007). Lleva correo.
+create or replace function public.notificar_postulacion_recibida()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_empresa uuid;
+  v_titulo  text;
+  v_persona text;
+begin
+  select v.empresa_id, v.titulo into v_empresa, v_titulo
+  from vacantes v where v.id = new.vacante_id;
+  if v_empresa is null then
+    return null;
+  end if;
+
+  select trim(p.nombre || ' ' || p.apellido) into v_persona
+  from perfiles p where p.id = new.perfil_id;
+  v_persona := coalesce(nullif(v_persona, ''), 'Una persona');
+
+  perform avisar(
+    v_empresa,
+    'postulacion_recibida',
+    v_persona || ' se postuló a «' || v_titulo || '».',
+    '/empresa/busquedas/' || new.vacante_id || '/postulantes/' || new.id,
+    'Nueva postulación a «' || v_titulo || '»'
+  );
+  return null;
+end;
+$$;
+
+create trigger postulaciones_notificar_recibida
+after insert on public.postulaciones
+for each row execute function public.notificar_postulacion_recibida();
+
+create trigger postulaciones_notificar_recibida
+after insert on public.postulaciones
+for each row execute function public.notificar_postulacion_recibida();
+
+-- RF6.1 — A la empresa, cuando alguien se inscribe a uno de sus eventos
+-- (migración 007). Sin correo: es un aviso menor.
+create or replace function public.notificar_inscripcion_recibida()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_empresa uuid;
+  v_titulo  text;
+  v_persona text;
+begin
+  select e.empresa_id, e.titulo into v_empresa, v_titulo
+  from eventos e where e.id = new.evento_id;
+  if v_empresa is null then
+    return null;
+  end if;
+
+  select trim(p.nombre || ' ' || p.apellido) into v_persona
+  from perfiles p where p.id = new.perfil_id;
+  v_persona := coalesce(nullif(v_persona, ''), 'Una persona');
+
+  perform avisar(
+    v_empresa,
+    'inscripcion_recibida',
+    v_persona || ' se inscribió a «' || v_titulo || '».',
+    '/empresa/eventos/' || new.evento_id,
+    null
+  );
+  return null;
+end;
+$$;
+
+create trigger inscripciones_notificar_recibida
+after insert on public.inscripciones_evento
+for each row execute function public.notificar_inscripcion_recibida();
+
+create trigger inscripciones_notificar_recibida
+after insert on public.inscripciones_evento
+for each row execute function public.notificar_inscripcion_recibida();
 
 -- ============================================================
 -- MÓDULO: Integridad entre cuentas, perfiles y empresas
@@ -587,21 +746,25 @@ after update of estado on vacantes
 for each row execute function rechazar_pendientes_al_cerrar();
 
 -- RF4.3.2: cancelar un evento avisa a quienes se inscribieron.
-create or replace function notificar_cancelacion_evento()
+create or replace function public.notificar_cancelacion_evento()
 returns trigger
 language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  v_inscripto uuid;
 begin
   if new.estado = 'cancelado' and old.estado is distinct from 'cancelado' then
-    insert into notificaciones (cuenta_id, tipo, mensaje, enlace)
-    select i.perfil_id,
-           'evento',
-           'Se canceló el evento «' || new.titulo || '».',
-           '/eventos'
-    from inscripciones_evento i
-    where i.evento_id = new.id;
+    for v_inscripto in
+      select i.perfil_id from inscripciones_evento i where i.evento_id = new.id
+    loop
+      perform avisar(
+        v_inscripto, 'evento_cancelado',
+        'Se canceló el evento «' || new.titulo || '».',
+        '/eventos', null
+      );
+    end loop;
   end if;
   return null;
 end;

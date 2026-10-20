@@ -489,6 +489,28 @@ export async function obtenerAvisos(
   return { datos: data ?? [], origen: "supabase" };
 }
 
+/**
+ * RF6.1 — Cuántos avisos sin leer tiene la sesión, para el contador de la
+ * campana. Sirve para las dos cuentas: la política
+ * `notificaciones_veo_las_mias` ya acota a los propios. Sin sesión o sin base,
+ * cero: la campana no anuncia avisos de ejemplo.
+ */
+export async function contarAvisosSinLeer(usuarioId?: string): Promise<number> {
+  const supabase = await createClient();
+  if (!supabase) return 0;
+
+  const id = await resolverUsuarioId(supabase, usuarioId);
+  if (!id) return 0;
+
+  const { count } = await supabase
+    .from("notificaciones")
+    .select("id", { count: "exact", head: true })
+    .eq("cuenta_id", id)
+    .eq("leida", false);
+
+  return count ?? 0;
+}
+
 // --- Instituciones ----------------------------------------------------------
 
 /**
