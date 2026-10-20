@@ -46,6 +46,7 @@ export function FilaVacante({
         <Avatar
           nombre={vacante.empresa.razon_social}
           url={vacante.empresa.logo_url}
+          semilla={vacante.empresa.id}
           forma="cuadrado"
         />
 

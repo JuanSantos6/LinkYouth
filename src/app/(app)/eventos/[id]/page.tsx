@@ -74,6 +74,7 @@ export default async function PaginaDetalleEvento({ params }: Props) {
               <Avatar
                 nombre={evento.empresa.razon_social}
                 url={evento.empresa.logo_url}
+                semilla={evento.empresa.id}
                 forma="cuadrado"
               />
               <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[14px] text-apagado">
@@ -124,8 +125,12 @@ export default async function PaginaDetalleEvento({ params }: Props) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={imagen}
-              alt=""
-              className="max-h-72 w-full rounded-tarjeta border border-borde object-cover"
+              alt={`Foto del evento ${evento.titulo}`}
+              width={1280}
+              height={720}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[16/9] max-h-72 w-full rounded-tarjeta border border-borde object-cover"
             />
           )}
 

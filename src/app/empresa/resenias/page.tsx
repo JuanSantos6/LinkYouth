@@ -32,6 +32,7 @@ export default async function PaginaResenias() {
       {resumen.total === 0 ? (
         <EstadoVacio
           nivel={2}
+          ilustracion="postulaciones"
           titulo="Todavía no recibiste reseñas"
           descripcion="Las escriben los jóvenes que pasaron por un proceso o un evento con tu empresa. Cuando llegue la primera, la vas a ver acá."
         />

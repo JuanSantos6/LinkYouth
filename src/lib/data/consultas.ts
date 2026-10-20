@@ -421,7 +421,7 @@ export async function obtenerPostulaciones(
     .from("postulaciones")
     .select(
       `id, estado, creada_en,
-       vacantes ( id, titulo, empresas ( razon_social, logo_url ) )`,
+       vacantes ( id, titulo, empresas ( id, razon_social, logo_url ) )`,
     )
     .eq("perfil_id", id)
     .order("creada_en", { ascending: false });
@@ -438,6 +438,7 @@ export async function obtenerPostulaciones(
         id: fila.vacantes?.id ?? "",
         titulo: fila.vacantes?.titulo ?? "Vacante dada de baja",
         empresa: fila.vacantes?.empresas?.razon_social ?? "—",
+        empresa_id: fila.vacantes?.empresas?.id ?? null,
         empresa_logo_url: fila.vacantes?.empresas?.logo_url ?? null,
       },
     })),

@@ -89,6 +89,7 @@ export default async function PaginaPostulante({
       {!persona ? (
         <EstadoVacio
           nivel={1}
+          ilustracion="personas"
           titulo="Esta persona se retiró del proceso"
           descripcion="Cuando alguien retira su postulación deja de compartir sus datos con la empresa. La postulación queda en el historial de la búsqueda."
           accion={
@@ -106,6 +107,7 @@ export default async function PaginaPostulante({
             <Avatar
               nombre={`${persona.nombre} ${persona.apellido}`}
               url={persona.foto_url}
+              semilla={persona.id}
               tamano="lg"
             />
             <div className="min-w-0 flex-1 space-y-1.5">

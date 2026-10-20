@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Foto } from "@/components/ui/Foto";
 import { Insignia } from "@/components/ui/Insignia";
 import { Medidor } from "@/components/ui/Medidor";
 import { postularse } from "@/lib/acciones/postulaciones";
@@ -20,6 +21,7 @@ import { Compatibilidad } from "@/lib/dominio/Compatibilidad";
 import { ETAPAS } from "@/lib/dominio/ProcesoDePostulacion";
 import { ETIQUETA_MODALIDAD } from "@/lib/dominio/ReglasDeBusqueda";
 import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
+import { imagenDeRubro } from "@/lib/imagenes";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +71,7 @@ export default async function PaginaVacante({ params }: Props) {
   const compatibilidad = Compatibilidad.entre(vacante, perfil?.datos);
   const requisitos = [...vacante.habilidades, ...vacante.tags];
   const faltantes = compatibilidad.faltantes;
+  const fotoRubro = imagenDeRubro(vacante.empresa.rubro);
 
   return (
     <article className="mx-auto max-w-5xl space-y-6">
@@ -83,11 +86,21 @@ export default async function PaginaVacante({ params }: Props) {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(300px,1fr)] lg:items-start">
         <div className="space-y-8">
-          <header className="space-y-3">
+          <header className="space-y-4">
+            {fotoRubro && (
+              <div className="aspect-[16/9] w-full overflow-hidden rounded-tarjeta border border-borde sm:aspect-[21/9] sm:max-h-56">
+                <Foto
+                  imagen={fotoRubro}
+                  sizes="(min-width: 1024px) 640px, 100vw"
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-3">
               <Avatar
                 nombre={vacante.empresa.razon_social}
                 url={vacante.empresa.logo_url}
+                semilla={vacante.empresa.id}
                 forma="cuadrado"
               />
               <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[14px] text-apagado">

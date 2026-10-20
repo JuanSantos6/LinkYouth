@@ -44,7 +44,11 @@ export function TarjetaUsuario({
   return (
     <Tarjeta className="divide-y divide-filete">
       <div className="flex items-center gap-3 p-5">
-        <Avatar nombre={nombreCompleto} url={perfil.foto_url} />
+        <Avatar
+          nombre={nombreCompleto}
+          url={perfil.foto_url}
+          semilla={perfil.id}
+        />
 
         <div className="min-w-0">
           <h2 className="truncate text-[17px] text-tinta">{nombreCompleto}</h2>
@@ -111,12 +115,12 @@ function BloqueInstitucion({ formacion }: { formacion: Formacion }) {
       href={`/institucion/${institucion.id}`}
       className="flex items-center gap-3 p-5 transition-colors duration-150 hover:bg-realce"
     >
-      <span
-        aria-hidden
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-borde bg-realce text-[13px] font-semibold text-apagado"
-      >
-        {institucion.iniciales}
-      </span>
+      <Avatar
+        nombre={formacion.institucion}
+        semilla={institucion.id}
+        tamano="sm"
+        forma="cuadrado"
+      />
 
       {/*
        * El estado va en su propia línea y no pegado al nombre: dentro del

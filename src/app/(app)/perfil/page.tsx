@@ -78,7 +78,11 @@ export default async function PaginaPerfil() {
         descripcion="Tu nombre, dónde estás y cómo te presentás."
       >
         <div className="space-y-6">
-          <AvatarEditable nombre={nombreCompleto} url={datos.foto_url} />
+          <AvatarEditable
+            nombre={nombreCompleto}
+            url={datos.foto_url}
+            semilla={datos.id}
+          />
           <FormularioPerfil perfil={datos} />
         </div>
       </Seccion>

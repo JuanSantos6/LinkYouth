@@ -16,6 +16,7 @@ import { cancelarEvento } from "@/lib/acciones/eventosDeEmpresa";
 import { obtenerEventoDeEmpresa, obtenerInscriptos } from "@/lib/data/empresa";
 import { ReglasDeEvento } from "@/lib/dominio/ReglasDeEvento";
 import { fechaLarga, hora, tiempoRelativo } from "@/lib/formato";
+import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 export const metadata: Metadata = { title: "Evento" };
 export const dynamic = "force-dynamic";
@@ -139,6 +140,7 @@ export default async function PaginaEvento({
 
           {inscriptos.datos.length === 0 ? (
             <EstadoVacio
+              ilustracion="personas"
               titulo="Nadie se inscribió todavía"
               descripcion={
                 momento === "proximo"
@@ -158,6 +160,7 @@ export default async function PaginaEvento({
                     <Avatar
                       nombre={nombre}
                       url={persona.foto_url}
+                      semilla={persona.id}
                       tamano="sm"
                     />
                     <span className="min-w-0 flex-1">
@@ -188,8 +191,12 @@ export default async function PaginaEvento({
           {evento.imagen_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={evento.imagen_url}
-              alt=""
+              src={rutaDeImagen(evento.imagen_url) ?? undefined}
+              alt={`Foto del evento ${evento.titulo}`}
+              width={640}
+              height={360}
+              loading="lazy"
+              decoding="async"
               className="aspect-[16/9] w-full rounded-ficha object-cover"
             />
           )}

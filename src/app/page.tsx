@@ -8,22 +8,21 @@ import { IconoCamara } from "@/components/layout/Iconos";
 import { PieDeSitio } from "@/components/layout/PieDeSitio";
 import { AnimacionesDePortada } from "@/components/portada/AnimacionesDePortada";
 import { Carrusel } from "@/components/portada/Carrusel";
-import {
-  FotoProvisional,
-  RotuloFotoProvisional,
-} from "@/components/portada/FotoProvisional";
+import { FotoProvisional } from "@/components/portada/FotoProvisional";
 import {
   SliderBienvenida,
   type Diapositiva,
 } from "@/components/portada/SliderBienvenida";
 import { TarjetasPasos, type Paso } from "@/components/portada/TarjetasPasos";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Foto } from "@/components/ui/Foto";
 import {
   obtenerEmpresas,
   obtenerTipoCuenta,
   obtenerVacantes,
 } from "@/lib/data/consultas";
 import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
+import { imagen } from "@/lib/imagenes";
 import { areaDe } from "@/lib/navegacion";
 
 export const metadata: Metadata = {
@@ -53,11 +52,7 @@ const DIAPOSITIVAS: Diapositiva[] = [
       { href: "/registro", etiqueta: "Crear mi cuenta", primaria: true },
       { href: "#como-funciona", etiqueta: "Ver cómo funciona" },
     ],
-    foto: {
-      que: "jóvenes estudiando juntos en la universidad",
-      tono: "turquesa",
-      semilla: 1,
-    },
+    imagen: imagen("portada-estudiantes"),
   },
   {
     antetitulo: "Para empresas",
@@ -72,11 +67,7 @@ const DIAPOSITIVAS: Diapositiva[] = [
       },
       { href: "#busquedas", etiqueta: "Ver búsquedas abiertas" },
     ],
-    foto: {
-      que: "el equipo de una empresa uruguaya recibiendo a su pasante",
-      tono: "violeta",
-      semilla: 2,
-    },
+    imagen: imagen("portada-pasante"),
   },
   {
     antetitulo: "Eventos para crecer",
@@ -132,17 +123,13 @@ const PASOS: Paso[] = [
     titulo: "Encontrá lo que coincide con vos",
     texto:
       "Cada búsqueda te dice qué tenés de lo que pide, requisito por requisito, y las que más coinciden aparecen primero. No hay números misteriosos: siempre ves qué habilidades explican cada resultado, así sabés qué te conviene aprender para las próximas.",
-    foto: {
-      que: "una persona joven mirando búsquedas en la computadora",
-      tono: "violeta",
-      semilla: 12,
-    },
+    imagen: imagen("portada-busqueda"),
   },
   {
     titulo: "Postulate en un paso",
     texto:
       "Un toque y listo. Después seguís en qué etapa está: enviada, en revisión y resolución, sin quedarte esperando a ciegas.",
-    foto: { que: "un primer día de trabajo", tono: "mandarina", semilla: 13 },
+    imagen: imagen("portada-primer-dia"),
   },
 ];
 
@@ -324,12 +311,7 @@ export default async function Portada() {
               data-ic-lienzo
               className="absolute inset-x-4 inset-y-10 overflow-hidden rounded-[28px] md:inset-0 md:rounded-none"
             >
-              <FotoProvisional
-                que="jóvenes en una feria de empleo"
-                tono="mixto"
-                semilla={21}
-                conRotulo={false}
-              />
+              <Foto imagen={imagen("portada-feria")} sizes="100vw" />
               <div
                 aria-hidden="true"
                 className="absolute inset-0 bg-[linear-gradient(180deg,rgb(21_19_42/0.85)_0%,rgb(21_19_42/0.72)_55%,rgb(21_19_42/0.88)_100%)]"
@@ -339,7 +321,7 @@ export default async function Portada() {
             <div className="relative md:absolute md:inset-0 md:flex md:items-center md:justify-center">
               <div
                 data-ic-contenido
-                className="grid grid-cols-[minmax(0,1fr)] gap-6 p-6 text-white sm:p-8 md:h-[min(640px,78%)] md:w-[min(1120px,calc(100%-32px))] md:grid-rows-[1fr_auto_auto]"
+                className="grid grid-cols-[minmax(0,1fr)] gap-6 p-6 text-white sm:p-8 md:h-[min(640px,78%)] md:w-[min(1120px,calc(100%-32px))] md:grid-rows-[1fr_auto]"
               >
                 <Carrusel
                   etiqueta="Búsquedas abiertas"
@@ -387,7 +369,6 @@ export default async function Portada() {
                     </Link>
                   ))}
                 </Carrusel>
-                <RotuloFotoProvisional que="jóvenes en una feria de empleo" />
                 {vacantes.origen === "ejemplo" && (
                   <p className="text-[13.5px] text-[#E6E3F2]">
                     Estas búsquedas son de demostración: todavía no hay empresas
@@ -509,38 +490,46 @@ export default async function Portada() {
           <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6">
             <div
               data-revelar
-              className="grid justify-items-start gap-4 rounded-[32px] bg-tinta p-8 text-papel sm:p-12"
+              className="grid gap-6 overflow-hidden rounded-[32px] bg-tinta p-8 text-papel sm:p-12 md:grid-cols-[1.15fr_0.85fr] md:items-center"
             >
-              <h2
-                id="t-empezar"
-                className="text-[30px] leading-tight font-extrabold text-papel sm:text-[42px]"
-              >
-                Tu primer trabajo empieza acá
-              </h2>
-              <p className="max-w-[60ch] text-[17px] text-papel/85">
-                Armá tu ficha en cinco minutos y mirá qué búsquedas coinciden
-                con vos. ¿Tenés una consulta?{" "}
-                <Link
-                  href="/contacto"
-                  className="font-semibold text-papel underline underline-offset-4"
+              <div className="grid justify-items-start gap-4">
+                <h2
+                  id="t-empezar"
+                  className="text-[30px] leading-tight font-extrabold text-papel sm:text-[42px]"
                 >
-                  Escribinos
-                </Link>
-                .
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/registro"
-                  className="rounded-control bg-mandarina px-5 py-3 text-[15px] font-semibold text-sobre-mandarina transition-[filter] duration-150 hover:brightness-[0.94]"
-                >
-                  Crear mi cuenta
-                </Link>
-                <a
-                  href="#arriba"
-                  className="rounded-control border-[1.5px] border-papel/50 px-5 py-3 text-[15px] font-semibold text-papel transition-colors duration-150 hover:bg-papel/10"
-                >
-                  Volver arriba
-                </a>
+                  Tu primer trabajo empieza acá
+                </h2>
+                <p className="max-w-[60ch] text-[17px] text-papel/85">
+                  Armá tu ficha en cinco minutos y mirá qué búsquedas coinciden
+                  con vos. ¿Tenés una consulta?{" "}
+                  <Link
+                    href="/contacto"
+                    className="font-semibold text-papel underline underline-offset-4"
+                  >
+                    Escribinos
+                  </Link>
+                  .
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/registro"
+                    className="rounded-control bg-mandarina px-5 py-3 text-[15px] font-semibold text-sobre-mandarina transition-[filter] duration-150 hover:brightness-[0.94]"
+                  >
+                    Crear mi cuenta
+                  </Link>
+                  <a
+                    href="#arriba"
+                    className="rounded-control border-[1.5px] border-papel/50 px-5 py-3 text-[15px] font-semibold text-papel transition-colors duration-150 hover:bg-papel/10"
+                  >
+                    Volver arriba
+                  </a>
+                </div>
+              </div>
+              <div className="aspect-[16/10] overflow-hidden rounded-[20px]">
+                <Foto
+                  imagen={imagen("portada-cierre")}
+                  sizes="(min-width: 768px) 440px, 100vw"
+                />
               </div>
             </div>
           </div>

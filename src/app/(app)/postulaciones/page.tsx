@@ -83,6 +83,7 @@ export default async function PaginaPostulaciones() {
       <section>
         {postulaciones.datos.length === 0 ? (
           <EstadoVacio
+            ilustracion="postulaciones"
             titulo="Todavía no te postulaste a ninguna búsqueda"
             descripcion="Cuando te postules, vas a poder seguir acá en qué etapa está cada proceso."
             accion={
@@ -109,6 +110,10 @@ export default async function PaginaPostulaciones() {
                     <Avatar
                       nombre={postulacion.vacante.empresa}
                       url={postulacion.vacante.empresa_logo_url}
+                      semilla={
+                        postulacion.vacante.empresa_id ??
+                        postulacion.vacante.empresa
+                      }
                       forma="cuadrado"
                       tamano="sm"
                     />

@@ -86,6 +86,7 @@ export default async function PaginaInicio({
           <section aria-label="Oportunidades laborales">
             {feed.vacio ? (
               <EstadoVacio
+                ilustracion="busquedas"
                 titulo="Todavía no hay vacantes publicadas"
                 descripcion="Cuando una empresa publique una búsqueda que coincida con tus habilidades, la vas a ver acá."
               />
@@ -101,6 +102,7 @@ export default async function PaginaInicio({
           <section className="space-y-4" aria-label="Eventos de networking">
             {eventos.datos.length === 0 ? (
               <EstadoVacio
+                ilustracion="eventos"
                 titulo="No hay eventos en agenda"
                 descripcion="Las charlas, talleres y ferias que organicen las empresas se publican en esta sección."
               />

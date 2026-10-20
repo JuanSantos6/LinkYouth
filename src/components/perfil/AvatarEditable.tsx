@@ -16,9 +16,11 @@ import { Aviso } from "@/components/ui/AvisoOrigen";
 export function AvatarEditable({
   nombre,
   url,
+  semilla,
 }: {
   nombre: string;
   url: string | null;
+  semilla?: string;
 }) {
   const campo = useRef<HTMLInputElement>(null);
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(url);
@@ -37,7 +39,12 @@ export function AvatarEditable({
   return (
     <div className="flex items-center gap-4">
       <div className="relative">
-        <Avatar nombre={nombre} url={vistaPrevia} tamano="lg" />
+        <Avatar
+          nombre={nombre}
+          url={vistaPrevia}
+          semilla={semilla}
+          tamano="lg"
+        />
 
         <button
           type="button"

@@ -100,6 +100,7 @@ export default async function PaginaEmpleos({
       <section>
         {feed.vacio ? (
           <EstadoVacio
+            ilustracion="busquedas"
             titulo="No encontramos vacantes con ese criterio"
             descripcion="Probá con menos palabras, o mirá todas las búsquedas abiertas."
             accion={

@@ -1,15 +1,19 @@
+import { colorDeAvatar } from "@/lib/diseno/avatar";
 import { iniciales } from "@/lib/formato";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 type AvatarProps = {
   nombre: string;
   url?: string | null;
-  tamano?: "sm" | "md" | "lg";
+  /** Identificador de la cuenta para que el color sea estable aunque cambie el nombre. */
+  semilla?: string;
+  tamano?: "xs" | "sm" | "md" | "lg";
   /** `cuadrado` para logos institucionales, `redondo` para personas. */
   forma?: "redondo" | "cuadrado";
 };
 
 const TAMANOS = {
+  xs: "h-7 w-7 text-[11px]",
   sm: "h-9 w-9 text-[13px]",
   md: "h-12 w-12 text-[14px]",
   lg: "h-20 w-20 text-xl",
@@ -20,20 +24,23 @@ const TAMANOS = {
  * `width`/`height` de la imagen: las clases reservan el espacio recién cuando
  * llegó la hoja de estilos, el atributo lo reserva desde el HTML.
  */
-const LADOS = { sm: 36, md: 48, lg: 80 } as const;
+const LADOS = { xs: 28, sm: 36, md: 48, lg: 80 } as const;
 
 /**
  * Avatar con reserva de espacio para la foto. Cuando no hay imagen cargada
- * muestra las iniciales, así la grilla nunca cambia de alto.
+ * muestra las iniciales sobre el color de `colorDeAvatar(semilla ?? nombre)`,
+ * así ninguna cuenta queda sin imagen y la grilla nunca cambia de alto.
  */
 export function Avatar({
   nombre,
   url,
+  semilla,
   tamano = "md",
   forma = "redondo",
 }: AvatarProps) {
   const radio = forma === "redondo" ? "rounded-full" : "rounded-ficha";
-  const clases = `${TAMANOS[tamano]} ${radio} shrink-0 border border-borde bg-lavanda object-cover`;
+  const color = colorDeAvatar(semilla ?? nombre);
+  const clases = `${TAMANOS[tamano]} ${radio} ${color.fondo} shrink-0 border border-borde object-cover`;
 
   const src = rutaDeImagen(url);
 
@@ -55,7 +62,7 @@ export function Avatar({
 
   return (
     <span
-      className={`${clases} flex items-center justify-center font-titulo font-bold text-tinta`}
+      className={`${clases} ${color.texto} flex items-center justify-center font-titulo font-bold`}
       aria-hidden="true"
     >
       {iniciales(nombre)}

@@ -128,7 +128,11 @@ export function TarjetaEvento({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={rutaDeImagen(evento.imagen_url) ?? undefined}
-          alt=""
+          alt={`Foto del evento ${evento.titulo}`}
+          width={640}
+          height={360}
+          loading="lazy"
+          decoding="async"
           className="h-36 w-full border-b border-borde object-cover"
         />
       )}
