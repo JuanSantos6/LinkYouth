@@ -903,7 +903,9 @@ para que no se lea como permiso general.
 | `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca provisoria (iniciales) si no hay logo; el aviso de abajo aparece en cuanto hay una sola. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
 | `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
-| `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
+| `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
+| `FormularioDeFormacion` | `esEjemplo?` | Sumar un estudio en curso o finalizado al perfil propio (RF2.4.1), con errores por campo y valores conservados. |
+| `avisos/ControlesDeAviso` | — | `BotonMarcarTodosLeidos`, `BotonMarcarAvisoLeido` y `EnlaceDeAviso` para marcar avisos como leídos en `/avisos` (RF6.1). |
 
 #### `empresa/` — pantallas de empresa (Etapa 2)
 
@@ -936,8 +938,9 @@ para que no se lea como permiso general.
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
 | `/eventos` | `PaginaEventos` | Agenda de eventos próximos. Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
-| `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
-| `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |
+| `/perfil` | `PaginaPerfil` | Perfil propio, su edición y enlace a `/personas/<usuario>`. Incluye `Seccion` (privada). |
+| `/personas/[usuario]` | `PaginaPerfilPublico` | Perfil público de una persona con sesión (RF2.5, RF2.1.1): foto, `@nombre_usuario`, biografía e intereses, sin nombre, apellido, edad ni país. |
+| `/avisos` | `PaginaAvisos` | Bandeja de notificaciones y marcado como leído de un aviso o de todos (RF6.1). |
 | `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
 | `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, en `(sitio)/`. Se leen con o sin sesión, salvo `/como-funciona`, que para una empresa con sesión redirige a `/empresa`. |
 | `/empresa` | `PaginaEmpresa` | Panel: búsquedas activas, postulantes nuevos, posiciones, próximos eventos y postulantes recomendados (RF7). |

@@ -13,6 +13,21 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Formación en el perfil, avisos leídos y perfil público de persona
+
+- **Alta y baja de formación en `/perfil` (RF2.4.1, RF2.4.2)**:
+  `FormularioDeFormacion` para sumar estudios en curso o finalizados sin perder
+  lo escrito ante un error, y `BotonConfirmado` en `ListaFormacion` para quitar
+  un estudio propio con confirmación en pantalla.
+- **Avisos leídos en `/avisos` (RF6.1)**: `BotonMarcarTodosLeidos` en el
+  encabezado cuando hay notificaciones sin leer, `BotonMarcarAvisoLeido` por
+  fila y marcado al abrir el enlace del aviso (`EnlaceDeAviso`), conectados a
+  `marcarAvisosLeidos`.
+- **Perfil público de persona en `/personas/[usuario]` (RF2.5, RF2.1.1)**:
+  pantalla nueva con `loading.tsx` y enlace «Ver mi perfil público» desde
+  `/perfil`. Muestra solo foto (o iniciales), `@nombre_usuario`, biografía e
+  intereses, sin nombre, apellido, edad ni país.
+
 ## 2026-10-20 — Formularios que no pierden datos
 
 - **Los formularios de registro conservan lo escrito ante un error (RF1.1,
