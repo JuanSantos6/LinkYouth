@@ -6,14 +6,14 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Aviso } from "@/components/ui/AvisoOrigen";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
+import { EnfocarPrimerError } from "@/components/ui/EnfocarPrimerError";
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
+import { valoresDeFormulario } from "@/components/ui/valoresDeFormulario";
 import { actualizarPerfilDeEmpresa } from "@/lib/acciones/perfilDeEmpresa";
 import { FORMULARIO_INICIAL } from "@/lib/acciones/tipos";
 import type { PerfilDeEmpresa } from "@/lib/data/tipos";
 import { ReglasDePerfilDeEmpresa } from "@/lib/dominio/ReglasDePerfilDeEmpresa";
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
-
-import { valoresDeFormulario } from "./valores";
 
 /**
  * El perfil de la empresa (RF1.2, RF7.1): razón social, RUT, rubro,
@@ -39,6 +39,7 @@ export function FormularioDePerfilDeEmpresa({
 
   return (
     <form action={enviar} className="space-y-6">
+      <EnfocarPrimerError estado={estado} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Avatar
           nombre={empresa.razon_social}

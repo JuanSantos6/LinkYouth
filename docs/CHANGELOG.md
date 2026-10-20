@@ -13,6 +13,21 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Formularios que no pierden datos
+
+- **Los formularios de registro conservan lo escrito ante un error (RF1.1,
+  RF1.2)**: `registrarse` y `registrarEmpresa` devuelven `EstadoFormulario` con
+  el error del campo que falló y los valores enviados (sin contraseñas), y
+  `EnfocarPrimerError` lleva el foco al primer control con `aria-invalid="true"`
+  para que un error de validación no obligue a cargar todo el alta de nuevo.
+  Lo escribió Antigravity; lo revisó Claude Code.
+- **`e2e/registro.spec.ts`**: provoca un error del registro de empresa y del
+  de joven (razón social y nombre de usuario repetidos) y comprueba que todo
+  sigue escrito, salvo las contraseñas, con el error junto al campo y el foco
+  en él. No crea cuentas: el error corta antes del `signUp`.
+- **Tests del pie de página** (`auth.spec.ts`, `rediseno.spec.ts`): seguían
+  pidiendo la columna «Redes», que ya no existe, y un solo enlace «LinkYouth».
+
 ## 2026-10-20 — Ajustes antes del cierre
 
 - **`Compatibilidad` cuenta una vez cada requisito** (RF3.5.2): «Inglés» como

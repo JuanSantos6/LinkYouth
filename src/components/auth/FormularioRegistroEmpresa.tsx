@@ -8,9 +8,11 @@ import { CampoImagen } from "@/components/auth/CampoImagen";
 import { RegistroPendiente } from "@/components/auth/RegistroPendiente";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
+import { EnfocarPrimerError } from "@/components/ui/EnfocarPrimerError";
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
+import { valoresDeFormulario } from "@/components/ui/valoresDeFormulario";
 import { registrarEmpresa } from "@/lib/acciones/auth";
-import { ACCION_INICIAL } from "@/lib/acciones/tipos";
+import { FORMULARIO_INICIAL } from "@/lib/acciones/tipos";
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 
 /**
@@ -28,93 +30,203 @@ import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
 export function FormularioRegistroEmpresa() {
   const [estado, enviar, enCurso] = useActionState(
     registrarEmpresa,
-    ACCION_INICIAL,
+    FORMULARIO_INICIAL,
   );
+  const valor = valoresDeFormulario(estado);
+  const error = estado.campos ?? {};
 
-  // Mismo motivo que en `FormularioRegistro`: la acción no devuelve el correo
-  // y el formulario ya se limpió cuando vuelve `ok`.
+  const [ultimoEstado, setUltimoEstado] = useState(estado);
+  const [envios, setEnvios] = useState(0);
+  if (estado !== ultimoEstado) {
+    setUltimoEstado(estado);
+    setEnvios((n) => n + 1);
+  }
+
+  // Mismo motivo que en `FormularioRegistro`: cuando vuelve `ok`, el formulario
+  // se reemplaza por el aviso de confirmación.
   const [email, setEmail] = useState("");
 
   if (estado.estado === "ok") {
-    return <RegistroPendiente email={email} mensaje={estado.mensaje} />;
+    return (
+      <RegistroPendiente
+        email={email || valor.texto("email", "")}
+        mensaje={estado.mensaje}
+      />
+    );
   }
 
   return (
     <form action={enviar} className="space-y-5">
-      <Campo
-        etiqueta="Razón social"
-        ayuda="El nombre legal con el que la empresa aparece en la plataforma."
-      >
-        <input
-          name="razon_social"
-          autoComplete="organization"
-          spellCheck={false}
-          required
-          minLength={2}
-          maxLength={ReglasDeRegistro.LARGO_NOMBRE}
-          className={`mt-1.5 ${CAMPO}`}
-        />
-      </Campo>
+      <EnfocarPrimerError estado={estado} />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Campo etiqueta="RUT" ayuda="Doce dígitos, con o sin puntos.">
-          <input
-            name="rut"
-            inputMode="numeric"
-            spellCheck={false}
-            placeholder="21 000 123 0011"
-            required
-            className={`mt-1.5 ${CAMPO}`}
-          />
-        </Campo>
-
+      <div>
         <Campo
-          etiqueta="Rubro"
-          ayuda="Por ejemplo: comercio electrónico, salud."
+          etiqueta="Razón social"
+          ayuda={
+            error.razon_social
+              ? undefined
+              : "El nombre legal con el que la empresa aparece en la plataforma."
+          }
         >
           <input
-            name="rubro"
+            name="razon_social"
+            defaultValue={valor.texto("razon_social", "")}
+            autoComplete="organization"
+            spellCheck={false}
             required
             minLength={2}
             maxLength={ReglasDeRegistro.LARGO_NOMBRE}
+            aria-invalid={error.razon_social ? true : undefined}
+            aria-describedby={
+              error.razon_social ? "error-razon_social" : undefined
+            }
             className={`mt-1.5 ${CAMPO}`}
           />
         </Campo>
+        {error.razon_social && (
+          <p
+            id="error-razon_social"
+            className="mt-1 text-[13px] font-medium text-alerta"
+          >
+            {error.razon_social}
+          </p>
+        )}
       </div>
 
-      <Campo
-        etiqueta="Descripción"
-        ayuda="Opcional. A qué se dedica la empresa, en pocas líneas."
-      >
-        <textarea
-          name="descripcion"
-          rows={3}
-          maxLength={600}
-          className={`mt-1.5 resize-y ${CAMPO}`}
-        />
-      </Campo>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Campo
+            etiqueta="RUT"
+            ayuda={error.rut ? undefined : "Doce dígitos, con o sin puntos."}
+          >
+            <input
+              name="rut"
+              defaultValue={valor.texto("rut", "")}
+              inputMode="numeric"
+              spellCheck={false}
+              placeholder="21 000 123 0011"
+              required
+              aria-invalid={error.rut ? true : undefined}
+              aria-describedby={error.rut ? "error-rut" : undefined}
+              className={`mt-1.5 ${CAMPO}`}
+            />
+          </Campo>
+          {error.rut && (
+            <p
+              id="error-rut"
+              className="mt-1 text-[13px] font-medium text-alerta"
+            >
+              {error.rut}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Campo
+            etiqueta="Rubro"
+            ayuda={
+              error.rubro
+                ? undefined
+                : "Por ejemplo: comercio electrónico, salud."
+            }
+          >
+            <input
+              name="rubro"
+              defaultValue={valor.texto("rubro", "")}
+              required
+              minLength={2}
+              maxLength={ReglasDeRegistro.LARGO_NOMBRE}
+              aria-invalid={error.rubro ? true : undefined}
+              aria-describedby={error.rubro ? "error-rubro" : undefined}
+              className={`mt-1.5 ${CAMPO}`}
+            />
+          </Campo>
+          {error.rubro && (
+            <p
+              id="error-rubro"
+              className="mt-1 text-[13px] font-medium text-alerta"
+            >
+              {error.rubro}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <Campo
+          etiqueta="Descripción"
+          ayuda={
+            error.descripcion
+              ? undefined
+              : "Opcional. A qué se dedica la empresa, en pocas líneas."
+          }
+        >
+          <textarea
+            name="descripcion"
+            defaultValue={valor.texto("descripcion", "")}
+            rows={3}
+            maxLength={600}
+            aria-invalid={error.descripcion ? true : undefined}
+            aria-describedby={
+              error.descripcion ? "error-descripcion" : undefined
+            }
+            className={`mt-1.5 resize-y ${CAMPO}`}
+          />
+        </Campo>
+        {error.descripcion && (
+          <p
+            id="error-descripcion"
+            className="mt-1 text-[13px] font-medium text-alerta"
+          >
+            {error.descripcion}
+          </p>
+        )}
+      </div>
 
       <CampoImagen
         nombre="logo"
         etiqueta="Logo"
         ayuda="Opcional. JPG, PNG o WebP, hasta 2 MB."
+        estado={estado}
+        error={error.logo}
       />
 
-      <Campo etiqueta="Correo electrónico">
-        <input
-          type="email"
-          name="email"
-          autoComplete="email"
-          spellCheck={false}
-          required
-          onChange={(evento) => setEmail(evento.target.value)}
-          className={`mt-1.5 ${CAMPO}`}
-        />
-      </Campo>
+      <div>
+        <Campo etiqueta="Correo electrónico">
+          <input
+            type="email"
+            name="email"
+            defaultValue={valor.texto("email", "")}
+            autoComplete="email"
+            spellCheck={false}
+            required
+            onChange={(evento) => setEmail(evento.target.value)}
+            aria-invalid={error.email ? true : undefined}
+            aria-describedby={error.email ? "error-email" : undefined}
+            className={`mt-1.5 ${CAMPO}`}
+          />
+        </Campo>
+        {error.email && (
+          <p
+            id="error-email"
+            className="mt-1 text-[13px] font-medium text-alerta"
+          >
+            {error.email}
+          </p>
+        )}
+      </div>
 
-      <CampoContrasenia />
+      <CampoContrasenia
+        key={`contrasenia-${envios}`}
+        errorContrasenia={error.password}
+        errorConfirmacion={error.password_confirmacion}
+      />
 
-      <Aceptacion />
+      <Aceptacion
+        key={`aceptacion-${envios}`}
+        porDefecto={valor.texto("privacidad", "") === "si"}
+        error={error.privacidad}
+      />
 
       <MensajeDeAccion estado={estado} />
 

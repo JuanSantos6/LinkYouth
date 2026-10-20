@@ -17,9 +17,14 @@ import type { OpcionCatalogo } from "@/lib/data/tipos";
  */
 export function SelectorIntereses({
   opciones,
+  inicial = [],
+  error,
   esEjemplo = false,
 }: {
   opciones: OpcionCatalogo[];
+  /** Ids de intereses ya elegidos, para conservarlos si el envío dio error. */
+  inicial?: string[];
+  error?: string;
   /** El catálogo salió de `ejemplos.ts`: sus ids no existen en la base. */
   esEjemplo?: boolean;
 }) {
@@ -31,7 +36,9 @@ export function SelectorIntereses({
       leyenda="Áreas de interés"
       ayuda={`Elegí al menos ${minimo}. Con esto armamos tu feed: sin intereses, todas las vacantes te aparecen igual de lejos.`}
       opciones={opciones}
+      inicial={inicial}
       minimo={minimo}
+      error={error}
       deshabilitado={esEjemplo}
       avisoDeshabilitado="Con datos de demostración no se puede elegir: estos intereses no existen en la base."
     />

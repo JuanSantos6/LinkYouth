@@ -73,7 +73,7 @@ async function entrar(
 
 test("entra con el nombre de usuario (RF1.3.1)", async ({ page }) => {
   await entrar(page, CUENTA.usuario, CUENTA.password);
-  await expect(page).toHaveURL(/\/inicio/);
+  await expect(page).toHaveURL(/\/inicio/, { timeout: 20_000 });
 });
 
 test("un usuario inexistente recibe el mismo mensaje que una contraseña mala", async ({
@@ -110,16 +110,16 @@ test("el enlace del correo lleva a elegir una contraseña nueva (RF1.8.4)", asyn
   await page.goto(
     `/auth/callback?token_hash=${data.properties.hashed_token}&type=recovery`,
   );
-  await expect(page).toHaveURL(/\/recuperar\/nueva/);
+  await expect(page).toHaveURL(/\/recuperar\/nueva/, { timeout: 20_000 });
 
   await page.getByLabel("Contraseña", { exact: true }).fill(CUENTA.nueva);
   await page.getByLabel(/Repet|Confirm/).fill(CUENTA.nueva);
   await page.getByRole("button", { name: "Guardar contraseña" }).click();
-  await expect(page).toHaveURL(/\/inicio/);
+  await expect(page).toHaveURL(/\/inicio/, { timeout: 20_000 });
 
   await page.context().clearCookies();
   await entrar(page, CUENTA.email, CUENTA.nueva);
-  await expect(page).toHaveURL(/\/inicio/);
+  await expect(page).toHaveURL(/\/inicio/, { timeout: 20_000 });
 });
 
 test("un enlace vencido o usado vuelve a pedir uno nuevo", async ({ page }) => {

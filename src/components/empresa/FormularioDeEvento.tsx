@@ -6,15 +6,15 @@ import { useActionState } from "react";
 import { Aviso } from "@/components/ui/AvisoOrigen";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
+import { EnfocarPrimerError } from "@/components/ui/EnfocarPrimerError";
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { SelectorDeOpciones } from "@/components/ui/SelectorDeOpciones";
+import { valoresDeFormulario } from "@/components/ui/valoresDeFormulario";
 import { guardarEvento } from "@/lib/acciones/eventosDeEmpresa";
 import { FORMULARIO_INICIAL } from "@/lib/acciones/tipos";
 import type { EventoDeEmpresa, OpcionCatalogo } from "@/lib/data/tipos";
 import { ReglasDeEvento } from "@/lib/dominio/ReglasDeEvento";
 import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
-
-import { valoresDeFormulario } from "./valores";
 
 /** La coordenada guardada, escrita como la escribiría una persona: con coma. */
 const comoTexto = (n: number | null | undefined) =>
@@ -51,6 +51,7 @@ export function FormularioDeEvento({
 
   return (
     <form action={enviar} className="space-y-8">
+      <EnfocarPrimerError estado={estado} />
       {evento && <input type="hidden" name="id" value={evento.id} />}
 
       <fieldset className="space-y-4">
