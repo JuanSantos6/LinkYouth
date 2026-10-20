@@ -71,7 +71,8 @@ Rama: gemini/<tarea> (ya estás en ella; no cambies de rama).
 ## Criterios de aceptación
 
 - <verificables, uno por línea>
-- No hace falta que corras lint ni typecheck: los corre quien revisa.
+- Respetá el formato de `.prettierrc` (ancho 80). No hace falta que corras
+  lint, typecheck ni tests: los corre quien revisa.
 
 ## Qué NO tocar
 
@@ -109,7 +110,8 @@ git status --short
 git diff                            # leelo completo, línea por línea
 git status --porcelain | grep -E ' (db/|src/middleware\.ts|src/lib/seguridad/|\.env|AGENTS\.md|GEMINI\.md|CLAUDE\.md|\.claude/)' \
   && echo "TOCÓ ARCHIVOS PROHIBIDOS"
-npm run lint && npm run typecheck && npm run build
+npx prettier --check $(git diff --name-only HEAD; git ls-files -o --exclude-standard)
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 Ignorá `AGENTS.md` y `GEMINI.md` como sin seguimiento si los copiaste en el
