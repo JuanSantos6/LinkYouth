@@ -13,6 +13,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Delegación a Antigravity
+
+- **`AGENTS.md`, `GEMINI.md` y skill `delegar-a-gemini`** (sin commit): reglas
+  para que Antigravity CLI (`agy`) trabaje en tareas de bajo riesgo dentro de un
+  worktree `gemini/<tarea>`, sin tocar `db/`, RLS, middleware ni seguridad, y
+  sin push ni merge. Por qué: ahorrar tokens en trabajo mecánico sin ceder la
+  revisión. `GEMINI.md` es un enlace a `AGENTS.md` para que no haya dos copias que se desincronicen.
+
 ## 2026-10-15 — Etapa 2: el lado de la empresa
 
 Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
