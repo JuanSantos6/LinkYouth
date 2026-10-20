@@ -69,7 +69,7 @@ su propia tabla `vacante_tags_ocultos`, cuya política de lectura habilita solo
 a la empresa dueña de la vacante. No existe consulta del postulante que los
 alcance, ni por descuido ni a propósito.
 
-Las 49 políticas cubren las 18 tablas del esquema. Toda tabla tiene
+Las 50 políticas cubren las 18 tablas del esquema. Toda tabla tiene
 `enable row level security`.
 
 **Qué significa «lectura pública».** Significa «cualquier usuario con sesión»,
@@ -118,6 +118,18 @@ La regla misma está en las políticas de insert de `postulaciones`,
 `eventos` (la inversa, contra `empresas`). Si se borrara todo el TypeScript de
 arriba, el permiso seguiría siendo el mismo; lo que se perdería es el mensaje.
 
+**Lado empresa (Etapa 2, migración 005).** Lo mismo vale para las acciones de
+empresa: `sesionDeEmpresa()` da el mensaje, la base decide. Cada empresa lee y
+modifica solo sus búsquedas, eventos y las postulaciones e inscripciones que
+recibió; borrar una búsqueda lo permite la política
+`vacantes_borro_las_mias_sin_postulaciones` solo si nadie se postuló; las
+transiciones de una postulación las limita `postulaciones_transiciones_permitidas`
+(la empresa solo lleva a `en_revision`, `entrevista`, `aceptada` o
+`rechazada`) y el disparador `postulacion_transicion_valida`. Los datos de una
+persona —nombre, bio, foto— la empresa los lee con `candidatos_de_mi_empresa`,
+solo de quien se postuló o se inscribió a algo suyo (§5.10). Las 25
+comprobaciones de `db/verificar-etapa2.sql` lo prueban con sesiones simuladas.
+
 La formulación correcta de la regla, entonces: **la base decide, el código
 explica**. Ver [`decisiones.md`](./decisiones.md).
 
@@ -148,8 +160,10 @@ repartidas entre la página de postulaciones y `formato.ts`.
 
 ## 3. Cómo viajan los datos
 
-Toda lectura entra por `src/lib/data/consultas.ts` y toda escritura por
-`src/lib/acciones/`. Ninguna pantalla arma su propio cliente de Supabase.
+Toda lectura entra por `src/lib/data/` —`consultas.ts` para el joven y lo
+público, `empresa.ts` para el panel de empresa, con lo común en `comun.ts`— y
+toda escritura por `src/lib/acciones/`. Ninguna pantalla arma su propio
+cliente de Supabase.
 
 **Lectura.** Cada consulta devuelve un `Resultado<T>`: los datos y de dónde
 salieron. Si faltan las credenciales, si la consulta falla o si la tabla está
@@ -159,12 +173,17 @@ la pantalla lo anuncia con `AvisoOrigen`. Es la implementación de la regla
 
 **Escritura.** Cada acción lleva `"use server"`, valida los campos en el
 servidor, comprueba que haya sesión y devuelve un `EstadoAccion` que el
-formulario consume con `useActionState`. La acción no reemplaza a la política
+formulario consume con `useActionState`. Los formularios largos de empresa
+devuelven un `EstadoFormulario`: además del mensaje, el error de cada campo y
+lo que se había escrito, para que un error no borre el formulario. Al guardar
+bien, redirigen al detalle con `?guardada=1` o `?guardado=1`, que la pantalla
+convierte en un aviso. La acción no reemplaza a la política
 de RLS: la acompaña. Quien decide es la base.
 
-**Los tags ocultos.** Ninguna consulta menciona `vacante_tags_ocultos`, y no
-hace falta que se cuide de hacerlo: la política de RLS ya se los niega a
-cualquier sesión que no sea la empresa dueña de la vacante (RF3.1.6, RNF5).
+**Los tags ocultos.** Solo `src/lib/data/empresa.ts` menciona
+`vacante_tags_ocultos`, para que la empresa dueña los vea y edite (RF3.1.6,
+RF3.2.2). Ninguna consulta del joven los pide, y aunque lo hiciera la política
+de RLS se los niega a cualquier sesión que no sea la empresa dueña (RNF5).
 
 **Las fotos.** El navegador nunca le habla a Supabase: Supabase no se publica
 en internet. Las fotos y logos se guardan y se muestran como rutas relativas
@@ -186,7 +205,9 @@ pisaría.
 ```
 db/
   schema.sql              Tablas, restricciones, funciones y disparadores
-  politicas.sql           Row Level Security (49 políticas, 18 tablas)
+  politicas.sql           Row Level Security (50 políticas, 18 tablas)
+  migraciones/            Cambios para una base ya creada (001 a 005)
+  verificar-etapa2.sql    25 comprobaciones de RLS del lado empresa
 
 docs/                     SRS, decisiones, plan, changelog, este documento
 
@@ -202,17 +223,21 @@ src/app/
           legales/page.tsx                Las tres pantallas públicas
   (auth)/layout.tsx       Columna centrada, con la marca
   (auth)/login|registro/page.tsx        Inicio de sesión y alta (RF1.1, RF1.3)
-  empresa/                Panel de empresa (placeholder del Hito 6)
+  empresa/                Área de empresa: panel, busquedas/, eventos/,
+                          candidatos/, perfil/, resenias/ (Etapa 2)
 
 src/components/
   ui/                     Primitivas sin dominio
   layout/                 Estructura y navegación
-  auth/ empleos/ eventos/ landing/ perfil/   Por dominio
+  auth/ empleos/ empresa/ eventos/ landing/ perfil/   Por dominio
 
 src/lib/
   supabase/               Cliente de servidor y credenciales
-  data/                   Lectura: tipos.ts, ejemplos.ts, consultas.ts
-  acciones/               Escritura: auth, perfil, postulaciones, eventos
+  data/                   Lectura: tipos.ts, ejemplos.ts, comun.ts,
+                          consultas.ts (joven y público), empresa.ts
+  acciones/               Escritura: auth, perfil, postulaciones, eventos,
+                          busquedas, eventosDeEmpresa, perfilDeEmpresa
+  contacto.ts             Correo de contacto, único para toda la interfaz
   formato.ts              Fechas, etiquetas, afinidad
 
 src/types/database.ts     Tipos generados desde la base real
@@ -398,6 +423,15 @@ También define las formas que consume la interfaz — `Vacante`, `Evento`,
 `PerfilCompleto`, `Formacion`, `PostulacionResumen`, `EmpresaResumen` — y el
 envoltorio `Resultado<T>` con su `OrigenDatos`.
 
+Del lado empresa (Etapa 2): `Modalidad` con `MODALIDADES` y `comoModalidad`;
+`PerfilDeEmpresa`; `BusquedaResumen` (con `postulaciones` y `nuevas`) y
+`BusquedaCompleta` (con habilidades, tags y tags ocultos como `OpcionCatalogo`,
+porque el formulario necesita los ids); `DatosDeCandidato`,
+`PostulacionRecibida` (con `persona: null` si se retiró), `EventoDeEmpresa`
+(con `direccion`, `latitud`, `longitud` e `inscriptos`), `Inscripto`,
+`ReseniaRecibida`, `Recomendado` y `PanelDeEmpresa`. `Vacante` suma
+`modalidad` y `ubicacion`, y `Evento`, `direccion`, `latitud` y `longitud`.
+
 `Vacante` separa `tags` de `habilidades` porque el esquema los separa: son dos
 catálogos distintos, y el matching de RF3.9 necesita distinguir «le interesa»
 de «sabe hacer».
@@ -412,9 +446,19 @@ solo nombres: llevan el `id`, porque es lo que `perfil_tags` y
 
 Contenido de demostración con la forma exacta que devuelven las consultas:
 `VACANTES_EJEMPLO`, `EVENTOS_EJEMPLO`, `PERFIL_EJEMPLO`,
-`POSTULACIONES_EJEMPLO`, `CATALOGOS_EJEMPLO`. Solo usa campos que existen en
+`POSTULACIONES_EJEMPLO`, `CATALOGOS_EJEMPLO`, y del lado empresa
+`EMPRESA_PROPIA_EJEMPLO`, `BUSQUEDAS_EJEMPLO` (una activa, una pausada, una
+cerrada), `POSTULACIONES_RECIBIDAS_EJEMPLO`, `EVENTOS_DE_EMPRESA_EJEMPLO`,
+`INSCRIPTOS_EJEMPLO` y `RESENIAS_EJEMPLO`. Solo usa campos que existen en
 `db/schema.sql`. Los `id` de `CATALOGOS_EJEMPLO` son inventados, así que
 `SelectorTags` no deja elegir cuando el origen es «ejemplo».
+
+#### `comun.ts`
+
+Lo que comparten `consultas.ts` y `empresa.ts`: `ClienteSupabase`, los motivos
+`SIN_CREDENCIALES`, `TABLA_VACIA` y `SIN_SESION`, `ejemplo(datos, error)`,
+`nombresDe(filas, catalogo)`, `obtenerUsuarioId()` (que `consultas.ts`
+reexporta) y `resolverUsuarioId(supabase, usuarioId?)`.
 
 #### `consultas.ts`
 
@@ -425,7 +469,6 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | --- | --- | --- |
 | `obtenerVacantes(filtros?)` | `Resultado<Vacante[]>` | RF3.5.1. Filtra por tipo y busca por título. |
 | `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
-| `obtenerPanelDeEmpresa(usuarioId?)` | `Resultado<PanelDeEmpresa>` | RF7.1 y RF3.4.1 en lectura. Búsquedas propias (activas y cerradas) con `postulaciones(count)` —sin traer datos de quién se postuló— y eventos propios. Las políticas de RLS ya acotan a lo propio. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
 | `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
@@ -445,6 +488,28 @@ Cuando el join con `empresas` viene vacío —la cuenta de la empresa fue dada d
 baja y `cuenta_activa` la deja fuera— la fila se descarta con `flatMap` en vez
 de mostrarse sin organizador.
 
+#### `empresa.ts`
+
+La lectura del lado empresa (Etapa 2). Mismo contrato que `consultas.ts`: un
+`Resultado`, y contenido de demostración sin credenciales. Sin sesión manda a
+`/login`. Los `.eq("empresa_id", …)` ordenan la consulta; quien decide qué se
+ve es RLS. Los datos de cada persona salen de `candidatos_de_mi_empresa`, y
+sus habilidades, intereses y formación de sus tablas, en tres lecturas en
+paralelo para todas las personas a la vez (`armarPostulaciones`, privada).
+
+| Función | Devuelve | Requisito |
+| --- | --- | --- |
+| `obtenerEmpresaPropia(usuarioId?)` | `Resultado<PerfilDeEmpresa>` | RF7.1. |
+| `obtenerBusquedas(usuarioId?)` | `Resultado<BusquedaCompleta[]>` | RF7.1.1. Todas, de la más nueva a la más vieja, con cuántas postulaciones y cuántas nuevas. |
+| `obtenerBusqueda(id, usuarioId?)` | `Resultado<BusquedaCompleta> \| null` | Una propia, con sus tags ocultos (RF3.1.6). `null` si no existe o no es suya. |
+| `obtenerPostulacionesRecibidas(vacanteId, usuarioId?)` | `Resultado<PostulacionRecibida[]>` | RF3.4.1. |
+| `obtenerEventosDeEmpresa(usuarioId?)` | `Resultado<EventoDeEmpresa[]>` | RF4. Con cuántos inscriptos. |
+| `obtenerEventoDeEmpresa(id, usuarioId?)` | `Resultado<EventoDeEmpresa> \| null` | Un evento propio. |
+| `obtenerInscriptos(eventoId, usuarioId?)` | `Resultado<Inscripto[]>` | Quiénes se inscribieron. |
+| `obtenerReseniasRecibidas(usuarioId?)` | `Resultado<ReseniaRecibida[]>` | RF7.4. Sin el nombre de quien la escribió. |
+| `obtenerPostulantesPropios(usuarioId?)` | `Resultado<{ postulacion, busqueda }[]>` | RF7.3. Postulantes no retirados de todas las búsquedas propias. |
+| `obtenerPanelDeEmpresa(usuarioId?)` | `Resultado<PanelDeEmpresa>` | RF7. Perfil, búsquedas, eventos y las postulaciones en curso de las búsquedas activas, para recomendar. Si una lectura cae en el ejemplo, el panel entero lo es. |
+
 ### 5.6 `src/lib/acciones/`
 
 Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
@@ -460,7 +525,9 @@ Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
   pantalla de perfil, cada uno con su campo oculto, para un dato que el
   componente ya tiene en la mano.
 
-`tipos.ts` exporta además `ACCION_INICIAL`, `CLAVE_DUPLICADA` (el `23505` de
+`tipos.ts` exporta además `EstadoFormulario` (el resultado de un formulario
+largo: `campos` con el error de cada uno y `valores` con lo que se mandó),
+`FORMULARIO_INICIAL`, `valoresDe(formData)`, `SIN_EMPRESA`, `ACCION_INICIAL`, `CLAVE_DUPLICADA` (el `23505` de
 Postgres), `POLITICA_RLS` (el `42501`) y las tres respuestas de «no se puede
 seguir», que son **distintas a propósito**:
 
@@ -490,8 +557,8 @@ hace falta una función nueva en la base. Cuesta una consulta por escritura;
 si pesa, el tipo va como claim del JWT con un auth hook (misma nota que en
 `src/middleware.ts`).
 
-No existe `sesionDeEmpresa()`: las acciones de empresa llegan en el Hito 6 y
-no tendría llamador (§7.5). Del lado empresa la regla ya está en RLS.
+`sesionDeEmpresa()` es el equivalente para las acciones de empresa (Etapa 2):
+exige fila en `empresas`. Mismo criterio: da el mensaje, la regla está en RLS.
 
 | Función | Qué hace | Requisito |
 | --- | --- | --- |
@@ -501,11 +568,23 @@ no tendría llamador (§7.5). Del lado empresa la regla ya está en RLS.
 | `postularse` | Inserta la postulación. El estado inicial `pendiente` es el default de la columna. | RF3.6 |
 | `cancelarPostulacion` | **Actualiza** el estado a `cancelada`. No borra la fila. | RF3.8 |
 | `inscribirse` | Inserta en `inscripciones_evento`. | RF4.5 |
-| `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. Hoy **sin consumidor**: no hay UI de cancelación de eventos. | RF4.6 |
-| `enviarConsulta` | Valida la consulta de la portada. **No la entrega**: no hay tabla ni casilla. Devuelve `error` con la explicación en vez de un «gracias» falso. | — |
+| `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. La usa `TarjetaEvento`. | RF4.6 |
 | `actualizarPerfil` | Actualiza nombre, apellido, país y biografía. | RF1.5, RF2.2 |
 | `agregarTag` / `quitarTag` | Insertan o borran una fila de `perfil_tags`. | RF2.3 |
 | `agregarHabilidad` / `quitarHabilidad` | Insertan o borran una fila de `perfil_habilidades`. | RF2.4.3 |
+
+**Acciones de empresa** (Etapa 2). Todas empiezan por `sesionDeEmpresa()` y
+validan con la clase de dominio que corresponde antes de escribir.
+
+| Función | Qué hace | Requisito |
+| --- | --- | --- |
+| `guardarBusqueda` (`busquedas.ts`) | Crea o edita una búsqueda con habilidades, áreas y tags ocultos. Comprueba el título repetido entre las activas antes de escribir (el índice único es la defensa final). Una nueva se crea pausada, se cargan las tablas puente y recién ahí se activa: nadie ve una búsqueda a medio cargar. Una vez creada, nunca vuelve al formulario (reintentar la duplicaría): redirige al detalle, con `falto=` si algo quedó sin hacer. | RF3.1, RF3.1.2, RF3.1.6, RF3.2 |
+| `cambiarEstadoBusqueda` | Pausar, reactivar o cerrar, según `ReglasDeBusqueda`. Cerrar es final y la base rechaza las pendientes (RF3.3.3). | RF3.3 |
+| `eliminarBusqueda` | Borra una búsqueda sin postulaciones; con postulaciones la política no lo deja y el mensaje propone cerrarla. | — |
+| `cambiarEstadoPostulacion` | Lleva una postulación al estado siguiente, solo hacia adelante (`EstadoParaEmpresa`). La base avisa a la persona. | RF3.4.3, RF6.2 |
+| `guardarEvento` (`eventosDeEmpresa.ts`) | Crea o edita un evento: hora de Montevideo, dirección, coordenadas, áreas e imagen. Si el evento se guardó pero faltó algo, redirige con `falto=` en vez de volver al formulario y duplicarlo. | RF4.1, RF4.2 |
+| `cancelarEvento` | Lo pasa a `cancelado`; la base avisa a los inscriptos. | RF4.3 |
+| `actualizarPerfilDeEmpresa` (`perfilDeEmpresa.ts`) | Razón social, RUT (sin repetir), rubro, descripción, sitio web y logo. | RF1.2, RF7.1 |
 
 El mensaje de error nunca se muestra crudo cuando se lo puede traducir: el
 `23505` de una postulación repetida se lee como «Ya te habías postulado a esta
@@ -550,8 +629,8 @@ cálculo: el número, si una etiqueta puntual coincide y si el total alcanza par
 destacar la vacante. Devolver solo el porcentaje obligaba a cada componente a
 rehacer la comparación.
 
-Solo mira datos públicos. El puntaje de RF3.9 usa los tags ocultos, se calcula
-en la base y lo ve únicamente la empresa.
+Solo mira datos públicos. La coincidencia que ve la empresa, con los tags
+ocultos (RF3.9), es otra clase: `CoincidenciaDeCandidato`.
 
 #### `CompletitudDeFicha`
 
@@ -562,10 +641,59 @@ de arriba de `/perfil`.
 
 #### `ResumenDePanel`
 
-`new ResumenDePanel(panel)` da los números del panel de empresa:
-`busquedasActivas`, `posicionesAbiertas`, `postulacionesRecibidas` y
-`eventosProximos`. Qué cuenta como «activa» o «próximo» es una regla de
-negocio, y vive acá.
+`new ResumenDePanel(panel)` da los números y listas del panel de empresa:
+`busquedasActivas`, `postulantesNuevos`, `posicionesAbiertas`,
+`eventosProximos`, `recomendados` (hasta cuatro postulantes propios en
+proceso, con al menos una habilidad pedida, de más a menos coincidencia) y
+`faltaEnElPerfil`. Qué cuenta como «activa», «nuevo», «próximo» o
+«recomendado» es una regla de negocio, y vive acá.
+
+#### `CoincidenciaDeCandidato`
+
+`CoincidenciaDeCandidato.entre(busqueda, persona)`: cuántas de las
+habilidades pedidas declara la persona y cuántos de los intereses clave (tags
+ocultos) tiene, como dos cuentas separadas y sin porcentaje (RF3.4.2, RF3.9).
+`declara`, `pide`, `esInteresClave`, `habilidadesQueNoDeclara`,
+`habilidadesCubiertas`, `habilidadesPedidas`, `interesesClaveCubiertos`,
+`interesesClave`, `comparar(a, b)` y `ordenar(busqueda, postulaciones)`.
+
+#### `EstadoParaEmpresa`
+
+`new EstadoParaEmpresa(estado)`: cómo nombra la empresa cada estado (Nueva, En
+revisión, Entrevista, Seleccionada, Descartada, Se retiró), `tono`, `esNueva`,
+`seRetiro`, `final`, `siguientes` (con el texto del botón) y
+`puedePasarA(destino)`. Solo hacia adelante. Exporta `ESTADOS_PARA_EMPRESA`.
+
+#### `ReglasDeBusqueda`
+
+Límites de una búsqueda (título, descripción, ubicación, posiciones,
+habilidades, áreas, intereses clave), `pideUbicacion(modalidad)`,
+`validar(datos)`, `acciones(estado)`, `estadoTras(estado, accion)`,
+`puedeEliminar(postulaciones)` y `puedeEditar(estado)`. Exporta
+`ETIQUETA_MODALIDAD`, `ETIQUETA_ESTADO_BUSQUEDA` y el tipo `ErroresDeCampo`.
+
+#### `ReglasDeEvento`
+
+Límites de un evento, `deHoraLocal(texto)` y `aHoraLocal(iso)` (la hora de
+Montevideo, calculada con `Intl` y no con «-03:00» fijo), `leerCoordenada`,
+`validar(datos, ahora?)`, `enlaceAlMapa(evento)` (OpenStreetMap),
+`momento(evento, ahora?)` (próximo, pasado o cancelado) y
+`puedeModificar(evento, ahora?)`. Exporta `MOMENTOS_DE_EVENTO`.
+
+#### `ReglasDePerfilDeEmpresa`
+
+`normalizarSitio(texto)` (completa `https://`) y `validar(datos)`, con el RUT
+por `ReglasDeRegistro`.
+
+#### `BuscadorDeCandidatos`
+
+RF7.3 entre los postulantes propios: `agrupar(filas)` junta las postulaciones
+de cada persona, `intereses(candidatos)` cuenta los intereses presentes y
+`filtrar(candidatos, intereses)` deja a quienes tienen todos los elegidos.
+
+#### `ResumenDeResenias`
+
+`total`, `promedio` y `promedioTexto` de las reseñas recibidas (RF7.4).
 
 #### `FeedDeVacantes`
 
@@ -577,8 +705,9 @@ compatibilidad es alta: encabezar un listado flojo no es un logro.
 
 `new ProcesoDePostulacion(estado)` responde qué significa ese estado para quien
 postuló: `etiqueta`, `etapa`, `cancelable`, `cerradoSinPuesto`, `aceptada` y
-`alcanzo(etapa)`. Las tres etapas visibles no son los cinco estados de la base:
-`aceptada`, `rechazada` y `cancelada` caen todas en la última.
+`alcanzo(etapa)`. Las tres etapas visibles no son los seis estados de la base:
+`entrevista` es parte de la revisión, y `aceptada`, `rechazada` y `cancelada`
+caen todas en la última.
 
 #### `FuerzaDeContrasenia`
 
@@ -638,7 +767,7 @@ nunca: con el almacenamiento bloqueado, la elección vale para la visita.
 ### 5.9 Componentes
 
 Reconectados contra `db/schema.sql`. Lo que la interfaz mostraba y el esquema
-no guarda —salario, modalidad, ubicación, cupos, nivel de dominio de una
+no guarda —salario, cupos, nivel de dominio de una
 habilidad, años y acreditación de un estudio— se quitó en vez de inventarse.
 
 #### `ui/` — primitivas, sin dominio
@@ -657,11 +786,13 @@ para que no se lea como permiso general.
 | `Boton` | `variante?`, + props de `<button>` | Botón de acción. `primario` es mandarina con texto tinta y es el único lugar de la app con mandarina: uno por pantalla. Baja 1 px al presionar. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
 | `Avatar` | `nombre`, `url`, `tamano?`, `forma?` | Foto o iniciales. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
-| `Etiqueta` | `children`, `coincide?` | Un tag o una habilidad, en píldora. Lo que el perfil ya declara va en turquesa (suave en claro) con ✓ y un texto para lectores de pantalla: nunca solo color. |
-| `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es turquesa, para lo ya logrado (postulación aceptada, búsqueda activa). Siempre con palabra. |
-| `Campo` | `etiqueta`, `ayuda?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
-| `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?`, `celebrar?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Con `celebrar`, al salir bien aparecen los anillos del isotipo uniéndose (`ConexionAnillos`). No conoce vacantes ni eventos. |
-| `EstadoVacio` | `titulo`, `descripcion`, `accion?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
+| `Etiqueta` | `children`, `coincide?`, `marcada?` | Un tag o una habilidad, en píldora. Lo que el perfil ya declara va en turquesa (suave en claro) con ✓ y un texto para lectores de pantalla: nunca solo color. `marcada` la marca en violeta con ✓ y ese texto: es la de las pantallas de empresa, donde el turquesa no se usa en habilidades declaradas. |
+| `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es turquesa, para lo ya logrado (postulación aceptada o seleccionada). Una búsqueda activa va en `acento`. Siempre con palabra. |
+| `SelectorDeOpciones` | `nombre`, `leyenda`, `opciones`, `inicial?`, `minimo?`, `maximo?`, `error?`, `tono?`, … | Elegir varias opciones de un catálogo como etiquetas que se prenden; lo elegido viaja en campos ocultos. Contador en `aria-live`. Lo usan el registro (`SelectorIntereses`) y los formularios de empresa (`tono="acento"`). |
+| `BotonConfirmado` | `accion`, `campos`, `textos`, `variante?`, `deshabilitado?` | Para lo que no tiene vuelta atrás: el primer toque abre la confirmación en la misma pantalla; el foco va al botón que confirma y vuelve con Esc. |
+| `Campo` | `etiqueta`, `ayuda?`, `error?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
+| `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?`, `celebrar?`, `extras?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Con `celebrar`, al salir bien aparecen los anillos del isotipo uniéndose (`ConexionAnillos`). No conoce vacantes ni eventos. |
+| `EstadoVacio` | `titulo`, `descripcion`, `accion?`, `nivel?` | Qué se ve cuando una lista viene vacía. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
 | `Aviso` | `titulo?`, `children` | Aviso discreto: una línea con filete a la izquierda. Lo que la aplicación aclara sobre sí misma se ve igual, sin dominar la pantalla. |
 | `MensajeDeAccion` | `estado`, `className?` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
@@ -676,12 +807,12 @@ para que no se lea como permiso general.
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
 | `CabeceraGlobal` | `area?`, `umbralId?`, `secciones?` | Un solo menú por tipo de cuenta, dentro de `EncabezadoFlotante`. La empresa no ve Empleos ni Eventos del postulante. A la derecha: tema, y según el área, Entrar y Crear cuenta, o avisos y el menú de la cuenta. En el teléfono, el menú «Secciones». La portada pasa sus propias anclas en `secciones`. |
-| `PieDeSitio` | `area?` | Columnas LinkYouth, Para jóvenes, Para empresas, Ayuda y legales, y Redes (solo el repositorio). Ningún enlace lleva a una página vacía. |
+| `PieDeSitio` | `area?` | Columnas por área: a una empresa, «Tu empresa» en lugar de «Para jóvenes» y sin «Cómo funciona». Abajo, el correo de contacto. Ningún enlace lleva a una página vacía. |
 | `Marca` | `href`, `variante?`, `alto?` | Logo oficial desde `public/marca/`: la versión clara y la oscura como imágenes, y el CSS muestra la del tema (`.logo-claro`, `.logo-oscuro`). Imágenes y no SVG en línea para no repetir ids de degradado si aparece dos veces. |
 | `Encabezado` | `titulo`, `descripcion?` | Encabezado de sección. |
 | `BotonTema` | `className?` | Botón visible del tema: sistema → claro → oscuro. Lee el estado de `<html>` al montarse. |
 | `BuscadorVacantes` | `accion`, `valor?`, `placeholder?` | Formulario **GET**: el resultado queda en la URL, se comparte, y volver atrás funciona. Anda sin JavaScript. |
-| `Iconos` | `className?` | Doce íconos SVG en línea, todos sobre grilla de 24 y trazo 1.75. Inline y no una librería: una dependencia entera para doce trazos no se paga sola. |
+| `Iconos` | `className?` | Trece íconos SVG en línea, todos sobre grilla de 24 y trazo 1.75. Inline y no una librería: una dependencia entera para doce trazos no se paga sola. |
 
 #### `navegacion/` — menús y transiciones (clientes)
 
@@ -717,7 +848,8 @@ para que no se lea como permiso general.
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
 | `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?`, `conSesion?` | Tarjetas apiladas; la que más coincide va primera y destacada. |
 | `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?`, `conSesion?` | Una vacante como tarjeta clickeable entera hacia el detalle; el botón de postularse queda por encima. Medidor «Tenés X de Y» a la derecha. |
-| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta con imagen opcional y bloque de fecha en lavanda. Inscribirse une los anillos. |
+| `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta con imagen opcional y bloque de fecha en lavanda, dirección y «Ver en el mapa». Inscribirse une los anillos. |
+| `eventos/EnlaceAlMapa` | `evento` | «Ver en el mapa» a OpenStreetMap, en pestaña nueva. No aparece si no hay coordenadas ni dirección. Lo usan el joven y la empresa. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
@@ -726,8 +858,23 @@ para que no se lea como permiso general.
 | `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca provisoria (iniciales) si no hay logo; el aviso de abajo aparece en cuanto hay una sola. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
 | `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
-| `landing/FormularioConsulta` | — | Formulario de consultas, en `/contacto`. El aviso de que todavía no entrega va **antes** del formulario. |
 | `ListaFormacion` | `formaciones` | Estudios declarados. Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
+
+#### `empresa/` — pantallas de empresa (Etapa 2)
+
+| Componente | Props | Qué resuelve |
+| --- | --- | --- |
+| `FormularioDeBusqueda` | `busqueda?`, `catalogos`, `esEjemplo?` | Publicar o editar una búsqueda. Errores por campo y valores que no se pierden (`valoresDeFormulario`). |
+| `AccionesDeBusqueda` | `busqueda`, `esEjemplo?` | Editar, pausar, reactivar, cerrar y eliminar, según `ReglasDeBusqueda`. |
+| `FilaDePostulante` | `postulacion`, `coincidencia`, `href`, `detalle?` | Una persona que se postuló, con su estado y lo que declara de lo pedido. |
+| `CambioDeEstado` | `postulacionId`, `estado`, `nombre`, `esEjemplo?` | Los pasos siguientes de una postulación; seleccionar y descartar con confirmación. |
+| `Coincidencia` | `coincidencia` | «Declara 3 de 4 habilidades pedidas · 1 de 2 intereses clave». |
+| `HabilidadesDeclaradas` | `habilidades`, `coincidencia?`, `titulo?` | Las habilidades declaradas, con las pedidas primero y marcadas en violeta. |
+| `InsigniaDeBusqueda` | `estado` | Activa, Pausada o Cerrada. |
+| `FormularioDeEvento` | `evento?`, `tags`, `minimo`, `esEjemplo?` | Crear o editar un evento. |
+| `FormularioDePerfilDeEmpresa` | `empresa`, `esEjemplo?` | El perfil de la empresa. |
+| `AvisoDeResultado` | `children`, `tono?` | La confirmación que llega por `?guardada=1` después de redirigir. |
+| `valoresDeFormulario` | `estado` | Qué mostrar en cada campo: lo mandado si hubo error, lo guardado si no. |
 
 #### Páginas
 
@@ -744,9 +891,14 @@ para que no se lea como permiso general.
 | `/perfil` | `PaginaPerfil` | Perfil propio y su edición. Incluye `Seccion` (privada). |
 | `/avisos` | `PaginaAvisos` | Bandeja de notificaciones (RF6.1). |
 | `/ajustes` | `PaginaAjustes` | Tema y color de la plataforma. |
-| `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, en `(sitio)/`. Se leen con o sin sesión. |
-| `/empresa` | `PaginaEmpresa` | Panel de empresa en modo lectura: métricas, búsquedas con su cantidad de postulaciones, eventos, y lo que viene (RF3.1, RF3.4). |
-| `/contacto` | `PaginaContacto` | Contacto honesto: el repositorio como canal que funciona hoy, contacto comercial y el formulario con su aviso. Pública. |
+| `/empresas` · `/como-funciona` · `/legales` | — | Pantallas públicas, en `(sitio)/`. Se leen con o sin sesión, salvo `/como-funciona`, que para una empresa con sesión redirige a `/empresa`. |
+| `/empresa` | `PaginaEmpresa` | Panel: búsquedas activas, postulantes nuevos, posiciones, próximos eventos y postulantes recomendados (RF7). |
+| `/empresa/busquedas` | `PaginaBusquedas` | Mis búsquedas, con filtro por estado. `nueva`, `[id]` (postulantes ordenados por coincidencia), `[id]/editar` y `[id]/postulantes/[postulacionId]` (ficha y cambio de estado). RF3.1–RF3.4. |
+| `/empresa/eventos` | `PaginaEventos` | Próximos, pasados y cancelados. `nuevo`, `[id]` (inscriptos, mapa, cancelar) y `[id]/editar`. RF4. |
+| `/empresa/candidatos` | `PaginaCandidatos` | Postulantes propios filtrables por intereses (RF7.3). |
+| `/empresa/perfil` | `PaginaPerfilDeEmpresa` | Perfil de la empresa (RF7.1). |
+| `/empresa/resenias` | `PaginaResenias` | Reseñas recibidas, anónimas (RF7.4). |
+| `/contacto` | `PaginaContacto` | El correo de `src/lib/contacto.ts` y el contacto comercial. Sin formulario: no hay dónde recibir los mensajes. Pública. |
 
 Las cinco pantallas de `(app)/` declaran
 `export const dynamic = "force-dynamic"`: leen datos por sesión, y cachearlas
@@ -833,6 +985,26 @@ consulte su propia tabla para compararla falla con
 `infinite recursion detected in policy for relation "postulaciones"`. El
 disparador sí ve `old` y `new`.
 
+#### Funciones y disparadores de la Etapa 2 (migración 005)
+
+- **`candidatos_de_mi_empresa(ids uuid[])`** (`db/politicas.sql`, `security
+  definer`, `search_path ''`): nombre, usuario, país, bio y foto de las
+  personas de `ids` que se postularon (sin retirarse) o se inscribieron a algo
+  de la empresa de la sesión. Revocada a `public` y `anon`. Es la única forma
+  en que la empresa lee datos de `perfiles`, que solo deja leer la fila propia.
+- **`notificar_cambio_estado_postulacion()`**, reescrita: el aviso al joven
+  dice el título de la búsqueda y el estado en palabras («pasó a la etapa de
+  entrevista», «no fue seleccionada»), con enlace a `/postulaciones`.
+- **`cerrar_vacante_al_cubrir_posiciones()`** · disparador
+  `postulaciones_cerrar_vacante_al_cubrir`: al aceptar tantas personas como
+  posiciones, la búsqueda se cierra (RF3.3.2).
+- **`rechazar_pendientes_al_cerrar()`** · disparador
+  `vacantes_rechazar_pendientes_al_cerrar`: al cerrar una búsqueda, las
+  postulaciones `pendiente` pasan a `rechazada` y se avisa; las que están en
+  revisión o entrevista siguen su curso (RF3.3.3).
+- **`notificar_cancelacion_evento()`** · disparador
+  `eventos_notificar_cancelacion`: avisa a cada inscripto (RF4.3.2).
+
 #### Restricción `perfiles_mayor_de_edad`
 
 `db/schema.sql:36`. No es una función, pero vale nombrarla: exige 18 años
@@ -872,9 +1044,9 @@ La reescritura de la capa de datos quitó de las pantallas todo lo que
 | Dato | Dónde se mostraba | Estado |
 | --- | --- | --- |
 | Salario y moneda | Tarjeta de vacante | `vacantes` no tiene columnas de salario |
-| Modalidad (presencial, híbrido, remoto) | Vacante y evento | No existe |
-| Ubicación | Vacante y evento | No existe |
-| Cupo y cantidad de inscriptos | Tarjeta de evento | No hay cupo; las inscripciones ajenas no se pueden contar por RLS |
+| Modalidad (presencial, híbrido, remoto) | Vacante | **Resuelta en la Etapa 2** (`vacantes.modalidad`) |
+| Ubicación | Vacante y evento | **Resuelta en la Etapa 2** (`vacantes.ubicacion`; `eventos.direccion`, `latitud`, `longitud`) |
+| Cupo y cantidad de inscriptos | Tarjeta de evento | No hay cupo; el joven no ve cuántos se inscribieron (la empresa sí, en su evento) |
 | Hora de fin de un evento | Tarjeta de evento | `eventos.fecha_hora` es un instante |
 | Nivel de dominio de una habilidad | Perfil | `perfil_habilidades` es una tabla puente sin más columnas |
 | Categoría de un tag | Perfil | `tags` tiene solo `id` y `nombre` |
@@ -938,11 +1110,8 @@ que es integridad referencial y no control de acceso, y que no cubría la
 dirección inversa. Ahora la exigencia está en las políticas de insert (§2.2) y
 hay un guardia en `src/lib/acciones/sesion.ts` para el mensaje.
 
-Queda una consecuencia anotada, no un pendiente: las acciones del lado
-empresa del Hito 6 todavía no existen, así que la política de `vacantes` y
-`eventos` hoy no tiene ningún llamador que la ejercite. Cuando lleguen, el
-guardia equivalente —`sesionDeEmpresa()`— hay que escribirlo; no se agregó
-ahora para no dejar código sin consumidor.
+Las acciones del lado empresa llegaron en la Etapa 2, con su guardia
+`sesionDeEmpresa()`.
 
 ### 7.6 Quedan hallazgos de la auditoría de interfaz sin cerrar
 
@@ -1006,11 +1175,38 @@ esperan contenido real, todas rotuladas en pantalla:
    foto va. La lista está en `docs/decisiones.md`, 2026-09-27.
 2. **Opiniones.** Son de ejemplo y lo dicen en cada tarjeta. Se reemplazan
    por opiniones verdaderas, con permiso.
-3. **Canal de contacto.** `/contacto` ofrece el repositorio porque no hay
-   casilla ni tabla de consultas. Hace falta un correo del equipo.
+3. **Canal de contacto.** Desde la Etapa 2, `/contacto`, el pie y Legales
+   muestran el correo de `src/lib/contacto.ts`. **Hoy es una dirección
+   provisoria de dominio reservado** (`contacto@linkyouth.example`): falta que
+   el equipo confirme la definitiva y la cambie en ese único lugar.
 
 ### 7.10 El tema se recuerda por navegador
 
 La elección de tema vive en `localStorage`. Para que acompañe a la persona en
 todos sus dispositivos haría falta una columna en `perfiles`. No se hizo
 porque es un cambio de esquema.
+
+### 7.11 Pendientes de la Etapa 2 (lado empresa)
+
+1. **Recomendados solo entre postulantes propios.** El panel recomienda a
+   quienes ya se postularon (opción «a»). Recomendar a jóvenes que no se
+   postularon (opción «b») exige que cada joven acepte ser visible para las
+   empresas, con una columna de consentimiento y una política nueva. Ver
+   `decisiones.md`, Etapa 2.
+2. **Cambiar el día o el lugar de un evento no avisa a los inscriptos.** Solo
+   la cancelación tiene disparador (RF4.3.2). La pantalla de edición lo dice.
+3. **Cerrar una búsqueda rechaza solo las pendientes** (RF3.3.3). Quien está
+   en revisión o entrevista sigue en proceso hasta que la empresa decida.
+4. **El formulario de consultas se sacó.** No había dónde entregar los
+   mensajes; vuelve cuando exista una tabla o un servicio de correo
+   (historial de git: `src/components/landing/FormularioConsulta.tsx` y
+   `src/lib/acciones/consultas.ts`).
+5. **Mapa único de eventos para el joven.** Las coordenadas ya se guardan;
+   falta la pantalla.
+6. **La prueba de punta a punta corre en el servidor.** En el entorno de
+   desarrollo de la Etapa 2 no había Supabase (sin GoTrue ni PostgREST): se
+   probaron las políticas sobre Postgres 16 con sesiones simuladas
+   (`db/verificar-etapa2.sql`) y las pantallas con datos de demostración. El
+   recorrido con cuentas reales está en `docs/prueba-etapa2.md`.
+7. **Orden de títulos en el feed del joven.** `/empleos` y `/eventos` pasan de
+   `h1` a `h3` (axe, `heading-order`, moderado). Viene de antes de la Etapa 2.

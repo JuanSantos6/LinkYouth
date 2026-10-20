@@ -44,6 +44,7 @@ export type Database = {
           razon_social: string
           rubro: string
           rut: string | null
+          sitio_web: string | null
         }
         Insert: {
           creada_en?: string
@@ -53,6 +54,7 @@ export type Database = {
           razon_social: string
           rubro: string
           rut?: string | null
+          sitio_web?: string | null
         }
         Update: {
           creada_en?: string
@@ -62,6 +64,7 @@ export type Database = {
           razon_social?: string
           rubro?: string
           rut?: string | null
+          sitio_web?: string | null
         }
         Relationships: [
           {
@@ -106,29 +109,38 @@ export type Database = {
       eventos: {
         Row: {
           descripcion: string
+          direccion: string | null
           empresa_id: string
           estado: string
           fecha_hora: string
           id: string
           imagen_url: string | null
+          latitud: number | null
+          longitud: number | null
           titulo: string
         }
         Insert: {
           descripcion: string
+          direccion?: string | null
           empresa_id: string
           estado?: string
           fecha_hora: string
           id?: string
           imagen_url?: string | null
+          latitud?: number | null
+          longitud?: number | null
           titulo: string
         }
         Update: {
           descripcion?: string
+          direccion?: string | null
           empresa_id?: string
           estado?: string
           fecha_hora?: string
           id?: string
           imagen_url?: string | null
+          latitud?: number | null
+          longitud?: number | null
           titulo?: string
         }
         Relationships: [
@@ -601,9 +613,11 @@ export type Database = {
           empresa_id: string
           estado: string
           id: string
+          modalidad: string | null
           posiciones: number
           tipo: string
           titulo: string
+          ubicacion: string | null
         }
         Insert: {
           creada_en?: string
@@ -611,9 +625,11 @@ export type Database = {
           empresa_id: string
           estado?: string
           id?: string
+          modalidad?: string | null
           posiciones: number
           tipo: string
           titulo: string
+          ubicacion?: string | null
         }
         Update: {
           creada_en?: string
@@ -621,9 +637,11 @@ export type Database = {
           empresa_id?: string
           estado?: string
           id?: string
+          modalidad?: string | null
           posiciones?: number
           tipo?: string
           titulo?: string
+          ubicacion?: string | null
         }
         Relationships: [
           {
@@ -661,6 +679,18 @@ export type Database = {
       }
     }
     Functions: {
+      candidatos_de_mi_empresa: {
+        Args: { ids: string[] }
+        Returns: {
+          apellido: string
+          bio: string | null
+          foto_url: string | null
+          id: string
+          nombre: string
+          nombre_usuario: string
+          pais: string
+        }[]
+      }
       cuenta_activa: { Args: { cuenta: string }; Returns: boolean }
     }
     Enums: {

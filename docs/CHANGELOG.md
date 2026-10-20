@@ -13,15 +13,39 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
-## 2026-10-09 — Content-Security-Policy con nonce (Fase 3 del incidente 2026-10-08) · `67d6a8c`, `368c005`
+## 2026-10-15 — Etapa 2: el lado de la empresa
 
-- **La CSP que faltaba desde la auditoría del 2026-09-12 (CN-002).** El
-  middleware genera un nonce por request; Next se lo pone a sus scripts y
-  cualquier script inyectado (XSS) no se ejecuta. Sin `'unsafe-inline'` para
-  scripts. Probada en Chromium: 20 pantallas sin violaciones y un `onerror`
-  inyectado queda bloqueado. Ver [`decisiones.md`](./decisiones.md).
-- **El script de tema de `layout.tsx` lleva el nonce**, porque si no la CSP lo
-  bloqueaba y se perdía el tema guardado.
+Rama `feat/etapa2-empresa`. Decisiones en [`decisiones.md`](./decisiones.md),
+2026-10-15; guion de prueba en el servidor en
+[`prueba-etapa2.md`](./prueba-etapa2.md).
+
+- **Migración 005** (`300216c`): modalidad, ubicación y pausa de búsquedas,
+  título único entre las activas (RF3.1.2), etapa «entrevista», dirección y
+  coordenadas de eventos, sitio web de la empresa, borrado de búsquedas sin
+  postulaciones, `candidatos_de_mi_empresa`, cierre automático al cubrir
+  posiciones (RF3.3.2), rechazo de pendientes al cerrar (RF3.3.3), aviso de
+  evento cancelado (RF4.3.2) y aviso al joven con el título de la búsqueda.
+  Porque el esquema no tenía cómo publicar ni gestionar nada desde la empresa.
+- **Inscribirse solo a eventos activos y futuros**: la política lo exige; antes
+  se podía por API a uno cancelado o pasado.
+- **`db/verificar-etapa2.sql`**: 25 comprobaciones de RLS y disparadores que no
+  dejan datos (terminan en `rollback`).
+- **Capa de datos y acciones de empresa** (`f59964b`): `empresa.ts`,
+  `comun.ts`, `busquedas.ts`, `eventosDeEmpresa.ts`, `perfilDeEmpresa.ts` y las
+  clases de dominio que validan y ordenan.
+- **Sin «Cómo funciona» ni GitHub para la empresa** (`3739200`): menú, pie,
+  middleware; Contacto, Legales y el pie muestran un correo. El formulario de
+  consultas se sacó porque no entregaba los mensajes.
+- **Pantallas** (`a11a5ca`…`0001089`): panel con datos reales; Mis búsquedas
+  (crear, editar, pausar, cerrar, eliminar, postulantes ordenados por
+  coincidencia, ficha y cambio de estado); Mis eventos (crear, editar,
+  cancelar, inscriptos, mapa); Candidatos por intereses (RF7.3); Perfil de la
+  empresa; Reseñas recibidas (RF7.4); carga, error y «no encontrado».
+- **Del lado del joven** (`e949587`): modalidad y ubicación en las vacantes,
+  dirección y «Ver en el mapa» en los eventos.
+- **Componentes nuevos**: `SelectorDeOpciones` (lo usa también el registro),
+  `BotonConfirmado`; `Campo` muestra errores por campo y `Etiqueta` suma la
+  marca en violeta.
 
 ## 2026-10-06 — La app, lista para publicarse con Tailscale Funnel
 

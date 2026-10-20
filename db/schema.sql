@@ -49,6 +49,11 @@ create table empresas (
   rubro          text not null,
   descripcion    text,
   logo_url       text,
+  -- Sitio web de la empresa (migración 005). La forma la valida también la
+  -- aplicación; acá se garantiza que sea una dirección http o https.
+  sitio_web      text check (
+    sitio_web is null or sitio_web ~* '^https?://[^[:space:]]+\.[^[:space:]]+$'
+  ),
   creada_en      timestamptz not null default now()
 );
 
@@ -107,9 +112,23 @@ create table vacantes (
   descripcion  text not null,
   tipo         text not null check (tipo in ('empleo', 'pasantia')),
   posiciones   int not null check (posiciones > 0),
-  estado       text not null default 'activa' check (estado in ('activa', 'cerrada')),
+  -- `pausada` (migración 005): sigue siendo de la empresa pero no se ve ni
+  -- recibe postulaciones. Las políticas que piden `estado = 'activa'` ya lo
+  -- resuelven solas.
+  estado       text not null default 'activa' check (estado in ('activa', 'pausada', 'cerrada')),
+  -- Opcionales a nivel base: las búsquedas anteriores a la migración 005 no
+  -- las tienen. El formulario las pide siempre.
+  modalidad    text check (modalidad is null or modalidad in ('presencial', 'remota', 'hibrida')),
+  ubicacion    text,
   creada_en    timestamptz not null default now()
 );
+
+-- RF3.1.2: el título no se repite entre las búsquedas activas de la misma
+-- empresa. En la base y no en la aplicación: dos formularios mandados a la
+-- vez pasarían los dos un control previo.
+create unique index vacantes_titulo_unico_entre_activas
+  on vacantes (empresa_id, lower(btrim(titulo)))
+  where estado = 'activa';
 
 create table vacante_tags_publicos (
   vacante_id  uuid not null references vacantes(id) on delete cascade,
@@ -136,7 +155,10 @@ create table postulaciones (
   vacante_id     uuid not null references vacantes(id) on delete cascade,
   perfil_id      uuid not null references perfiles(id) on delete cascade,
   estado         text not null default 'pendiente'
-                 check (estado in ('pendiente', 'en_revision', 'aceptada', 'rechazada', 'cancelada')),
+                 -- `entrevista` (migración 005) no es final. La empresa ve estos
+                 -- valores como Nueva, En revisión, Entrevista, Seleccionada y
+                 -- Descartada (ver EstadoParaEmpresa en src/lib/dominio/).
+                 check (estado in ('pendiente', 'en_revision', 'entrevista', 'aceptada', 'rechazada', 'cancelada')),
   creada_en      timestamptz not null default now(),
   actualizada_en timestamptz not null default now(),
   unique (vacante_id, perfil_id) -- resuelve RF3.6.2 en la base
@@ -170,7 +192,16 @@ create table eventos (
   descripcion  text not null,
   fecha_hora   timestamptz not null,
   imagen_url   text,
-  estado       text not null default 'activo' check (estado in ('activo', 'cancelado'))
+  estado       text not null default 'activo' check (estado in ('activo', 'cancelado')),
+  -- Dirección y coordenadas (migración 005). La interfaz enlaza a
+  -- OpenStreetMap; las coordenadas quedan para el mapa de eventos del joven.
+  direccion    text,
+  latitud      numeric(9, 6),
+  longitud     numeric(9, 6),
+  constraint eventos_coordenadas_check check (
+    (latitud is null and longitud is null)
+    or (latitud between -90 and 90 and longitud between -180 and 180)
+  )
 );
 
 create table evento_tags (
@@ -228,16 +259,31 @@ language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  v_titulo text;
+  v_estado text;
 begin
   -- 'cancelada' es la unica transicion que hace el propio postulante
   -- (ver politicas.sql). Notificarsela seria avisarle de su propia accion.
   if new.estado is distinct from old.estado and new.estado <> 'cancelada' then
+    select titulo into v_titulo from vacantes where id = new.vacante_id;
+
+    -- Con palabras y nombrando la búsqueda (migración 005): antes mostraba el
+    -- valor crudo de la base y enlazaba a una ruta que no existe.
+    v_estado := case new.estado
+      when 'en_revision' then 'está en revisión'
+      when 'entrevista'  then 'pasó a la etapa de entrevista'
+      when 'aceptada'    then 'fue aceptada'
+      when 'rechazada'   then 'no fue seleccionada'
+      else 'cambió de estado'
+    end;
+
     insert into notificaciones (cuenta_id, tipo, mensaje, enlace)
     values (
       new.perfil_id,
       'postulacion',
-      'El estado de tu postulación cambió a: ' || new.estado,
-      '/postulaciones/' || new.id
+      'Tu postulación a «' || coalesce(v_titulo, 'una búsqueda') || '» ' || v_estado || '.',
+      '/postulaciones'
     );
   end if;
   return new;
@@ -484,3 +530,83 @@ $$;
 create trigger postulaciones_transicion_valida
 before update on postulaciones
 for each row execute function postulacion_transicion_valida();
+
+
+-- ============================================================
+-- MÓDULO: Ciclo de vida de búsquedas y eventos (migración 005)
+-- Reglas que tienen que valer aunque la acción no venga de la app.
+-- ============================================================
+
+-- RF3.3.2: la búsqueda se cierra sola al cubrir sus posiciones.
+create or replace function cerrar_vacante_al_cubrir_posiciones()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.estado = 'aceptada' and old.estado is distinct from 'aceptada' then
+    update vacantes v
+    set estado = 'cerrada'
+    where v.id = new.vacante_id
+      and v.estado <> 'cerrada'
+      and (
+        select count(*) from postulaciones p
+        where p.vacante_id = v.id and p.estado = 'aceptada'
+      ) >= v.posiciones;
+  end if;
+  return null;
+end;
+$$;
+
+create trigger postulaciones_cerrar_vacante_al_cubrir
+after update of estado on postulaciones
+for each row execute function cerrar_vacante_al_cubrir_posiciones();
+
+-- RF3.3.3: al cerrar una búsqueda, las postulaciones pendientes pasan a
+-- rechazada. Solo las `pendiente`, como dice el requisito: quien está en
+-- revisión o en entrevista sigue en proceso.
+create or replace function rechazar_pendientes_al_cerrar()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.estado = 'cerrada' and old.estado is distinct from 'cerrada' then
+    update postulaciones
+    set estado = 'rechazada'
+    where vacante_id = new.id and estado = 'pendiente';
+  end if;
+  return null;
+end;
+$$;
+
+create trigger vacantes_rechazar_pendientes_al_cerrar
+after update of estado on vacantes
+for each row execute function rechazar_pendientes_al_cerrar();
+
+-- RF4.3.2: cancelar un evento avisa a quienes se inscribieron.
+create or replace function notificar_cancelacion_evento()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.estado = 'cancelado' and old.estado is distinct from 'cancelado' then
+    insert into notificaciones (cuenta_id, tipo, mensaje, enlace)
+    select i.perfil_id,
+           'evento',
+           'Se canceló el evento «' || new.titulo || '».',
+           '/eventos'
+    from inscripciones_evento i
+    where i.evento_id = new.id;
+  end if;
+  return null;
+end;
+$$;
+
+create trigger eventos_notificar_cancelacion
+after update of estado on eventos
+for each row execute function notificar_cancelacion_evento();

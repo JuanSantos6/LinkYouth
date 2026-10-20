@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   POLITICA_RLS,
   SIN_CONFIGURAR,
+  SIN_EMPRESA,
   SIN_PERFIL,
   SIN_SESION,
   type EstadoAccion,
@@ -17,8 +18,7 @@ export type SesionActiva = {
 };
 
 export type Guardia =
-  | { ok: true; sesion: SesionActiva }
-  | { ok: false; error: EstadoAccion };
+  { ok: true; sesion: SesionActiva } | { ok: false; error: EstadoAccion };
 
 /**
  * El preámbulo de toda acción de postulante: cliente, sesión y tipo de cuenta.
@@ -76,13 +76,48 @@ export async function sesionDePostulante(): Promise<Guardia> {
 }
 
 /**
+ * El preámbulo de toda acción de empresa: el espejo de `sesionDePostulante`.
+ *
+ * Existe por la misma razón: el middleware reparte por tipo de cuenta, pero
+ * una Server Action se invoca por POST contra cualquier ruta. La regla de
+ * verdad está en las políticas (`vacantes_creo_las_mias`,
+ * `eventos_creo_los_mios`, …), que exigen fila en `empresas`; esto da un
+ * mensaje claro antes de llegar ahí y tapa el caso que RLS no informa —un
+ * `update` sobre una fila ajena no falla, devuelve cero filas—.
+ */
+export async function sesionDeEmpresa(): Promise<Guardia> {
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: SIN_CONFIGURAR };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: SIN_SESION };
+
+  // `empresas_lectura_publica` deja leer la fila propia mientras la cuenta
+  // esté activa.
+  const { data: empresa } = await supabase
+    .from("empresas")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!empresa) return { ok: false, error: SIN_EMPRESA };
+
+  return { ok: true, sesion: { supabase, usuarioId: user.id } };
+}
+
+/**
  * Traduce el error de una escritura al texto que se muestra en pantalla.
  *
  * Hoy solo desarma el `42501`. El resto de los códigos los sigue traduciendo
  * cada acción, que es la que sabe qué significa un `23505` en su contexto
  * —«ya te habías postulado» no es lo mismo que «esa etiqueta ya estaba»—.
  */
-export function mensajeDeError(error: { code?: string; message: string }): string {
+export function mensajeDeError(error: {
+  code?: string;
+  message: string;
+}): string {
   return error.code === POLITICA_RLS
     ? "No tenés permiso para hacer esto."
     : error.message;

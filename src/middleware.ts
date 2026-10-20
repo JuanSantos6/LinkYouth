@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { comoTipoCuenta } from "@/lib/data/tipos";
 import {
   INFORMATIVAS,
+  OCULTAS_PARA_EMPRESA,
   PARAMETRO_SIGUIENTE,
   correspondeA,
   destinoSeguro,
@@ -173,7 +174,12 @@ async function controlDeAcceso(request: NextRequest) {
     return redirigirA(vuelve ? siguiente : inicio);
   }
 
-  // Las informativas no pertenecen a ninguna de las dos mitades.
+  // Las informativas no pertenecen a ninguna de las dos mitades, salvo las que
+  // una empresa con sesión no necesita ver: esa va a su panel.
+  if (OCULTAS_PARA_EMPRESA.includes(ruta)) {
+    const area = await areaDe(supabase, user.id);
+    return area === AREA_EMPRESA ? redirigirA(AREA_EMPRESA) : response;
+  }
   if (INFORMATIVAS.includes(ruta)) return response;
 
   const area = await areaDe(supabase, user.id);

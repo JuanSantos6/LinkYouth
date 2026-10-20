@@ -53,6 +53,15 @@ export const INFORMATIVAS = [
 ];
 
 /**
+ * Informativas que una cuenta de empresa con sesión no ve (Etapa 2).
+ *
+ * «Cómo funciona» es la presentación para quien todavía no tiene cuenta: una
+ * empresa con sesión ya está adentro, y mostrarle cómo registrarse le habla a
+ * otra persona. Sin sesión, y para el postulante, se sigue leyendo igual.
+ */
+export const OCULTAS_PARA_EMPRESA = ["/como-funciona"];
+
+/**
  * Pantallas de exploración: se leen con o sin sesión (el listado de vacantes,
  * su detalle y los eventos). Lo que pide cuenta es postularse o inscribirse, y
  * eso lo resuelve cada botón. Ver `docs/decisiones.md`, 2026-09-26.
@@ -119,6 +128,7 @@ export function correspondeA(
   ruta: string,
 ): boolean {
   const camino = ruta.split(/[?#]/, 1)[0];
+  if (area === "empresa" && OCULTAS_PARA_EMPRESA.includes(camino)) return false;
   if (INFORMATIVAS.includes(camino)) return true;
 
   const deEmpresa = camino === "/empresa" || camino.startsWith("/empresa/");
