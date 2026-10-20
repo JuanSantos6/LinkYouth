@@ -20,6 +20,7 @@ import {
   correspondeA,
   destinoSeguro,
 } from "@/lib/navegacion";
+import { correoDeUsuario } from "@/lib/supabase/admin";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 import { createClient } from "@/lib/supabase/server";
 import { COOKIE_RECORDAR, esConexionSegura } from "@/lib/supabase/sesion";
@@ -679,15 +680,24 @@ export async function iniciarSesion(
   _estadoPrevio: EstadoAccion,
   datos: FormData,
 ): Promise<EstadoAccion> {
-  const email = String(datos.get("email") ?? "").trim();
+  const identificador = String(datos.get("email") ?? "").trim();
   const password = String(datos.get("password") ?? "");
 
-  if (!email || !password) {
+  if (!identificador || !password) {
     return {
       estado: "error",
-      mensaje: "El correo y la contraseña son obligatorios.",
+      mensaje: "Escribí tu correo o tu nombre de usuario, y tu contraseña.",
     };
   }
+
+  // RF1.3.1 — Se entra con el correo o con el nombre de usuario. Sin «@» es un
+  // nombre de usuario: el correo lo resuelve el servidor y nunca vuelve a la
+  // pantalla. Si no existe, se sigue con un correo imposible para que la
+  // respuesta sea la misma que con una contraseña equivocada.
+  const email = identificador.includes("@")
+    ? identificador
+    : ((await correoDeUsuario(identificador)) ??
+      "sin-cuenta@linkyouth.invalid");
 
   // «Mantener la sesión iniciada» (ver `src/lib/supabase/sesion.ts`). Sin la
   // casilla, una cookie de sesión marca que las de Supabase también lo sean.
@@ -720,7 +730,7 @@ export async function iniciarSesion(
   if (error || !data.user) {
     return {
       estado: "error",
-      mensaje: "El correo o la contraseña no son correctos.",
+      mensaje: "El usuario o la contraseña no son correctos.",
     };
   }
 

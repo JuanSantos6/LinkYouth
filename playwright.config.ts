@@ -12,6 +12,12 @@ import { defineConfig, devices } from "@playwright/test";
  * cabeceras, que no dependen del motor de render. Cuando haya tests de
  * interfaz, ahí sí conviene sumar Firefox y WebKit.
  */
+/**
+ * Puerto 3100 y no 3000: en el servidor, el 3000 es producción (PM2). Una
+ * suite que escribe en la base no puede apuntar ahí por accidente.
+ */
+const PUERTO = process.env.E2E_PUERTO ?? "3100";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -20,15 +26,15 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
 
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: `http://localhost:${PUERTO}`,
     trace: "on-first-retry",
   },
 
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
+    command: `npm run dev -- -p ${PUERTO}`,
+    url: `http://localhost:${PUERTO}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

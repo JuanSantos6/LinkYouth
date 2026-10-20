@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { Boton } from "@/components/ui/Boton";
@@ -38,23 +39,34 @@ export function FormularioLogin({
       )}
       <input type="hidden" name="tipo_elegido" value={tipo} />
 
-      <Campo etiqueta="Correo electrónico">
+      {/* RF1.3.1: el mismo campo acepta el correo o el nombre de usuario. */}
+      <Campo etiqueta="Correo o nombre de usuario">
         <input
-          type="email"
+          type="text"
           name="email"
-          autoComplete="email"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
           required
           className={`mt-1.5 ${CAMPO}`}
         />
       </Campo>
 
-      <Campo etiqueta="Contraseña">
-        <EntradaContrasenia
-          name="password"
-          autoComplete="current-password"
-          required
-        />
-      </Campo>
+      <div>
+        <Campo etiqueta="Contraseña">
+          <EntradaContrasenia
+            name="password"
+            autoComplete="current-password"
+            required
+          />
+        </Campo>
+        <Link
+          href="/recuperar"
+          className="mt-1.5 inline-block text-[14px] font-semibold text-acento underline-offset-4 hover:underline"
+        >
+          ¿Te olvidaste la contraseña?
+        </Link>
+      </div>
 
       <label className="flex cursor-pointer items-start gap-2.5 text-[15px] text-tinta">
         <input
