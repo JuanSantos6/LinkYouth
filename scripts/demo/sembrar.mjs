@@ -307,6 +307,30 @@ async function contar() {
   return filas;
 }
 
+/**
+ * Con la confirmación de correo activada en GoTrue, una cuenta sin
+ * `email_confirmed_at` no puede iniciar sesión. Las de la demo se crean
+ * confirmadas (`email_confirm: true`); esto lo comprueba en vez de suponerlo.
+ */
+async function verificarCorreosConfirmados() {
+  const sinConfirmar = [];
+  let total = 0;
+  for (let pagina = 1; ; pagina++) {
+    const { data, error } = await db.auth.admin.listUsers({
+      page: pagina,
+      perPage: 1000,
+    });
+    if (error) fallar(`listar usuarios: ${error.message}`);
+    total += data.users.length;
+    for (const u of data.users)
+      if (!u.email_confirmed_at) sinConfirmar.push(u.email);
+    if (data.users.length < 1000) break;
+  }
+  if (sinConfirmar.length)
+    fallar(`cuentas sin correo confirmado: ${sinConfirmar.join(", ")}`);
+  console.log(`✓ las ${total} cuentas tienen el correo confirmado`);
+}
+
 async function vaciarBucket() {
   const carpetas = await exigir(
     db.storage.from(BUCKET).list("", { limit: 1000 }),
@@ -659,6 +683,7 @@ if (args.has("validar")) process.exit(0);
 
 if (args.has("contar")) {
   await contar();
+  await verificarCorreosConfirmados();
   process.exit(0);
 }
 
@@ -672,3 +697,4 @@ await borrarTodo();
 await cargar(cat);
 console.log("Quedó en la base:");
 await contar();
+await verificarCorreosConfirmados();

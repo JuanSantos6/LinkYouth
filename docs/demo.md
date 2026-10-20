@@ -10,12 +10,16 @@ cargarla: borra **todas** las cuentas y vuelve a crear las de
 ~/bin/respaldo-linkyouth.sh            # primero, un respaldo
 cd ~/LinkYouth
 node scripts/demo/sembrar.mjs --validar   # comprueba el contenido
-node scripts/demo/sembrar.mjs --contar    # muestra lo que hay hoy
+node scripts/demo/sembrar.mjs --contar    # muestra lo que hay hoy y que
+                                          # todas las cuentas estén confirmadas
 node scripts/demo/sembrar.mjs --borrar-todo --confirmo \
   --correo-demo-joven=<correo real> --correo-demo-empresa=<correo real>
 ```
 
-Tarda menos de un minuto. Las contraseñas de las dos cuentas demo y la común
+Tarda menos de un minuto. Todas las cuentas se crean con el correo confirmado
+(`email_confirmed_at`): desde el 2026-10-20 GoTrue exige confirmar el correo
+para iniciar sesión. Al terminar, el script lo comprueba y falla si alguna
+quedó sin confirmar. Las contraseñas de las dos cuentas demo y la común
 del resto quedan en `~/LinkYouth-credenciales-demo.txt` (600, fuera del
 repositorio); si el archivo ya existe se reutilizan, así una recarga no
 cambia lo que se anotó.

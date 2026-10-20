@@ -100,6 +100,10 @@ test.describe("portada", () => {
     await page.goto("/");
     const tarjetas = page.locator("[data-parallax-tarjeta]");
     await expect(tarjetas).toHaveCount(3);
+    // El recorte del texto lo decide el cliente al hidratar: antes de eso las
+    // tarjetas todavía no tienen la altura final. Los «Ver más» marcan que ya
+    // se midió.
+    await expect(page.getByRole("button", { name: "Ver más" })).toHaveCount(2);
 
     const alturas = await tarjetas.evaluateAll((lista) =>
       lista.map((t) => Math.round(t.getBoundingClientRect().height)),
