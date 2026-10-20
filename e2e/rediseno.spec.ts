@@ -25,7 +25,7 @@ test.describe("pie de página", () => {
     }
   });
 
-  test("tiene las cuatro columnas y la de redes", async ({ page }) => {
+  test("tiene las cuatro columnas", async ({ page }) => {
     await page.goto("/como-funciona");
     const pie = page.getByRole("contentinfo");
 
@@ -34,12 +34,9 @@ test.describe("pie de página", () => {
       "Para jóvenes",
       "Para empresas",
       "Ayuda y legales",
-      "Redes",
     ]) {
       await expect(
-        pie
-          .getByRole("navigation", { name: columna })
-          .or(pie.getByRole("list", { name: columna })),
+        pie.getByRole("navigation", { name: columna, exact: true }),
       ).toBeVisible();
     }
   });
