@@ -13,6 +13,19 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-20 — Ajustes de cuenta y perfil público de empresa con reseñas
+
+- **Ajustes de cuenta para joven (`/ajustes`) y empresa (`/empresa/cuenta`)
+  (RF1.5, RF1.7)**: cambio de nombre de usuario (joven), contraseña, correo y
+  baja definitiva de la cuenta con advertencia de pérdida de datos y
+  confirmación con contraseña y la palabra `ELIMINAR`, compartiendo los
+  formularios de `src/components/ajustes/`.
+- **Perfil público de empresa y reseñas anónimas en `/organizaciones/[id]`
+  (RF2.5, RF8.1, RF8.2)**: muestra datos de la organización, búsquedas activas,
+  promedio y listado de reseñas (`Estrellas` extraído a `ui/`), formulario
+  `FormularioDeResenia` para jóvenes que se postularon, y enlaces desde el
+  detalle de vacante y las tarjetas de evento.
+
 ## 2026-10-20 — Formularios que no pierden datos
 
 - **Los formularios de registro conservan lo escrito ante un error (RF1.1,
