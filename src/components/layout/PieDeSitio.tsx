@@ -1,66 +1,93 @@
 import Link from "next/link";
 
-import { type Area, inicioDe } from "@/lib/navegacion";
+import { CORREO_DE_CONTACTO, enlaceDeCorreo } from "@/lib/contacto";
+import { type Area, inicioDe, OCULTAS_PARA_EMPRESA } from "@/lib/navegacion";
 
-import { IconoCodigo } from "./Iconos";
+import { IconoCorreo } from "./Iconos";
 import { Marca } from "./Marca";
 
 /**
  * Pie del sitio, en columnas como cualquier sitio profesional.
  *
- * Ningún enlace lleva a una página vacía: las que no existían se crearon en
- * versión simple y honesta (`/contacto`, y las secciones de publicación y de
- * planes en `/empresas`). Todos son públicos, así que el pie es el mismo para
- * cualquier tipo de cuenta.
+ * Ningún enlace lleva a una página vacía ni a una que el middleware rebote. Por
+ * eso las columnas dependen del área: a una empresa con sesión no se le ofrecen
+ * las búsquedas del postulante ni «Crear cuenta» —la mandarían de vuelta a su
+ * panel— ni «Cómo funciona», que es la presentación para quien todavía no
+ * tiene cuenta (Etapa 2). En su lugar, accesos a su propia cuenta.
  *
- * Redes: la única que figura es el repositorio del proyecto, porque es la
- * única que existe. Sumar íconos de Instagram o LinkedIn que no llevan a
- * ninguna cuenta sería decorar el pie con enlaces muertos. Cuando existan,
- * se agregan a `REDES`.
+ * Contacto: el correo de `src/lib/contacto.ts`. Antes figuraba el repositorio
+ * del proyecto en GitHub; se sacó de la interfaz, que no es lugar para el
+ * código fuente.
  */
-const COLUMNAS = [
-  {
-    titulo: "LinkYouth",
-    enlaces: [
-      { href: "/#nosotros", etiqueta: "Nosotros" },
-      { href: "/como-funciona", etiqueta: "Cómo funciona" },
-      { href: "/#preguntas", etiqueta: "Preguntas frecuentes" },
-    ],
-  },
-  {
-    titulo: "Para jóvenes",
-    enlaces: [
-      { href: "/empleos", etiqueta: "Búsquedas" },
-      { href: "/eventos", etiqueta: "Eventos" },
-      { href: "/registro", etiqueta: "Crear cuenta" },
-    ],
-  },
-  {
-    titulo: "Para empresas",
-    enlaces: [
-      { href: "/empresas#publicar", etiqueta: "Publicar búsquedas" },
-      { href: "/empresas#planes", etiqueta: "Planes y publicidad" },
-      { href: "/contacto#empresas", etiqueta: "Contacto comercial" },
-    ],
-  },
-  {
-    titulo: "Ayuda y legales",
-    enlaces: [
-      { href: "/contacto", etiqueta: "Contacto" },
-      { href: "/legales#terminos", etiqueta: "Términos de uso" },
-      { href: "/legales#privacidad", etiqueta: "Privacidad" },
-      { href: "/legales#accesibilidad", etiqueta: "Accesibilidad" },
-    ],
-  },
-] as const;
+type Columna = {
+  titulo: string;
+  enlaces: readonly { href: string; etiqueta: string }[];
+};
 
-const REDES = [
-  {
-    href: "https://github.com/JuanSantos6/LinkYouth",
-    etiqueta: "GitHub: el código del proyecto",
-    Icono: IconoCodigo,
-  },
-] as const;
+const LINKYOUTH: Columna = {
+  titulo: "LinkYouth",
+  enlaces: [
+    { href: "/#nosotros", etiqueta: "Nosotros" },
+    { href: "/como-funciona", etiqueta: "Cómo funciona" },
+    { href: "/#preguntas", etiqueta: "Preguntas frecuentes" },
+  ],
+};
+
+const PARA_JOVENES: Columna = {
+  titulo: "Para jóvenes",
+  enlaces: [
+    { href: "/empleos", etiqueta: "Búsquedas" },
+    { href: "/eventos", etiqueta: "Eventos" },
+    { href: "/registro", etiqueta: "Crear cuenta" },
+  ],
+};
+
+const PARA_EMPRESAS: Columna = {
+  titulo: "Para empresas",
+  enlaces: [
+    { href: "/empresas#publicar", etiqueta: "Publicar búsquedas" },
+    { href: "/empresas#planes", etiqueta: "Planes y publicidad" },
+    { href: "/contacto#empresas", etiqueta: "Contacto comercial" },
+  ],
+};
+
+const AYUDA: Columna = {
+  titulo: "Ayuda y legales",
+  enlaces: [
+    { href: "/contacto", etiqueta: "Contacto" },
+    { href: "/legales#terminos", etiqueta: "Términos de uso" },
+    { href: "/legales#privacidad", etiqueta: "Privacidad" },
+    { href: "/legales#accesibilidad", etiqueta: "Accesibilidad" },
+  ],
+};
+
+const TU_EMPRESA: Columna = {
+  titulo: "Tu empresa",
+  enlaces: [
+    { href: "/empresa", etiqueta: "Panel" },
+    { href: "/empresa/busquedas", etiqueta: "Mis búsquedas" },
+    { href: "/empresa/eventos", etiqueta: "Mis eventos" },
+    { href: "/empresa/candidatos", etiqueta: "Candidatos" },
+    { href: "/empresa/perfil", etiqueta: "Perfil de la empresa" },
+    { href: "/empresa/resenias", etiqueta: "Reseñas recibidas" },
+  ],
+};
+
+const COLUMNAS: Record<Area, readonly Columna[]> = {
+  publico: [LINKYOUTH, PARA_JOVENES, PARA_EMPRESAS, AYUDA],
+  postulante: [LINKYOUTH, PARA_JOVENES, PARA_EMPRESAS, AYUDA],
+  empresa: [
+    {
+      ...LINKYOUTH,
+      enlaces: LINKYOUTH.enlaces.filter(
+        ({ href }) => !OCULTAS_PARA_EMPRESA.includes(href),
+      ),
+    },
+    TU_EMPRESA,
+    PARA_EMPRESAS,
+    AYUDA,
+  ],
+};
 
 export function PieDeSitio({ area = "publico" }: { area?: Area }) {
   return (
@@ -75,7 +102,7 @@ export function PieDeSitio({ area = "publico" }: { area?: Area }) {
             </p>
           </div>
 
-          {COLUMNAS.map((columna) => (
+          {COLUMNAS[area].map((columna) => (
             <nav key={columna.titulo} aria-label={columna.titulo}>
               <h2 className="text-[14px] font-bold text-tinta">
                 {columna.titulo}
@@ -102,19 +129,13 @@ export function PieDeSitio({ area = "publico" }: { area?: Area }) {
             Universidad de Montevideo.
           </p>
 
-          <ul className="flex items-center gap-2" aria-label="Redes">
-            {REDES.map(({ href, etiqueta, Icono }) => (
-              <li key={href}>
-                <a
-                  href={href}
-                  className="flex items-center gap-2 rounded-full border border-borde-control/60 px-3 py-1.5 text-[13px] text-tinta transition-colors duration-150 hover:bg-realce"
-                >
-                  <Icono className="h-4 w-4" />
-                  {etiqueta}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <a
+            href={enlaceDeCorreo()}
+            className="flex items-center gap-2 rounded-full border border-borde-control/60 px-3 py-1.5 text-[13px] text-tinta transition-colors duration-150 hover:bg-realce"
+          >
+            <IconoCorreo className="h-4 w-4" />
+            {CORREO_DE_CONTACTO}
+          </a>
         </div>
       </div>
     </footer>

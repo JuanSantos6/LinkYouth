@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
 
+import { CORREO_DE_CONTACTO, enlaceDeCorreo } from "@/lib/contacto";
+
+/** Un enlace al correo de contacto, con el asunto que corresponde. */
+function Correo({ asunto }: { asunto: string }) {
+  return (
+    <a
+      href={enlaceDeCorreo(asunto)}
+      className="font-semibold text-acento underline-offset-4 hover:underline"
+    >
+      {CORREO_DE_CONTACTO}
+    </a>
+  );
+}
+
 export const metadata: Metadata = { title: "Legales" };
 
 /**
@@ -38,8 +52,8 @@ export default function PaginaLegales() {
           </p>
           <p>
             El contenido que publica cada organización es responsabilidad de esa
-            organización. Si algo te parece incorrecto o abusivo, escribinos por
-            el repositorio del proyecto.
+            organización. Si algo te parece incorrecto o abusivo, escribinos a{" "}
+            <Correo asunto="Contenido para revisar en LinkYouth" />.
           </p>
         </div>
       </section>
@@ -89,8 +103,9 @@ export default function PaginaLegales() {
             tenés activada, no vas a ver ninguna transición.
           </p>
           <p>
-            Si encontrás algo que no podés usar, contalo en el repositorio.
-            Arreglarlo entra antes que cualquier función nueva.
+            Si encontrás algo que no podés usar, contanos a{" "}
+            <Correo asunto="Accesibilidad en LinkYouth" />. Arreglarlo entra
+            antes que cualquier función nueva.
           </p>
         </div>
       </section>

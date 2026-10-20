@@ -16,18 +16,31 @@ export const CAMPO =
 export function Campo({
   etiqueta,
   ayuda,
+  error,
   children,
 }: {
   etiqueta: string;
   ayuda?: string;
+  /**
+   * Lo que hay que corregir en este campo. Va dentro del `<label>`, así que un
+   * lector de pantalla lo lee junto con el nombre del campo al enfocarlo, y
+   * reemplaza a la ayuda: dos textos debajo del campo compiten por atención.
+   */
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
       <span className="text-[14px] font-medium text-tinta">{etiqueta}</span>
       {children}
-      {ayuda && (
-        <span className="mt-1 block text-[13px] text-apagado">{ayuda}</span>
+      {error ? (
+        <span className="mt-1 block text-[13px] font-medium text-alerta">
+          {error}
+        </span>
+      ) : (
+        ayuda && (
+          <span className="mt-1 block text-[13px] text-apagado">{ayuda}</span>
+        )
       )}
     </label>
   );

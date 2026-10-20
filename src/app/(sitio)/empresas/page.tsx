@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { BotonEnlace } from "@/components/ui/Boton";
+import { obtenerTipoCuenta } from "@/lib/data/consultas";
 
 export const metadata: Metadata = { title: "Para empresas" };
 
@@ -18,7 +19,7 @@ const CAPACIDADES = [
   {
     titulo: "Movés el estado y la persona se entera",
     texto:
-      "En revisión, aceptada o rechazada. El cambio de estado avisa al postulante automáticamente, así el proceso deja de ser una espera a ciegas.",
+      "Nueva, en revisión, entrevista, seleccionada o descartada. Cada cambio le avisa a la persona automáticamente, así el proceso deja de ser una espera a ciegas.",
   },
   {
     titulo: "Organizás eventos",
@@ -27,7 +28,11 @@ const CAPACIDADES = [
   },
 ];
 
-export default function PaginaEmpresas() {
+export default async function PaginaEmpresas() {
+  // Una empresa con sesión ya está adentro: en vez de mandarla a la
+  // presentación para postulantes, se la lleva a su panel (Etapa 2).
+  const esEmpresa = (await obtenerTipoCuenta()) === "empresa";
+
   return (
     <article>
       <h1 className="text-[34px] leading-tight text-tinta">
@@ -78,9 +83,13 @@ export default function PaginaEmpresas() {
       </section>
 
       <div className="mt-10">
-        <BotonEnlace href="/como-funciona">
-          Cómo funciona del lado del postulante
-        </BotonEnlace>
+        {esEmpresa ? (
+          <BotonEnlace href="/empresa">Ir a tu panel</BotonEnlace>
+        ) : (
+          <BotonEnlace href="/como-funciona">
+            Cómo funciona del lado del postulante
+          </BotonEnlace>
+        )}
       </div>
     </article>
   );

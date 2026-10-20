@@ -13,13 +13,22 @@ export type Etapa = (typeof ETAPAS)[number];
 const ETIQUETAS: Record<EstadoPostulacion, string> = {
   pendiente: "Enviada",
   en_revision: "En revisión",
+  entrevista: "Entrevista",
   aceptada: "Aceptada",
   rechazada: "No seleccionada",
   cancelada: "Cancelada por vos",
 };
 
-/** Estados en los que el postulante todavía puede cancelar (RF3.8). */
-const CANCELABLES: readonly EstadoPostulacion[] = ["pendiente", "en_revision"];
+/**
+ * Estados en los que el postulante todavía puede cancelar (RF3.8). Incluye la
+ * entrevista: retirarse antes de presentarse es justamente cuando más importa
+ * poder hacerlo.
+ */
+const CANCELABLES: readonly EstadoPostulacion[] = [
+  "pendiente",
+  "en_revision",
+  "entrevista",
+];
 
 /**
  * Qué significa el estado de una postulación para quien la hizo.
@@ -44,7 +53,8 @@ export class ProcesoDePostulacion {
   /** Índice de `ETAPAS` en el que está el proceso. */
   get etapa(): number {
     if (this.estado === "pendiente") return 0;
-    if (this.estado === "en_revision") return 1;
+    // La entrevista sigue siendo parte de la revisión: el proceso no terminó.
+    if (this.estado === "en_revision" || this.estado === "entrevista") return 1;
 
     return 2;
   }
