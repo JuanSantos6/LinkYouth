@@ -39,7 +39,18 @@ export class Compatibilidad {
     vacante: Pick<Vacante, "tags" | "habilidades">,
     perfil: PerfilDeclarado = PERFIL_VACIO,
   ): Compatibilidad {
-    const requisitos = [...vacante.habilidades, ...vacante.tags];
+    // Un mismo requisito puede venir como habilidad y como tag («Inglés» y
+    // «inglés»): cuenta una sola vez, con el texto de su primera aparición.
+    // Si no, el medidor diría «Tenés 2 de 2» con un porcentaje de 50.
+    const vistos = new Set<string>();
+    const requisitos = [...vacante.habilidades, ...vacante.tags].filter(
+      (requisito) => {
+        const clave = normalizar(requisito);
+        if (vistos.has(clave)) return false;
+        vistos.add(clave);
+        return true;
+      },
+    );
     const declarados = new Set(
       [...perfil.habilidades, ...perfil.tags].map(normalizar),
     );
