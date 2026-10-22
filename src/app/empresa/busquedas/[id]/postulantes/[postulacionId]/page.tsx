@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { CambioDeEstado } from "@/components/empresa/CambioDeEstado";
 import { Coincidencia } from "@/components/empresa/Coincidencia";
 import { HabilidadesDeclaradas } from "@/components/empresa/HabilidadesDeclaradas";
+import { InterviewLabDelPostulante } from "@/components/empresa/InterviewLabDelPostulante";
 import { ImagenDeInstitucion } from "@/components/perfil/ImagenDeInstitucion";
-import { InsigniaDePersonalidad } from "@/components/perfil/InsigniaDePersonalidad";
 import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
@@ -14,13 +14,12 @@ import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Insignia } from "@/components/ui/Insignia";
 import {
   obtenerBusqueda,
-  obtenerPersonalidadCompartida,
+  obtenerInterviewLabCompartido,
   obtenerPostulacionesRecibidas,
 } from "@/lib/data/empresa";
 import { fotosDeInstituciones } from "@/lib/data/fotos";
 import { CoincidenciaDeCandidato } from "@/lib/dominio/CoincidenciaDeCandidato";
 import { EstadoParaEmpresa } from "@/lib/dominio/EstadoParaEmpresa";
-import { TipoDePersonalidad } from "@/lib/dominio/TipoDePersonalidad";
 import { etiquetaEstadoFormacion, tiempoRelativo } from "@/lib/formato";
 
 export const metadata: Metadata = { title: "Postulante" };
@@ -80,13 +79,14 @@ export default async function PaginaPostulante({
     postulacion,
   );
   const { persona } = postulacion;
-  const [fotosInstitucion, personalidad] = await Promise.all([
+  const [fotosInstitucion, interviewLab] = await Promise.all([
     fotosDeInstituciones(postulacion.formaciones.map((f) => f.institucion)),
-    // Solo llega si la persona lo compartió (RLS, migración 009). Se muestra
-    // y nada más: no entra en `coincidencia` ni en ningún orden.
-    persona ? obtenerPersonalidadCompartida(persona.id) : null,
+    // Solo llega lo que la persona compartió (RLS, migraciones 009 y 010).
+    // Se muestra y nada más: no entra en `coincidencia` ni en ningún orden.
+    persona
+      ? obtenerInterviewLabCompartido(persona.id)
+      : { personalidad: null, tests: [] },
   ]);
-  const tipoDePersonalidad = TipoDePersonalidad.de(personalidad);
   const volver = `/empresa/busquedas/${busqueda.id}`;
 
   return (
@@ -232,19 +232,7 @@ export default async function PaginaPostulante({
             )}
           </Seccion>
 
-          {tipoDePersonalidad && (
-            <Seccion id="t-personalidad" titulo="Personalidad">
-              <InsigniaDePersonalidad
-                tipo={tipoDePersonalidad}
-                tamano="compacta"
-                etiqueta="Declarado por el postulante"
-              />
-              <p className="text-[13px] text-apagado">
-                Lo cargó la persona a partir del test de 16Personalities.
-                LinkYouth no lo valida y no lo usa en la compatibilidad.
-              </p>
-            </Seccion>
-          )}
+          <InterviewLabDelPostulante compartido={interviewLab} />
 
           <Seccion id="t-bio" titulo={`Sobre ${persona.nombre}`}>
             {persona.bio ? (

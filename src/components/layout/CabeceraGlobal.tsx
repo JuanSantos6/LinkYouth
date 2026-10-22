@@ -45,6 +45,7 @@ const SECCIONES: Record<Area, readonly Seccion[]> = {
     { href: "/empleos", etiqueta: "Empleos" },
     { href: "/eventos", etiqueta: "Eventos" },
     { href: "/postulaciones", etiqueta: "Mis postulaciones" },
+    { href: "/interview-lab", etiqueta: "Interview Lab" },
   ],
   // Sin «Cómo funciona»: es la presentación para quien todavía no tiene
   // cuenta, y una empresa con sesión ya está adentro (Etapa 2).

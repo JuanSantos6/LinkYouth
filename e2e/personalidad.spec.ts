@@ -2,7 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, type Page, test } from "@playwright/test";
 
 /**
- * Resultado del test de personalidad (migración 009).
+ * Resultado del test de personalidad (migración 009). Desde la 010 se carga
+ * en el Interview Lab y la empresa lo ve en la sección «Interview Lab».
  *
  * - El joven lo carga eligiéndolo de la lista, nace oculto, lo muestra, lo
  *   oculta y lo borra.
@@ -185,7 +186,7 @@ test("sin resultado, la empresa no ve ninguna sección de personalidad", async (
   compatibilidadSinResultado = await fichaDeLaEmpresa(page);
   expect(compatibilidadSinResultado).toContain("Declara 1 de 2");
   await expect(
-    page.getByRole("heading", { name: "Personalidad", exact: true }),
+    page.getByRole("heading", { name: "Interview Lab", exact: true }),
   ).toHaveCount(0);
 });
 
@@ -193,17 +194,10 @@ test("el joven carga su resultado de la lista y nace oculto", async ({
   page,
 }) => {
   await entrar(page, JOVEN);
-  await page.goto("/perfil");
+  await page.goto("/interview-lab");
 
-  const seccion = page.locator("section", {
-    has: page.getByRole("heading", { name: "Personalidad (opcional)" }),
-  });
-  await expect(seccion.getByText("Sin completar")).toBeVisible();
-  await expect(
-    seccion.getByText(
-      "Es un resultado que cargás vos. LinkYouth no lo valida y no lo usa para calcular tu compatibilidad.",
-    ),
-  ).toBeVisible();
+  const seccion = page.locator("#test-personalidad");
+  await expect(seccion.getByText("Pendiente", { exact: true })).toBeVisible();
   const test16 = seccion.getByRole("link", { name: /Hacer el test/ });
   await expect(test16).toHaveAttribute(
     "href",
@@ -223,7 +217,7 @@ test("el joven carga su resultado de la lista y nace oculto", async ({
   ).not.toBeChecked();
 
   await seccion.getByRole("button", { name: "Guardar resultado" }).click();
-  await expect(seccion.getByText("Completado")).toBeVisible();
+  await expect(seccion.getByText(/^Completado el /)).toBeVisible();
   await expect(
     seccion.getByRole("switch", { name: /Mostrar a las empresas/ }),
   ).toHaveAttribute("aria-checked", "false");
@@ -239,7 +233,7 @@ test("oculto: la empresa no lo ve, ni en la ficha ni por la API", async ({
 }) => {
   await fichaDeLaEmpresa(page);
   await expect(
-    page.getByRole("heading", { name: "Personalidad", exact: true }),
+    page.getByRole("heading", { name: "Interview Lab", exact: true }),
   ).toHaveCount(0);
 
   const empresa = await clienteDe(EMPRESA);
@@ -254,7 +248,7 @@ test("el joven lo muestra y la empresa lo ve, sin cambiar la compatibilidad", as
   page,
 }) => {
   await entrar(page, JOVEN);
-  await page.goto("/perfil");
+  await page.goto("/interview-lab");
   const interruptor = page.getByRole("switch", {
     name: /Mostrar a las empresas/,
   });
@@ -264,7 +258,7 @@ test("el joven lo muestra y la empresa lo ve, sin cambiar la compatibilidad", as
 
   const compatibilidad = await fichaDeLaEmpresa(page);
   const seccion = page.locator("section", {
-    has: page.getByRole("heading", { name: "Personalidad", exact: true }),
+    has: page.getByRole("heading", { name: "Interview Lab", exact: true }),
   });
   await expect(seccion.getByText("Arquitecto")).toBeVisible();
   await expect(seccion.getByText("INTJ-T")).toBeVisible();
@@ -285,7 +279,7 @@ test("visible: otra empresa y quien no tiene sesión no lo leen", async () => {
 
 test("el joven lo oculta y la empresa deja de verlo", async ({ page }) => {
   await entrar(page, JOVEN);
-  await page.goto("/perfil");
+  await page.goto("/interview-lab");
   const interruptor = page.getByRole("switch", {
     name: /Mostrar a las empresas/,
   });
@@ -294,17 +288,15 @@ test("el joven lo oculta y la empresa deja de verlo", async ({ page }) => {
 
   const compatibilidad = await fichaDeLaEmpresa(page);
   await expect(
-    page.getByRole("heading", { name: "Personalidad", exact: true }),
+    page.getByRole("heading", { name: "Interview Lab", exact: true }),
   ).toHaveCount(0);
   expect(compatibilidad).toBe(compatibilidadSinResultado);
 });
 
 test("el joven cambia el tipo y después lo borra", async ({ page }) => {
   await entrar(page, JOVEN);
-  await page.goto("/perfil");
-  const seccion = page.locator("section", {
-    has: page.getByRole("heading", { name: "Personalidad (opcional)" }),
-  });
+  await page.goto("/interview-lab");
+  const seccion = page.locator("#test-personalidad");
 
   await seccion.getByText("Cambiar resultado").click();
   await seccion.getByLabel("Tu tipo").selectOption("ENFP");
@@ -324,6 +316,6 @@ test("el joven cambia el tipo y después lo borra", async ({ page }) => {
   // «Cambiar resultado» sigue abierto después de guardar.
   await seccion.getByRole("button", { name: "Borrar resultado" }).click();
   await seccion.getByRole("button", { name: "Sí, borrarlo" }).click();
-  await expect(seccion.getByText("Sin completar")).toBeVisible();
+  await expect(seccion.getByText("Pendiente", { exact: true })).toBeVisible();
   expect(await filaDelJoven()).toBeNull();
 });

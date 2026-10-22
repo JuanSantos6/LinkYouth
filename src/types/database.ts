@@ -662,6 +662,45 @@ export type Database = {
           },
         ]
       }
+      resultados_de_tests: {
+        Row: {
+          cargado_en: string
+          origen: string
+          perfil_id: string
+          puntaje: string | null
+          resultado: string | null
+          test: string
+          visible_para_empresas: boolean
+        }
+        Insert: {
+          perfil_id: string
+          puntaje?: string | null
+          resultado?: string | null
+          test: string
+          visible_para_empresas?: boolean
+        }
+        Update: {
+          puntaje?: string | null
+          resultado?: string | null
+          visible_para_empresas?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resultados_de_tests_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resultados_de_tests_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tags: {
         Row: {
           id: string

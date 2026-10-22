@@ -132,6 +132,60 @@ before insert or update on perfil_personalidad
 for each row execute function personalidad_fecha_de_carga();
 
 -- ============================================================
+-- MÓDULO: Interview Lab — resultados de tests (migración 010)
+-- Los tests opcionales de JobCannon (psicométrico, juicio situacional,
+-- aptitudes). La API es paga: el joven carga el resultado a mano y `origen`
+-- queda en `declarado`; `verificado` queda para cuando el resultado llegue
+-- por la API. Mismo trato que `perfil_personalidad`: oculto por defecto, y
+-- fuera de la compatibilidad, los filtros y el orden de candidatos.
+-- ============================================================
+
+create table resultados_de_tests (
+  perfil_id              uuid not null references perfiles(id) on delete cascade,
+  test                   text not null
+                         check (test in ('psicometrico', 'juicio_situacional', 'aptitudes')),
+  -- «Excepcional», «24 de 30»… Opcional.
+  puntaje                text check (puntaje is null or char_length(puntaje) <= 40),
+  -- El resultado principal, en una frase. Opcional.
+  resultado              text check (resultado is null or char_length(resultado) <= 280),
+  -- La pone el disparador de abajo: al cargar y cada vez que cambia el
+  -- resultado.
+  cargado_en             timestamptz not null default now(),
+  -- Por defecto, no: el joven decide mostrarlo.
+  visible_para_empresas  boolean not null default false,
+  origen                 text not null default 'declarado'
+                         check (origen in ('declarado', 'verificado')),
+  primary key (perfil_id, test)
+);
+
+-- La fecha de carga no la elige quien escribe, y un resultado verificado
+-- que se edita deja de estarlo.
+create or replace function resultado_de_test_al_escribir()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  if tg_op = 'INSERT' then
+    new.cargado_en := now();
+  elsif new.puntaje is distinct from old.puntaje
+        or new.resultado is distinct from old.resultado then
+    new.cargado_en := now();
+    if new.origen is not distinct from old.origen then
+      new.origen := 'declarado';
+    end if;
+  else
+    new.cargado_en := old.cargado_en;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger resultados_de_tests_al_escribir
+before insert or update on resultados_de_tests
+for each row execute function resultado_de_test_al_escribir();
+
+-- ============================================================
 -- MÓDULO: Formación declarada
 -- Cubre: RF2.4.1, RF2.4.2
 -- ============================================================

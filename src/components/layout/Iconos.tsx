@@ -65,6 +65,17 @@ export function IconoPostulaciones(props: IconoProps) {
   );
 }
 
+/** Un frasco de laboratorio: el Interview Lab. */
+export function IconoInterviewLab(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <path d="M9 3.5h6" />
+      <path d="M10 3.5V9l-5 8.8A2 2 0 0 0 6.7 21h10.6a2 2 0 0 0 1.7-3.2L14 9V3.5" />
+      <path d="M7.4 15h9.2" />
+    </Base>
+  );
+}
+
 export function IconoPerfil(props: IconoProps) {
   return (
     <Base {...props}>

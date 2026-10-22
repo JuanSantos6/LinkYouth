@@ -4,29 +4,37 @@ import { useActionState } from "react";
 
 import { MensajeDeAccion } from "@/components/ui/MensajeDeAccion";
 import { cambiarVisibilidadDePersonalidad } from "@/lib/acciones/personalidad";
-import { ACCION_INICIAL } from "@/lib/acciones/tipos";
+import { ACCION_INICIAL, type EstadoAccion } from "@/lib/acciones/tipos";
 
 /**
  * «Mostrar a las empresas a las que me postulo». Un botón con
  * `role="switch"` dentro de un formulario: sin JavaScript también se manda,
  * y manda el valor contrario al actual. El estado se lee en la palabra
  * («Sí» / «No»), no solo en la posición de la perilla.
+ *
+ * Sirve para la personalidad (por defecto) y para cada test del Interview
+ * Lab: `accion` y `campos` dicen qué resultado se muestra u oculta.
  */
 export function InterruptorDeVisibilidad({
   visible,
+  accion = cambiarVisibilidadDePersonalidad,
+  campos = {},
   esEjemplo = false,
 }: {
   visible: boolean;
+  accion?: (previo: EstadoAccion, datos: FormData) => Promise<EstadoAccion>;
+  /** Más campos ocultos: el `test` de un resultado de JobCannon. */
+  campos?: Record<string, string>;
   esEjemplo?: boolean;
 }) {
-  const [estado, enviar, enCurso] = useActionState(
-    cambiarVisibilidadDePersonalidad,
-    ACCION_INICIAL,
-  );
+  const [estado, enviar, enCurso] = useActionState(accion, ACCION_INICIAL);
 
   return (
     <form action={enviar} className="space-y-1.5">
       <input type="hidden" name="visible" value={visible ? "no" : "si"} />
+      {Object.entries(campos).map(([nombre, valor]) => (
+        <input key={nombre} type="hidden" name={nombre} value={valor} />
+      ))}
       <button
         type="submit"
         role="switch"

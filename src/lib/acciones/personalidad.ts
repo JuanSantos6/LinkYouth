@@ -1,14 +1,15 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { TipoDePersonalidad } from "@/lib/dominio/TipoDePersonalidad";
 
+import { revalidarInterviewLab } from "./revalidar";
 import { mensajeDeError, sesionDePostulante } from "./sesion";
 import { type EstadoAccion, type EstadoFormulario, valoresDe } from "./tipos";
 
 /**
  * Cargar o cambiar el resultado del test de personalidad (migración 009).
+ * Desde la migración 010 se hace solo en el Interview Lab: el perfil lo
+ * muestra sin dejar editarlo.
  *
  * El joven elige el tipo de una lista y la variante: nunca lo escribe. Igual
  * se valida acá (y la base lo vuelve a validar con su `check`), porque el
@@ -61,7 +62,7 @@ export async function guardarPersonalidad(
     };
   }
 
-  revalidatePath("/perfil");
+  revalidarInterviewLab();
   return {
     estado: "ok",
     mensaje: `Guardaste tu resultado: ${tipo.nombre} (${tipo.codigo}).`,
@@ -95,7 +96,7 @@ export async function cambiarVisibilidadDePersonalidad(
     };
   }
 
-  revalidatePath("/perfil");
+  revalidarInterviewLab();
   return {
     estado: "ok",
     mensaje: visible
@@ -120,6 +121,6 @@ export async function borrarPersonalidad(): Promise<EstadoAccion> {
     return { estado: "error", mensaje: "No había ningún resultado cargado." };
   }
 
-  revalidatePath("/perfil");
+  revalidarInterviewLab();
   return { estado: "ok", mensaje: "Borraste tu resultado." };
 }

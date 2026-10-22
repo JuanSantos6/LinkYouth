@@ -14,7 +14,8 @@ comparar.
 >
 > | Requisito | Motivo |
 > | --- | --- |
-> | RF5 (entrevistas y test), RF9 (chats), RF10 (IA, recomendación) | Fuera del alcance del MVP desde el inicio del plan. |
+> | RF5.1 y RF5.3 (consejos y banco de preguntas), RF9 (chats), RF10 (IA, recomendación) | Fuera del alcance del MVP desde el inicio del plan. RF5.2 entró en parte con el Interview Lab (2026-10-22): los tests se hacen en sitios externos y el resultado lo declara el joven. |
+> | Integración con la API de JobCannon | Para que los resultados del Interview Lab lleguen verificados en vez de declarados. La API es paga (plan Scale) y no hay clave. El esquema ya está listo: `resultados_de_tests.origen` admite `verificado`, que se escribiría desde el servidor con la clave de servicio; faltan la cuenta, el flujo para vincular al joven con su resultado en JobCannon y el despacho. Ver `decisiones.md`, 2026-10-22. |
 > | RF8.3 (reportar reseñas) y área de administración | Requiere un rol nuevo en la base, sus políticas y una zona entera de interfaz; no entraba con calidad antes de la defensa. |
 > | RF6.3 (aviso de match a la empresa) | Depende de definir qué puntaje es «relevante» (RF3.9.2); sin esa regla, el aviso sería ruido. |
 > | RF6.4–6.5 (preferencias de avisos) | Necesita una tabla de preferencias y que cada disparador la consulte; los avisos actuales son pocos y todos útiles. |
