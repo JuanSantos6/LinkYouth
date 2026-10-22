@@ -54,10 +54,11 @@ async function crearCuenta(email: string) {
 async function exigir<T>(
   promesa: PromiseLike<{ data: T | null; error: unknown }>,
 ): Promise<T> {
+  // Un `insert` sin `select` devuelve `data: null` aunque salga bien: solo
+  // el error cuenta como falla.
   const { data, error } = await promesa;
   if (error) throw error;
-  if (data === null) throw new Error("la consulta no devolvió datos");
-  return data;
+  return data as T;
 }
 
 /** Un cliente con la clave pública, como el navegador de cualquiera. */

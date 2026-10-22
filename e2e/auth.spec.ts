@@ -172,7 +172,7 @@ test.describe("navegación pública", () => {
     await page.goto("/empleos");
 
     await expect(
-      page.getByText(/creá tu cuenta para ver cuánto coincidís/i),
+      page.getByText(/creá tu cuenta para postularte/i),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Crear mi cuenta" }),
