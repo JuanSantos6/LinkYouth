@@ -206,7 +206,13 @@ export default async function Portada() {
   return (
     <div id="arriba" className="flex min-h-dvh flex-col">
       <AnimacionesDePortada />
-      <CabeceraGlobal area={area} secciones={SECCIONES} />
+      {/* Con sesión el middleware ya mandó a cada cuenta a su panel; si aun
+          así se llega acá (sin credenciales de Supabase), las anclas de la
+          portada son solo para quien no entró. */}
+      <CabeceraGlobal
+        area={area}
+        secciones={area === "publico" ? SECCIONES : undefined}
+      />
 
       <main className="flex-1">
         <div className="relative">

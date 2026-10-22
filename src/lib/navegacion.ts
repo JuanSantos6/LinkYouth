@@ -53,6 +53,14 @@ export const INFORMATIVAS = [
 ];
 
 /**
+ * La portada. Sin sesión es la puerta de entrada; con sesión no se muestra:
+ * quien ya entró va directo a su panel (`inicioDe`). Antes la portada se
+ * renderizaba igual y la cabecera ofrecía «Nosotros», «Cómo funciona»,
+ * «Búsquedas»… a una empresa que ya estaba adentro.
+ */
+export const PORTADA = "/";
+
+/**
  * Informativas que una cuenta de empresa con sesión no ve (Etapa 2).
  *
  * «Cómo funciona» es la presentación para quien todavía no tiene cuenta: una
@@ -129,6 +137,7 @@ export function correspondeA(
   ruta: string,
 ): boolean {
   const camino = ruta.split(/[?#]/, 1)[0];
+  if (camino === PORTADA) return false;
   if (area === "empresa" && OCULTAS_PARA_EMPRESA.includes(camino)) return false;
   if (INFORMATIVAS.includes(camino)) return true;
 

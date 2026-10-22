@@ -13,6 +13,14 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-22 — Sesión, imágenes y panel de empresa
+
+- **Con sesión, `/` lleva al panel** (`src/middleware.ts`, `PORTADA` y
+  `correspondeA` en `src/lib/navegacion.ts`): la empresa a `/empresa` y el
+  joven a `/inicio`. Antes la portada se renderizaba igual y la cabecera de
+  una empresa mostraba el menú público («Nosotros», «Cómo funciona»,
+  «Búsquedas»…). e2e en `e2e/sesion.spec.ts` para los dos tipos de cuenta.
+
 ## 2026-10-20 — Imágenes en toda la página
 
 - **Fotos de Pexels, verificadas y servidas desde el servidor**

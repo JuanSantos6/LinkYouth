@@ -336,7 +336,10 @@ para volver a ella después de entrar. Sin sesión quedan abiertas `ENTRADA`,
 `INFORMATIVAS` y `EXPLORABLES`.
 
 Con sesión, `/login` y `/registro` mandan al `next` si es una ruta interna que
-le corresponde a ese tipo de cuenta, y si no, al inicio de la cuenta.
+le corresponde a ese tipo de cuenta, y si no, al inicio de la cuenta. Desde el
+2026-10-22, `/` (`PORTADA`) también: con sesión la portada no se muestra, la
+empresa va a `/empresa` y el joven a `/inicio`. Así ninguna cuenta con sesión
+ve el menú de anclas de la portada («Nosotros», «Cómo funciona»…).
 
 El control vive acá y no repetido en cada `page.tsx` porque es el único punto
 por el que pasan todas las pantallas de `(app)/`. Las cookies que el refresco
@@ -393,7 +396,8 @@ redirector abierto— y `correspondeA()`. Esta última existe porque el
 `redirect()` de una Server Action renderiza el destino en la misma respuesta
 sin pasar por el middleware: `iniciarSesion` y `registrarse` tienen que
 comprobar por su cuenta que el `next` sea de la mitad de la aplicación que le
-toca a la cuenta.
+toca a la cuenta. `PORTADA` (`/`) nunca le corresponde a una cuenta con
+sesión, así `/login?next=/` entra al panel y no a la portada.
 
 #### `config`
 
