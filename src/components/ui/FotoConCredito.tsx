@@ -10,8 +10,9 @@ import { CreditoDeFoto } from "./Foto";
 /**
  * La foto guardada en una fila (la de un evento, la portada de una empresa):
  * de Storage, o de Unsplash por hotlink en el tamaño justo y con su crédito
- * encima. La foto va en un contenedor `relative` con `className`; el crédito
- * queda por encima de un enlace estirado sobre la tarjeta (`z-10`).
+ * encima. La foto va en un contenedor `relative` con `className`, y el
+ * crédito, posicionado contra él, queda por encima de un enlace estirado
+ * sobre la tarjeta (`z-10` en `CreditoDeFoto`).
  */
 export function FotoConCredito({
   url,
@@ -44,11 +45,7 @@ export function FotoConCredito({
         decoding="async"
         className="h-full w-full object-cover"
       />
-      {credito && (
-        <span className="relative z-10">
-          <CreditoDeFoto credito={credito} />
-        </span>
-      )}
+      {credito && <CreditoDeFoto credito={credito} />}
     </div>
   );
 }

@@ -22,7 +22,7 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   [`decisiones.md`](./decisiones.md), 2026-10-22.
 - **Fotos de Unsplash por hotlink** (migración 008, `scripts/fotos/`,
   `src/lib/unsplash.ts`, `src/lib/data/fotos.ts`, CSP): una consulta por
-  categoría (seis en total), hoja de contactos por categoría y 41 fotos
+  categoría (seis en total, 48 consultas con los avisos), hoja de contactos por categoría y 41 fotos
   elegidas mirándolas (los 10 jóvenes, portadas de empresa, instituciones,
   eventos, la portada y los estados vacíos), con «Foto de … en Unsplash» y la
   lista en `/legales#fotos`. Avisos de descarga en segundo plano

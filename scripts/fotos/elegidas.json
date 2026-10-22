@@ -76,7 +76,8 @@
       },
       "institucion:universidad-catolica-del-uruguay": {
         "numero": 2,
-        "alt": "Aula universitaria vacía con filas de bancos de madera."
+        "de": "eventos",
+        "alt": "Auditorio universitario lleno de estudiantes sentados."
       },
       "institucion:utu-escuela-superior-de-la-construccion": {
         "numero": 3,
@@ -143,8 +144,9 @@
         "alt": "Dos jóvenes trabajando con computadoras en una mesa, en una sala luminosa."
       },
       "portada:nosotros": {
-        "numero": 9,
-        "alt": "Escritorio de estudio junto a una ventana, con notas de colores pegadas en el vidrio."
+        "numero": 2,
+        "de": "instituciones",
+        "alt": "Aula universitaria vacía con filas de bancos de madera y ventanas a un costado."
       },
       "portada:ficha": {
         "numero": 26,
@@ -152,7 +154,7 @@
       },
       "portada:busqueda": {
         "numero": 3,
-        "alt": "Dos jóvenes conversando con una computadora en la mesa de un café."
+        "alt": "Tres jóvenes conversando con computadoras en la mesa de un café."
       },
       "portada:feria": {
         "numero": 2,
@@ -160,7 +162,7 @@
       },
       "portada:cierre": {
         "numero": 1,
-        "alt": "Tres jóvenes sonriendo frente a una computadora en un espacio de trabajo."
+        "alt": "Cuatro jóvenes sonriendo frente a una computadora en un espacio de trabajo."
       },
       "vacio:postulaciones": {
         "numero": 7,

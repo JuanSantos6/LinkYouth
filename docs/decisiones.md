@@ -29,7 +29,7 @@ cada página. *Una consulta por lugar* (68 lugares): más de dos horas de
 espera por el límite. *Esperar a cada aviso de descarga antes de mostrar*:
 bloqueaba la carga sin ganar nada.
 
-**Por qué.** Cumplir las condiciones de la API con 47 consultas, en una
+**Por qué.** Cumplir las condiciones de la API con 48 consultas, en una
 corrida, sin esperas. El costo: cada visitante le pide las fotos a Unsplash
 (su IP llega a un tercero), que es lo que la decisión anterior evitaba; las
 fotos propias quedan de respaldo si la base no tiene las de Unsplash.

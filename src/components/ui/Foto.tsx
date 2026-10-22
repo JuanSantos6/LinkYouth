@@ -57,7 +57,7 @@ export function CreditoDeFoto({
   credito: NonNullable<ImagenDePagina["credito"]>;
 }) {
   return (
-    <span className="absolute right-2 bottom-2 z-[2] max-w-[calc(100%-16px)] truncate rounded-full bg-[#15132A]/70 px-2.5 py-1 text-[11px] leading-none text-white backdrop-blur-sm">
+    <span className="absolute right-2 bottom-2 z-10 max-w-[calc(100%-16px)] truncate rounded-full bg-[#15132A]/70 px-2.5 py-1 text-[11px] leading-none text-white backdrop-blur-sm">
       Foto de{" "}
       <a
         href={credito.autorEnlace}

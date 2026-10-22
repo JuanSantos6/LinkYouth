@@ -5,7 +5,8 @@
  *
  *   node scripts/fotos/cargar.mjs
  *
- * - `fotos`: una fila por foto (URL del hotlink y atribución).
+ * - `fotos`: una fila por foto (URL del hotlink y atribución). Las que ya no
+ *   están en el archivo se borran.
  * - `lugares_con_foto`: los lugares fijos (`portada:`, `vacio:`, `rubro:`,
  *   `institucion:`). Los que ya no están en el archivo se borran.
  * - Las cuentas de la demo: `perfiles.foto_url` (`persona:<clave>`),
@@ -126,6 +127,15 @@ export async function cargarFotos(db, contenido, ids) {
       db.from("lugares_con_foto").delete().in("lugar", sobran),
       "lugares que sobran",
     );
+  }
+
+  // Las fotos que se dejaron de usar salen también de la lista de créditos.
+  const usadas = new Set(fotos.map((f) => f.url));
+  const viejas = (await exigir(db.from("fotos").select("url"), "fotos"))
+    .map((f) => f.url)
+    .filter((url) => !usadas.has(url));
+  if (viejas.length) {
+    await exigir(db.from("fotos").delete().in("url", viejas), "fotos viejas");
   }
 
   const cuenta = {

@@ -37,8 +37,11 @@ Las categorías y sus lugares están en `scripts/fotos/categorias.json`. La
 recarga de la demo (`scripts/demo/sembrar.mjs`) llama a `cargar.mjs` al
 final, así nunca pierde las fotos ni consulta la API.
 
-La elección del 2026-10-22: 6 consultas (la de «trabajo» se repitió porque la
-primera trajo solo oficinas) y 41 avisos de descarga, 47 en total. Quedaron
+Al revisarlas en pantalla se cambió la de «Nosotros» (en la miniatura se veía
+solo un escritorio y en grande mostraba a dos personas, que junto a ese texto
+se leen como el equipo): va un aula vacía, y la Universidad Católica pasó a un
+auditorio de la búsqueda de eventos. La elección del 2026-10-22: 6 consultas (la de «trabajo» se repitió porque la
+primera trajo solo oficinas) y 42 avisos de descarga, 48 en total. Quedaron
 con la foto propia de su rubro, a propósito, Ceibo (café), Vital (clínica) y
 Trébol (agro): ninguna candidata era creíble para esos lugares. Las búsquedas
 usan siempre la foto propia de su rubro, y «Postularte», en la portada, la
@@ -59,7 +62,7 @@ propia.
 | `institucion:instituto-anglo-uruguayo` | [Vishnu Mehra](https://unsplash.com/@sanskritiuni) | [Salón de clases luminoso con estudiantes en sus bancos.](https://unsplash.com/photos/students-attending-a-lecture-in-a-modern-classroom-v3P_spLsOH0) |
 | `institucion:liceo-n-35-iava` | [Spencer Liao](https://unsplash.com/@spencerliao) | [Salón de clase con pupitres celestes junto a una ventana.](https://unsplash.com/photos/empty-classroom-chairs-with-desks-9alfSW-szT4) |
 | `institucion:plan-ceibal-jovenes-a-programar` | [Nhan Hoang](https://unsplash.com/@httnhan) | [Espacio de estudio con mesas y sillas, en penumbra.](https://unsplash.com/photos/empty-modern-office-space-with-tables-and-chairs-j3eaegN9j_g) |
-| `institucion:universidad-catolica-del-uruguay` | [Changbok Ko](https://unsplash.com/@kochangbok) | [Aula universitaria vacía con filas de bancos de madera.](https://unsplash.com/photos/empty-university-lecture-hall-desks-F8t2VGnI47I) |
+| `institucion:universidad-catolica-del-uruguay` | [Wan San Yip](https://unsplash.com/@wansan_99) | [Auditorio universitario lleno de estudiantes sentados.](https://unsplash.com/photos/people-sitting-on-chair-inside-room-ID1yWa1Wpx0) |
 | `institucion:universidad-de-la-republica` | [Dominic Kurniawan Suryaputra](https://unsplash.com/@d_ks11) | [Césped de un campus universitario con estudiantes sentados al sol.](https://unsplash.com/photos/a-group-of-people-sitting-on-top-of-a-lush-green-field-EhGw-i_Eamg) |
 | `institucion:universidad-de-montevideo` | [Dom Fou](https://unsplash.com/@domlafou) | [Auditorio universitario con una pantalla al frente y filas de asientos.](https://unsplash.com/photos/people-sitting-on-chair-in-front-of-computer-YRMWVcdyhmI) |
 | `institucion:utu-escuela-superior-de-administracion` | [Thuy Duong Nguyen](https://unsplash.com/@duonguyen) | [Aula con muchas sillas y mesas de madera, vacía.](https://unsplash.com/photos/a-young-girl-sitting-in-a-classroom-with-a-book-frGf5WHXzZI) |
@@ -76,13 +79,13 @@ propia.
 | `persona:sofia` | [Albert Vinas](https://unsplash.com/@treb_vinas24) | [Joven con campera de jean, sonriendo al aire libre.](https://unsplash.com/photos/a-smiling-woman-in-a-denim-jacket-outdoors-zX700UTltlg) |
 | `persona:valentina` | [Tessa Edmiston](https://unsplash.com/@thewildflowerpress) | [Joven rubia con remera a rayas, riéndose frente a una pared clara con una ventana.](https://unsplash.com/photos/woman-wearing-white-and-blue-stripe-crew-neck-shirt-holding-hair-CLgGgEtnD6Y) |
 | `portada:bienvenida` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Grupo de jóvenes estudiando juntos alrededor de una computadora.](https://unsplash.com/photos/diverse-group-of-students-collaborating-around-a-laptop--X4Qx4_4iMU) |
-| `portada:busqueda` | [Brooke Cagle](https://unsplash.com/@brookecagle) | [Dos jóvenes conversando con una computadora en la mesa de un café.](https://unsplash.com/photos/three-people-sitting-in-front-of-table-laughing-together-g1Kr4Ozfoac) |
-| `portada:cierre` | [Mimi Thian](https://unsplash.com/@mimithian) | [Tres jóvenes sonriendo frente a una computadora en un espacio de trabajo.](https://unsplash.com/photos/four-people-watching-on-white-macbook-on-top-of-glass-top-table-vdXMSiX-n6M) |
+| `portada:busqueda` | [Brooke Cagle](https://unsplash.com/@brookecagle) | [Tres jóvenes conversando con computadoras en la mesa de un café.](https://unsplash.com/photos/three-people-sitting-in-front-of-table-laughing-together-g1Kr4Ozfoac) |
+| `portada:cierre` | [Mimi Thian](https://unsplash.com/@mimithian) | [Cuatro jóvenes sonriendo frente a una computadora en un espacio de trabajo.](https://unsplash.com/photos/four-people-watching-on-white-macbook-on-top-of-glass-top-table-vdXMSiX-n6M) |
 | `portada:empresas` | [Chidera Faustina Okeke](https://unsplash.com/@thefourthwxll) | [Dos jóvenes trabajando con computadoras en una mesa, en una sala luminosa.](https://unsplash.com/photos/two-women-studying-together-at-a-table-with-laptop-2FDdgn0-W_o) |
 | `portada:eventos` | [Dámaris Azócar](https://unsplash.com/@az_damariss) | [Joven con micrófono hablando frente a un público en un salón.](https://unsplash.com/photos/a-woman-standing-in-front-of-a-crowd-holding-a-microphone-NK02ShlfWDM) |
 | `portada:feria` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Grupo de jóvenes mirando juntos la pantalla de una computadora.](https://unsplash.com/photos/diverse-group-of-students-gathered-around-laptop-kp7qkHTgSKc) |
 | `portada:ficha` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Joven usando el teléfono junto a una computadora, en un living.](https://unsplash.com/photos/young-woman-using-phone-at-desk-with-laptop-QpuRvyYQ5kA) |
-| `portada:nosotros` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Escritorio de estudio junto a una ventana, con notas de colores pegadas en el vidrio.](https://unsplash.com/photos/two-women-collaborate-over-a-laptop-in-an-office-irfWcn-sF48) |
+| `portada:nosotros` | [Changbok Ko](https://unsplash.com/@kochangbok) | [Aula universitaria vacía con filas de bancos de madera y ventanas a un costado.](https://unsplash.com/photos/empty-university-lecture-hall-desks-F8t2VGnI47I) |
 | `portada:preguntas` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Joven de pelo rizado trabajando en una computadora, con una taza al lado.](https://unsplash.com/photos/young-woman-working-on-a-laptop-at-home-WrevB3gLLBs) |
 | `vacio:avisos` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Rincón tranquilo con una pared de ladrillo, una mesa y una computadora.](https://unsplash.com/photos/a-woman-working-on-a-laptop-in-bed-r0fS01RQZ_M) |
 | `vacio:busquedas` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Joven concentrado escribiendo en una computadora, junto a una lámpara.](https://unsplash.com/photos/man-working-on-laptop-at-a-desk-a1ymWTTqUuE) |
