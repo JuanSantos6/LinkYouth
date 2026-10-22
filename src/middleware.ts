@@ -7,6 +7,7 @@ import {
   INFORMATIVAS,
   OCULTAS_PARA_EMPRESA,
   PARAMETRO_SIGUIENTE,
+  PORTADA,
   correspondeA,
   destinoSeguro,
   esExplorable,
@@ -75,6 +76,8 @@ async function areaDe(
  *   la ruta pedida para volver a ella después de entrar.
  * - Con sesión, `/login` y `/registro` mandan a ese `next` si es una ruta
  *   interna válida, y si no, al inicio de la cuenta.
+ * - Con sesión, `/` (la portada) manda al inicio de la cuenta: `/empresa` o
+ *   `/inicio`.
  * - Con sesión, cada tipo de cuenta se queda en su mitad: una cuenta
  *   individual que pida `/empresa` cae en `/inicio`, y una de empresa que pida
  *   cualquier pantalla del postulante cae en `/empresa` (RF1.2).
@@ -190,6 +193,9 @@ async function controlDeAcceso(request: NextRequest) {
 
     return redirigirA(vuelve ? siguiente : inicio);
   }
+
+  // Con sesión, la portada no se muestra: cada cuenta va a su panel.
+  if (ruta === PORTADA) return redirigirA(await areaDe(supabase, user.id));
 
   // Las informativas no pertenecen a ninguna de las dos mitades, salvo las que
   // una empresa con sesión no necesita ver: esa va a su panel.
