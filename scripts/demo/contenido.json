@@ -98,7 +98,27 @@
       "personalidad": {
         "tipo": "INFJ-T",
         "visible": true
-      }
+      },
+      "tests": [
+        {
+          "test": "psicometrico",
+          "puntaje": "22 de 30",
+          "resultado": "Mi mejor área fue reconocimiento de patrones; me conviene practicar datos numéricos.",
+          "visible": true
+        },
+        {
+          "test": "juicio_situacional",
+          "puntaje": "19 de 25",
+          "resultado": "Priorizo bien y comunico con empatía; tengo que reforzar cuándo escalar un problema.",
+          "visible": true
+        },
+        {
+          "test": "aptitudes",
+          "puntaje": "21 de 30",
+          "resultado": "Razonamiento verbal y lógico por encima de numérico y abstracto.",
+          "visible": false
+        }
+      ]
     },
     {
       "clave": "mateo",
@@ -135,7 +155,15 @@
       "personalidad": {
         "tipo": "INTJ-A",
         "visible": true
-      }
+      },
+      "tests": [
+        {
+          "test": "aptitudes",
+          "puntaje": "26 de 30",
+          "resultado": "Muy fuerte en razonamiento lógico y abstracto.",
+          "visible": true
+        }
+      ]
     },
     {
       "clave": "valentina",
@@ -214,7 +242,15 @@
       "personalidad": {
         "tipo": "ENTP-T",
         "visible": false
-      }
+      },
+      "tests": [
+        {
+          "test": "psicometrico",
+          "puntaje": "17 de 30",
+          "resultado": "Bien en patrones; me falta práctica en inferencia verbal.",
+          "visible": false
+        }
+      ]
     },
     {
       "clave": "camila",
@@ -354,7 +390,21 @@
       "personalidad": {
         "tipo": "ISTJ-A",
         "visible": true
-      }
+      },
+      "tests": [
+        {
+          "test": "aptitudes",
+          "puntaje": "24 de 30",
+          "resultado": "Fuerte en razonamiento numérico.",
+          "visible": true
+        },
+        {
+          "test": "psicometrico",
+          "puntaje": "Excepcional",
+          "resultado": "Muy preciso en detección de errores y datos numéricos.",
+          "visible": true
+        }
+      ]
     },
     {
       "clave": "florencia",
@@ -430,7 +480,15 @@
       "personalidad": {
         "tipo": "INTP-T",
         "visible": false
-      }
+      },
+      "tests": [
+        {
+          "test": "juicio_situacional",
+          "puntaje": "Excepcional",
+          "resultado": "Pongo límites con claridad y priorizo con criterio.",
+          "visible": false
+        }
+      ]
     }
   ],
   "vacantes": [

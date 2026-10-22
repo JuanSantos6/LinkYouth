@@ -31,6 +31,7 @@ import {
   comoTipoOportunidad,
   type DatosDeCandidato,
   type EventoDeEmpresa,
+  type InterviewLabCompartido,
   type Inscripto,
   type OpcionCatalogo,
   type PanelDeEmpresa,
@@ -308,30 +309,44 @@ export async function obtenerPostulacionesRecibidas(
 }
 
 /**
- * El resultado de personalidad que una persona que se postuló decidió
- * compartir (migración 009), o `null`.
+ * Lo que una persona que se postuló decidió compartir de su Interview Lab:
+ * el código de su tipo de personalidad (migración 009) y los resultados de
+ * los tests opcionales (migración 010). Lo que no compartió no llega.
  *
- * Lo decide la política de `perfil_personalidad`: la fila llega solo si el
- * joven la marcó visible y se postuló a una búsqueda de esta empresa sin
- * cancelar. Va aparte de `armarPostulaciones` a propósito: la usa solo la
- * ficha del postulante, y así no puede colarse en la coincidencia, los
- * filtros ni el orden de las listas (ver `docs/decisiones.md`, 2026-10-22).
+ * Lo deciden las políticas de `perfil_personalidad` y `resultados_de_tests`:
+ * las filas llegan solo si el joven las marcó visibles y se postuló a una
+ * búsqueda de esta empresa sin cancelar. Va aparte de `armarPostulaciones` a
+ * propósito: la usa solo la ficha del postulante, y así no puede colarse en
+ * la coincidencia, los filtros ni el orden de las listas (ver
+ * `docs/decisiones.md`, 2026-10-22).
  */
-export async function obtenerPersonalidadCompartida(
+export async function obtenerInterviewLabCompartido(
   perfilId: string,
   usuarioId?: string,
-): Promise<string | null> {
-  if (!esUuid(perfilId)) return null;
+): Promise<InterviewLabCompartido> {
+  const vacio: InterviewLabCompartido = { personalidad: null, tests: [] };
+  if (!esUuid(perfilId)) return vacio;
   const s = await sesion(usuarioId);
-  if (!s) return null;
+  if (!s) return vacio;
 
-  const { data } = await s.supabase
-    .from("perfil_personalidad")
-    .select("tipo")
-    .eq("perfil_id", perfilId)
-    .maybeSingle();
+  const [personalidad, tests] = await Promise.all([
+    s.supabase
+      .from("perfil_personalidad")
+      .select("tipo")
+      .eq("perfil_id", perfilId)
+      .maybeSingle(),
+    s.supabase
+      .from("resultados_de_tests")
+      .select(
+        "test, puntaje, resultado, cargado_en, visible_para_empresas, origen",
+      )
+      .eq("perfil_id", perfilId),
+  ]);
 
-  return data?.tipo ?? null;
+  return {
+    personalidad: personalidad.data?.tipo ?? null,
+    tests: tests.data ?? [],
+  };
 }
 
 // --- Eventos ----------------------------------------------------------------

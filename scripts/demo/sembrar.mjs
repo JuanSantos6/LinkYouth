@@ -202,6 +202,37 @@ function validar({ tags, habilidades }) {
         errores.push(`${j.clave}: falta si la personalidad es visible`);
     }
   }
+  // Tests opcionales del Interview Lab (migración 010): los mismos `check`
+  // de la base.
+  for (const j of c.jovenes) {
+    const vistos = new Set();
+    for (const t of j.tests ?? []) {
+      if (!["psicometrico", "juicio_situacional", "aptitudes"].includes(t.test))
+        errores.push(`${j.clave}: test desconocido «${t.test}»`);
+      if (vistos.has(t.test))
+        errores.push(`${j.clave}: test repetido ${t.test}`);
+      vistos.add(t.test);
+      if ((t.puntaje ?? "").length > 40)
+        errores.push(
+          `${j.clave}: puntaje de ${t.test} de más de 40 caracteres`,
+        );
+      if ((t.resultado ?? "").length > 280)
+        errores.push(
+          `${j.clave}: resultado de ${t.test} de más de 280 caracteres`,
+        );
+      if (typeof t.visible !== "boolean")
+        errores.push(`${j.clave}: falta si ${t.test} es visible`);
+    }
+  }
+  // Los tres casos de los tests: compartidos (la joven demo, siempre),
+  // cargados pero ocultos, y sin hacer.
+  const tests = c.jovenes.flatMap((j) => j.tests ?? []);
+  if (!(c.jovenes.find((j) => j.demo)?.tests ?? []).some((t) => t.visible))
+    errores.push("la joven demo tiene que tener algún test compartido");
+  if (!tests.some((t) => !t.visible))
+    errores.push("ningún test cargado y oculto");
+  if (c.jovenes.every((j) => (j.tests ?? []).length))
+    errores.push("todos los jóvenes tienen tests: falta «sin hacer»");
   // La demo muestra los tres casos: compartido (la joven demo, siempre),
   // cargado pero oculto, y sin completar.
   const conPersonalidad = c.jovenes.filter((j) => j.personalidad);
@@ -506,11 +537,26 @@ async function cargar(cat) {
         `personalidad ${j.clave}`,
       );
     }
+    if (j.tests?.length) {
+      await exigir(
+        db.from("resultados_de_tests").insert(
+          j.tests.map((t) => ({
+            perfil_id: id,
+            test: t.test,
+            puntaje: t.puntaje ?? null,
+            resultado: t.resultado ?? null,
+            visible_para_empresas: t.visible,
+          })),
+        ),
+        `tests ${j.clave}`,
+      );
+    }
   }
   console.log(
     `✓ ${c.jovenes.length} jóvenes con intereses, habilidades y formación ` +
       `(${c.jovenes.filter((j) => j.personalidad?.visible).length} con la personalidad compartida, ` +
-      `${c.jovenes.filter((j) => j.personalidad && !j.personalidad.visible).length} con la personalidad oculta)`,
+      `${c.jovenes.filter((j) => j.personalidad && !j.personalidad.visible).length} con la personalidad oculta, ` +
+      `${c.jovenes.flatMap((j) => j.tests ?? []).length} resultados de tests opcionales)`,
   );
 
   for (const [i, v] of c.vacantes.entries()) {

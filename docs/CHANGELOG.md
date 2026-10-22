@@ -13,6 +13,43 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-22 — Interview Lab
+
+- **Interview Lab** (migración 010, `/interview-lab`, `resultados_de_tests`,
+  `InterviewLab`, `src/components/interview-lab/`): sección nueva del menú
+  del joven (cabecera y quinta pestaña en el teléfono; nunca empresa ni
+  público) con cuatro tests: el de personalidad de 16Personalities
+  (obligatorio, destacado arriba) y tres opcionales de JobCannon
+  (psicométrico, juicio situacional, aptitudes). Cada tarjeta dice qué
+  mide, cuánto lleva, si está pendiente o completado y abre el test en otra
+  pestaña; barra «N de 4 completados». Cubre en parte RF5.2: el test se hace
+  afuera y el resultado se declara. La API de JobCannon es paga y no hay
+  clave: el joven carga nivel o puntaje y el resultado principal, los dos
+  opcionales, y decide si los ven las empresas a las que se postula (por
+  defecto, no). Por qué: [`decisiones.md`](./decisiones.md), 2026-10-22.
+- **«Obligatorio» no bloquea**: mientras falta la personalidad, el inicio
+  avisa (`AvisoDeInterviewLab`); postularse sigue igual.
+- **La personalidad se edita solo en el Interview Lab**: el perfil la
+  muestra de solo lectura con «Editar en Interview Lab»
+  (`PersonalidadEnPerfil`), y la sección pasó de «Personalidad (opcional)» a
+  «Personalidad». `FormularioDePersonalidad` e `InterruptorDeVisibilidad` se
+  mudaron a `interview-lab/`; el interruptor ahora sirve para cualquier
+  resultado.
+- **Empresa**: la sección «Personalidad» de la ficha del postulante pasó a
+  ser «Interview Lab» y muestra todo lo compartido, cada resultado con
+  «Declarado por el postulante» (`InterviewLabDelPostulante`,
+  `obtenerInterviewLabCompartido`, que reemplaza a
+  `obtenerPersonalidadCompartida`). Nada entra en la compatibilidad, los
+  filtros ni el orden.
+- **Preparado para la API**: `resultados_de_tests.origen` (`declarado` /
+  `verificado`). Desde la API pública solo se escribe `declarado` (sin
+  permiso sobre la columna); un resultado verificado que el joven edita
+  vuelve a `declarado`. Verificación SQL: `db/verificar-010.sql`; e2e:
+  `e2e/interview-lab.spec.ts` y `e2e/personalidad.spec.ts` (adaptado).
+- **Demo**: Lucía con dos tests compartidos y uno oculto, Mateo y Facundo
+  con tests compartidos, Santiago y Sofía con tests ocultos, el resto sin
+  hacer.
+
 ## 2026-10-22 — Test de personalidad en el perfil del joven
 
 - **Resultado de 16Personalities** (migración 009, `perfil_personalidad`,

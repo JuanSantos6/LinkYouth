@@ -345,7 +345,10 @@ export async function obtenerPerfilActual(
        perfil_tags ( tags ( nombre ) ),
        perfil_habilidades ( habilidades ( nombre ) ),
        formaciones ( id, institucion, titulo, estado ),
-       perfil_personalidad ( tipo, cargada_en, visible_para_empresas )`,
+       perfil_personalidad ( tipo, cargada_en, visible_para_empresas ),
+       resultados_de_tests (
+         test, puntaje, resultado, cargado_en, visible_para_empresas, origen
+       )`,
     )
     .eq("id", id)
     .maybeSingle();
@@ -360,6 +363,7 @@ export async function obtenerPerfilActual(
     perfil_habilidades,
     formaciones,
     perfil_personalidad,
+    resultados_de_tests,
     ...perfil
   } = data;
 
@@ -375,6 +379,7 @@ export async function obtenerPerfilActual(
         estado: comoEstadoFormacion(formacion.estado),
       })),
       personalidad: perfil_personalidad ?? null,
+      tests: resultados_de_tests ?? [],
     },
     origen: "supabase",
   };

@@ -370,6 +370,54 @@ to authenticated
 using (perfil_id = (select auth.uid()));
 
 -- ============================================================
+-- RESULTADOS_DE_TESTS (migración 010)
+-- Los resultados del Interview Lab. Misma regla que `perfil_personalidad`.
+-- Desde la API se escribe solo lo declarado: `origen` y `cargado_en` no
+-- tienen permiso de escritura para `authenticated`.
+-- ============================================================
+
+alter table resultados_de_tests enable row level security;
+revoke all on resultados_de_tests from public, anon, authenticated;
+grant select, delete on resultados_de_tests to authenticated;
+-- Sin `origen` ni `cargado_en`: el joven no los elige.
+grant insert (perfil_id, test, puntaje, resultado, visible_para_empresas)
+  on resultados_de_tests to authenticated;
+grant update (puntaje, resultado, visible_para_empresas)
+  on resultados_de_tests to authenticated;
+grant all on resultados_de_tests to service_role;
+
+create policy "resultados_veo_los_mios_o_los_compartidos"
+on resultados_de_tests for select
+to authenticated
+using (
+  perfil_id = (select auth.uid())
+  or (
+    visible_para_empresas
+    and public.cuenta_activa(perfil_id)
+    and public.es_postulante_de_mi_empresa(perfil_id)
+  )
+);
+
+create policy "resultados_cargo_los_mios"
+on resultados_de_tests for insert
+to authenticated
+with check (
+  perfil_id = (select auth.uid())
+  and exists (select 1 from perfiles where id = (select auth.uid()))
+);
+
+create policy "resultados_edito_los_mios"
+on resultados_de_tests for update
+to authenticated
+using (perfil_id = (select auth.uid()))
+with check (perfil_id = (select auth.uid()));
+
+create policy "resultados_borro_los_mios"
+on resultados_de_tests for delete
+to authenticated
+using (perfil_id = (select auth.uid()));
+
+-- ============================================================
 -- FORMACIONES
 -- Parte del perfil público. Cada usuario gestiona las propias.
 -- ============================================================
@@ -888,9 +936,9 @@ grant execute on function public.perfil_publico(text) to authenticated;
 -- administración de GoTrue, que es la dueña de ese esquema.
 --
 -- Postulante: datos del perfil fuera; intereses, habilidades, personalidad,
--- formación, inscripciones y avisos borrados; postulaciones en curso pasan a
--- `cancelada` (la empresa deja de ver a alguien que ya no existe). Las
--- reseñas quedan: nunca tuvieron nombre.
+-- resultados de tests, formación, inscripciones y avisos borrados;
+-- postulaciones en curso pasan a `cancelada` (la empresa deja de ver a
+-- alguien que ya no existe). Las reseñas quedan: nunca tuvieron nombre.
 -- Empresa: datos de la empresa fuera; búsquedas activas o pausadas pasan a
 -- `cerrada` (el disparador de RF3.3.3 rechaza las pendientes y avisa);
 -- eventos futuros activos pasan a `cancelado` (el de RF4.3.2 avisa).
@@ -920,6 +968,7 @@ begin
     delete from perfil_tags where perfil_id = yo;
     delete from perfil_habilidades where perfil_id = yo;
     delete from perfil_personalidad where perfil_id = yo;
+    delete from resultados_de_tests where perfil_id = yo;
     delete from formaciones where perfil_id = yo;
     delete from inscripciones_evento where perfil_id = yo;
 

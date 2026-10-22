@@ -195,12 +195,35 @@ export type PersonalidadDeclarada = {
   visible_para_empresas: boolean;
 };
 
+/**
+ * Lo que cargó el joven de un test opcional del Interview Lab (migración
+ * 010). `test` es una de las claves de `CLAVES_OPCIONALES`; `origen`,
+ * «declarado» mientras no haya integración con la API de JobCannon.
+ */
+export type ResultadoDeTest = {
+  test: string;
+  puntaje: string | null;
+  resultado: string | null;
+  cargado_en: string;
+  visible_para_empresas: boolean;
+  origen: string;
+};
+
+/** Lo que una empresa ve del Interview Lab de quien se le postuló. */
+export type InterviewLabCompartido = {
+  /** El código del tipo («INTJ-T»), si lo compartió. */
+  personalidad: string | null;
+  tests: ResultadoDeTest[];
+};
+
 export type PerfilCompleto = Tabla<"perfiles"> & {
   tags: string[];
   habilidades: string[];
   formaciones: Formacion[];
   /** `null` si todavía no lo cargó. */
   personalidad: PersonalidadDeclarada | null;
+  /** Los tests opcionales del Interview Lab que cargó. */
+  tests: ResultadoDeTest[];
 };
 
 /** Una notificación de la bandeja (RF6.1). */

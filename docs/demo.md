@@ -32,7 +32,10 @@ activas, 2 pausadas, 1 cerrada), 29 postulaciones en todos los estados, 6
 eventos con dirección y coordenadas (3 futuros, uno cancelado y 2 pasados), 21
 inscripciones y 10 reseñas. Siete jóvenes cargaron su tipo de
 personalidad: cuatro lo comparten (Lucía, Mateo, Valentina y Facundo) y tres
-lo tienen oculto (Santiago, Camila y Sofía); el resto, sin completar. Empresas: Nube Sur (demo, tecnología), Tostadores
+lo tienen oculto (Santiago, Camila y Sofía); el resto, sin completar. En el
+Interview Lab, Lucía tiene dos tests de JobCannon compartidos y uno oculto,
+Mateo y Facundo tienen tests compartidos, Santiago y Sofía los tienen
+ocultos, y el resto no hizo ninguno. Empresas: Nube Sur (demo, tecnología), Tostadores
 del Ceibo, Puerto Sur Logística, Clínica Parque Rodó y Agrotecnia El Trébol.
 
 **Fotos.** Al final, la carga pone las fotos de Unsplash que ya están

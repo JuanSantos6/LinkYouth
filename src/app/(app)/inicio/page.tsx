@@ -1,4 +1,5 @@
 import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
+import { AvisoDeInterviewLab } from "@/components/interview-lab/AvisoDeInterviewLab";
 import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
 import { TarjetaUsuario } from "@/components/perfil/TarjetaUsuario";
@@ -15,6 +16,7 @@ import {
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
 import { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
+import { ProgresoDeInterviewLab } from "@/lib/dominio/InterviewLab";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +71,10 @@ export default async function PaginaInicio({
 
   const feed = FeedDeVacantes.armar(vacantes.datos, perfil.datos);
   const resultado = activa === "empleos" ? vacantes : eventos;
+  // Solo con el perfil real: el de ejemplo no tiene nada que completar.
+  const faltaElObligatorio =
+    perfil.origen === "supabase" &&
+    ProgresoDeInterviewLab.de(perfil.datos).faltaElObligatorio;
 
   return (
     <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -77,6 +83,8 @@ export default async function PaginaInicio({
           titulo={`Hola, ${perfil.datos.nombre}`}
           descripcion="Las búsquedas y los eventos que mejor coinciden con tu ficha."
         />
+
+        {faltaElObligatorio && <AvisoDeInterviewLab />}
 
         <AvisoOrigen resultado={resultado} />
 

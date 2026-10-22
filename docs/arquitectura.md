@@ -69,7 +69,7 @@ su propia tabla `vacante_tags_ocultos`, cuya política de lectura habilita solo
 a la empresa dueña de la vacante. No existe consulta del postulante que los
 alcance, ni por descuido ni a propósito.
 
-Las 59 políticas cubren las 23 tablas del esquema. Toda tabla tiene
+Las 63 políticas cubren las 24 tablas del esquema. Toda tabla tiene
 `enable row level security`.
 
 **Qué significa «lectura pública».** Significa «cualquier usuario con sesión»,
@@ -517,7 +517,8 @@ pasa si el esquema cambió y el código todavía no.
 
 También define las formas que consume la interfaz — `Vacante`, `Evento`,
 `PerfilCompleto` (con `personalidad: PersonalidadDeclarada | null`, migración
-009), `Formacion`, `PostulacionResumen`, `EmpresaResumen` — y el
+009, y `tests: ResultadoDeTest[]`, migración 010; del lado empresa,
+`InterviewLabCompartido`), `Formacion`, `PostulacionResumen`, `EmpresaResumen` — y el
 envoltorio `Resultado<T>` con su `OrigenDatos`.
 
 Del lado empresa (Etapa 2): `Modalidad` con `MODALIDADES` y `comoModalidad`;
@@ -568,7 +569,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
 | `obtenerEvento(id)` | `Resultado<Evento> \| null` | RF4.4. Un evento para `/eventos/[id]`; `null` si no existe o no se ve. Los ids de ejemplo abren el contenido de demostración. |
-| `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. Trae también `personalidad` (migración 009), `null` si no la cargó. |
+| `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. Trae también `personalidad` (migración 009), `null` si no la cargó, y `tests` (migración 010), los resultados de los tests opcionales del Interview Lab. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
 | `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
@@ -609,7 +610,7 @@ paralelo para todas las personas a la vez (`armarPostulaciones`, privada).
 | `obtenerReseniasRecibidas(usuarioId?)` | `Resultado<ReseniaRecibida[]>` | RF7.4. Sin el nombre de quien la escribió. |
 | `obtenerPostulantesPropios(usuarioId?)` | `Resultado<{ postulacion, busqueda }[]>` | RF7.3. Postulantes no retirados de todas las búsquedas propias. |
 | `obtenerPanelDeEmpresa(usuarioId?)` | `Resultado<PanelDeEmpresa>` | RF7. Perfil, búsquedas, eventos y las postulaciones en curso de las búsquedas activas, para recomendar. Si una lectura cae en el ejemplo, el panel entero lo es. |
-| `obtenerPersonalidadCompartida(perfilId, usuarioId?)` | `string \| null` | Migración 009. El código («INTJ-T») del resultado de personalidad que la persona compartió, o `null`. Lo filtra la política de `perfil_personalidad`. Fuera de `armarPostulaciones` a propósito: solo lo usa la ficha del postulante, así no entra en la coincidencia, los filtros ni el orden. |
+| `obtenerInterviewLabCompartido(perfilId, usuarioId?)` | `InterviewLabCompartido` | Migraciones 009 y 010. Lo que la persona compartió de su Interview Lab: el código de su tipo de personalidad («INTJ-T») o `null`, y los resultados de los tests opcionales. Lo filtran las políticas de `perfil_personalidad` y `resultados_de_tests`. Fuera de `armarPostulaciones` a propósito: solo lo usa la ficha del postulante, así no entra en la coincidencia, los filtros ni el orden. Reemplazó a `obtenerPersonalidadCompartida`. |
 
 #### `publico.ts`
 
@@ -652,13 +653,32 @@ seguir», que son **distintas a propósito**:
 #### `personalidad.ts` (migración 009)
 
 El resultado del test de 16Personalities que carga el joven. Las tres pasan
-por `sesionDePostulante()`.
+por `sesionDePostulante()`. Desde la migración 010 se usan solo desde el
+Interview Lab, y revalidan el lab, el perfil y el inicio
+(`revalidarInterviewLab`, de `revalidar.ts`).
 
 | Función | Firma | Qué hace |
 | --- | --- | --- |
 | `guardarPersonalidad` | `(EstadoFormulario, FormData)` | Carga o cambia el tipo (`letras` de la lista y `variante` A o T, armados con `TipoDePersonalidad.armar`) con un `upsert`. Lleva `visible` («si»). Con error devuelve `campos` y `valores`. La fecha de carga la pone la base. |
 | `cambiarVisibilidadDePersonalidad` | `(EstadoAccion, FormData)` | El interruptor «Mostrar a las empresas a las que me postulo»: cambia solo `visible_para_empresas`. |
-| `borrarPersonalidad` | `()` | Borra el resultado; el perfil vuelve a «Sin completar». |
+| `borrarPersonalidad` | `()` | Borra el resultado; vuelve a «Pendiente». |
+
+#### `interviewLab.ts` (migración 010)
+
+Los tests opcionales de JobCannon. Las tres validan el `test` con
+`esTestOpcional` y pasan por `sesionDePostulante()`.
+
+| Función | Firma | Qué hace |
+| --- | --- | --- |
+| `guardarResultadoDeTest` | `(EstadoFormulario, FormData)` | Carga o cambia `puntaje` y `resultado` (los dos opcionales, validados con `validarResultado`). Primero `update` y, si no había fila, `insert` con `visible` («si»): un `upsert` necesitaría permiso sobre la clave, que la base no da. Con error devuelve `campos` y `valores`. Origen y fecha los pone la base. |
+| `cambiarVisibilidadDeResultado` | `(EstadoAccion, FormData)` | El interruptor de un test: cambia solo `visible_para_empresas`. |
+| `borrarResultadoDeTest` | `(EstadoAccion, FormData)` | Borra el resultado de un test; vuelve a «Pendiente». |
+
+#### `revalidar.ts`
+
+`revalidarInterviewLab()`: revalida `/interview-lab`, `/perfil` e `/inicio`.
+Fuera de los archivos `"use server"` a propósito: todo lo que esos archivos
+exportan queda invocable desde el navegador como acción.
 
 #### `cuenta.ts` (RF1.5, RF1.7)
 
@@ -822,6 +842,19 @@ ocultos) tiene, como dos cuentas separadas y sin porcentaje (RF3.4.2, RF3.9).
 `interesesClave`, `comparar(a, b)`, `ordenar(busqueda, postulaciones)` y
 `requisitosDe(busqueda)`, que arma lo pedido con las habilidades públicas y
 las ocultas juntas (migración 008): las ocultas cuentan igual.
+
+#### `InterviewLab`
+
+El catálogo de los cuatro tests (`TESTS`: clave, nombre, descripción,
+minutos, URL, sitio y si es obligatorio; duraciones según la página de cada
+test), `CLAVES_OPCIONALES` y `esTestOpcional` (los mismos del `check` de la
+migración 010), `testDe(clave)`, `validarResultado({ puntaje, resultado })`
+con `LARGO_MAXIMO_PUNTAJE` (40) y `LARGO_MAXIMO_RESULTADO` (280), y
+`etiquetaDeOrigen(origen)` («Declarado por el postulante» o «Verificado por
+JobCannon»). `ProgresoDeInterviewLab.de({ personalidad, tests })` da
+`completados`, `total`, `texto` («1 de 4 completados»), `porcentaje`,
+`completadoEl(clave)` y `faltaElObligatorio`, que decide el aviso del
+inicio. Nada de esto lo usa `Compatibilidad` ni `CoincidenciaDeCandidato`.
 
 #### `TipoDePersonalidad`
 
@@ -1025,7 +1058,7 @@ para que no se lea como permiso general.
 | `EncabezadoFlotante` | `children` | Encabezado fijo que, con el primer píxel de scroll, se transforma de a poco en cápsula de vidrio (progreso 0–1 en 120 px, curva ease-out) y vuelve a integrarse arriba. El progreso se calcula siempre desde `window.scrollY` —al hacer scroll con un `requestAnimationFrame` por cuadro, al montar, al cambiar de ruta, con `popstate`, `pageshow` y `resize`— y se escribe en `--p`; el CSS hace el resto. Deja un separador de 64 px en el flujo. |
 | `NavPrincipal` | `secciones` | Las secciones del encabezado en escritorio; la activa con peso, filete violeta y `aria-current`. Las anclas (`#…`) van como `<a>` común. |
 | `MenuDesplegable` | `boton`, `etiqueta`, `alinear?`, `children` | Menú con `aria-expanded`, Esc, clic afuera, flechas y foco de vuelta al botón. Se abre con `.emergente`. Exporta `OPCION_MENU`. |
-| `BarraPestanas` | — | Pestañas de abajo del postulante en el teléfono, en cápsula de vidrio, con la marca de la activa que se desliza. |
+| `BarraPestanas` | — | Pestañas de abajo del postulante en el teléfono (Inicio, Empleos, Eventos, Postulaciones e Interview Lab), en cápsula de vidrio, con la marca de la activa que se desliza. La quinta dice «Lab»: «Interview Lab» no entra en un quinto de 390 px; su nombre accesible es el completo (WCAG 2.5.3). |
 | `AvisoDeLlegada` | — | Aviso al llegar desde la pestaña del login que no correspondía (`?aviso=`). Se cierra solo, se anuncia y limpia la URL. En los layouts de `(app)` y `empresa`. |
 | `ProveedorDeTransiciones` | `children` | En el layout raíz: envuelve la navegación en `document.startViewTransition`, con tope de 800 ms. Sin soporte o con «reducir movimiento», navega normal. |
 | `EnlaceTransicion` | props de `<Link>` | Un `Link` que cambia de pantalla con transición. Modificadores y anclas quedan como siempre. |
@@ -1068,9 +1101,6 @@ para que no se lea como permiso general.
 | `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 | `FormularioDeFormacion` | `esEjemplo?` | Sumar un estudio en curso o finalizado al perfil propio (RF2.4.1), con errores por campo y valores conservados. |
 | `InsigniaDePersonalidad` | `tipo`, `tamano?` (`grande` \| `compacta`), `etiqueta?` | El ícono propio del grupo (SVG de trazo sobre pares de tokens, sin imitar a 16Personalities), debajo el nombre del tipo («Arquitecto») y debajo las letras («INTJ-T»); grupo y variante en palabras para lectores de pantalla. `grande` en el perfil; `compacta`, en fila, en la ficha del postulante. Migración 009. |
-| `SeccionPersonalidad` | `personalidad`, `esEjemplo?` | «Personalidad (opcional)» del perfil: «Hacer el test» (abre 16personalities.com/es en otra pestaña), la aclaración de que es declarado y no entra en la compatibilidad, y «Completado» con la insignia, el interruptor y las opciones de cambiar o borrar, o «Sin completar» con el formulario. |
-| `FormularioDePersonalidad` | `guardado`, `visibleActual?`, `esEjemplo?` | Elegir el tipo de una lista de 16 agrupada y la variante A o T, sin escribir nada; muestra la insignia como va a quedar. Sin resultado ofrece la casilla de mostrarlo (sin marcar); editando, conserva la visibilidad. Conserva lo elegido ante un error. `"use client"` por la vista previa. |
-| `InterruptorDeVisibilidad` | `visible`, `esEjemplo?` | Botón `role="switch"` en un formulario (anda sin JavaScript) que muestra u oculta el resultado a las empresas a las que se postuló. El estado va en palabras («Sí» / «No»). |
 | `avisos/CampanaDeAvisos` | `href`, `sinLeer` | Botón redondo de 44×44 px en la cabecera con el ícono de avisos, contador de no leídos (`TipoDeAviso.textoDelContador`) y nombre accesible `TipoDeAviso.nombreDeLaCampana(sinLeer)` (RF6.1). |
 | `avisos/CampanaDeAvisosDeLaSesion` | `href` | La campana con el número leído de la base (`contarAvisosSinLeer`), dentro de su propio `Suspense`: la cabecera se manda entera y el contador llega después. Es la que usa `CabeceraGlobal`. |
 | `avisos/BandejaDeAvisos` | `avisos`, `descripcion?`, `descripcionVacia?` | Bandeja compartida entre joven y empresa: rótulo e ícono según `TipoDeAviso` (`logro`, `baja`, `novedad`, `neutro`), resaltado de no leídos y acciones para marcarlos o abrir el destino (RF6.1, RF6.2). |
@@ -1081,6 +1111,20 @@ para que no se lea como permiso general.
 | `ajustes/FormularioCorreo` | `correoActual?` | Cambio de correo electrónico confirmando la contraseña actual (RF1.5.3). |
 | `ajustes/FormularioEliminarCuenta` | `tipo?` | Baja definitiva y anonimización de la cuenta tras advertir qué se pierde y confirmar contraseña y `ELIMINAR` (RF1.7). |
 | `resenias/FormularioDeResenia` | `empresaId` | Publicar una reseña anónima (1 a 5 estrellas y comentario) sobre una empresa en la que la persona se postuló (RF8.1). |
+| `PersonalidadEnPerfil` | `personalidad` | La personalidad en el perfil, de solo lectura (migración 010): la insignia, cuándo se cargó y quién la ve, con «Editar en Interview Lab»; sin resultado, «Sin completar» y «Completar en Interview Lab». |
+
+#### `interview-lab/` — Interview Lab del joven (migración 010)
+
+| Componente | Props | Qué resuelve |
+| --- | --- | --- |
+| `TarjetaDeTest` | `test`, `completadoEl`, `children` | Un test: nombre, «Obligatorio» u «Opcional», sitio y minutos, «Pendiente» o «Completado el …», descripción y «Hacer el test» (otra pestaña). El obligatorio lleva borde de acento y, mientras está pendiente, el botón principal. `id="test-<clave>"` para enlazarlo. |
+| `BarraDeProgreso` | `completados`, `total`, `texto` | «1 de 4 completados» con un `progressbar`; el relleno crece con `transform`. |
+| `CargaDePersonalidad` | `personalidad`, `esEjemplo?` | Cargar, cambiar, mostrar u ocultar y borrar la personalidad. Sin resultado, el formulario abierto. Antes era `SeccionPersonalidad`, en el perfil. |
+| `FormularioDePersonalidad` | `guardado`, `visibleActual?`, `esEjemplo?` | Elegir el tipo de una lista de 16 agrupada y la variante A o T, sin escribir nada; muestra la insignia como va a quedar. Sin resultado ofrece la casilla de mostrarlo (sin marcar); editando, conserva la visibilidad. Conserva lo elegido ante un error. `"use client"` por la vista previa. |
+| `CargaDeResultadoDeTest` | `test`, `resultado`, `esEjemplo?` | Un test de JobCannon: pendiente, el formulario plegado; completado, lo cargado, el interruptor y las opciones de cambiarlo o borrarlo. |
+| `FormularioDeResultadoDeTest` | `test`, `guardado`, `esEjemplo?` | Nivel o puntaje y resultado principal, los dos opcionales; la casilla de mostrarlo solo al cargar. Conserva lo escrito ante un error. |
+| `InterruptorDeVisibilidad` | `visible`, `accion?`, `campos?`, `esEjemplo?` | Botón `role="switch"` en un formulario (anda sin JavaScript) que muestra u oculta un resultado a las empresas a las que se postuló; por defecto, la personalidad, y con `accion` y `campos`, un test. El estado va en palabras («Sí» / «No»). |
+| `AvisoDeInterviewLab` | — | El aviso en lavanda del inicio mientras falta el test obligatorio. No bloquea: dice que se puede postular igual. |
 
 #### `empresa/` — pantallas de empresa (Etapa 2)
 
@@ -1093,6 +1137,7 @@ para que no se lea como permiso general.
 | `CambioDeEstado` | `postulacionId`, `estado`, `nombre`, `esEjemplo?` | Los pasos siguientes de una postulación; seleccionar y descartar con confirmación. |
 | `Coincidencia` | `coincidencia` | «Declara 3 de 4 habilidades pedidas · 1 de 2 intereses clave». |
 | `HabilidadesDeclaradas` | `habilidades`, `coincidencia?`, `titulo?` | Las habilidades declaradas, con las pedidas primero y marcadas en violeta. |
+| `InterviewLabDelPostulante` | `compartido` | La sección «Interview Lab» de la ficha del postulante: la personalidad compartida (insignia compacta) y cada test compartido con su nivel, resultado, quién lo afirma y la fecha. Sin nada compartido, no se muestra. |
 | `InsigniaDeBusqueda` | `estado` | Activa, Pausada o Cerrada. |
 | `FormularioDeEvento` | `evento?`, `tags`, `minimo`, `esEjemplo?` | Crear o editar un evento. |
 | `FormularioDePerfilDeEmpresa` | `empresa`, `esEjemplo?` | El perfil de la empresa. |
@@ -1114,6 +1159,7 @@ para que no se lea como permiso general.
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
 | `/eventos` | `PaginaEventos` | Agenda de eventos próximos con mapa único arriba del listado (RF4.4). Se lee sin sesión; «Inscribirme» lleva a crear cuenta. |
 | `/eventos/[id]` | `PaginaDetalleEvento` | Detalle de un evento para el joven (RF4.4, RF4.5, RF4.6): descripción completa, mapa con su marcador, «Cómo llegar» e inscripción. Se lee con o sin sesión. |
+| `/interview-lab` | `PaginaInterviewLab` | Interview Lab (migración 010): barra de progreso, el test obligatorio arriba y destacado, y los tres opcionales. El único lugar donde se cargan, editan, muestran u ocultan y borran los resultados. Solo el joven: está en `(app)/`, que el middleware le niega a la empresa y a quien no tiene sesión. |
 | `/postulaciones` | `PaginaPostulaciones` | Postulaciones propias con su recorrido de estados y la opción de cancelar. Incluye `pasoActual` y `Recorrido` (privadas). |
 | `/perfil` | `PaginaPerfil` | Perfil propio, su edición y enlace a `/personas/<usuario>`. Incluye `Seccion` (privada). |
 | `/personas/[usuario]` | `PaginaPerfilPublico` | Perfil público de una persona con sesión (RF2.5, RF2.1.1): foto, `@nombre_usuario`, biografía e intereses, sin nombre, apellido, edad ni país. |
@@ -1309,6 +1355,25 @@ Verificación: `db/verificar-008.sql` (8 comprobaciones, termina en
 
 Verificación: `db/verificar-009.sql` (16 comprobaciones como joven, como
 empresa con y sin postulantes y sin sesión; termina en `ROLLBACK`).
+
+#### Migración 010: Interview Lab
+
+- `resultados_de_tests` (`perfil_id`, `test` en `psicometrico`,
+  `juicio_situacional` o `aptitudes`, `puntaje` hasta 40 caracteres,
+  `resultado` hasta 280, `cargado_en`, `visible_para_empresas` en `false` por
+  defecto, `origen` en `declarado` o `verificado`; clave `(perfil_id,
+  test)`). Las mismas cuatro políticas que `perfil_personalidad`. Permisos
+  por columna: `authenticated` inserta `perfil_id`, `test`, `puntaje`,
+  `resultado` y `visible_para_empresas`, y actualiza los tres últimos; nunca
+  `origen` ni `cargado_en`. Sin permisos para `anon`.
+- `resultado_de_test_al_escribir()`: disparador que pone `cargado_en` al
+  cargar y al cambiar el resultado, y que vuelve a `declarado` un resultado
+  verificado cuando el joven lo edita.
+- `eliminar_mi_cuenta()` borra también los resultados.
+
+Verificación: `db/verificar-010.sql` (15 comprobaciones como joven, como
+empresa con y sin postulantes, sin sesión y con un resultado verificado;
+termina en `ROLLBACK`).
 
 #### Restricción `perfiles_mayor_de_edad`
 

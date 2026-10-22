@@ -6,6 +6,51 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-22 — Interview Lab: resultados declarados y un obligatorio que no bloquea
+
+**Decisión.** El joven tiene una sección «Interview Lab» con cuatro tests
+externos: el de personalidad de 16Personalities (obligatorio) y tres
+opcionales de JobCannon (psicométrico, juicio situacional y aptitudes). Cada
+test se hace en su sitio, en otra pestaña, y **el joven carga el
+resultado**: el tipo de personalidad como hasta ahora, y de los de JobCannon
+el nivel o puntaje y el resultado principal, los dos opcionales. Se guardan
+en `resultados_de_tests` (migración 010), con las mismas reglas que
+`perfil_personalidad`: ocultos por defecto, visibles solo para las empresas
+a cuyas búsquedas se postuló, siempre con «Declarado por el postulante» y
+sin efecto en la compatibilidad, los filtros ni el orden. «Obligatorio»
+quiere decir destacado en el lab y un aviso en el inicio mientras falte;
+**no bloquea postularse**. La personalidad se edita solo en el lab; el
+perfil la muestra de solo lectura.
+
+**Alternativas.**
+
+- *Integrar la API de JobCannon*: es paga (plan Scale) y no hay clave. Queda
+  como trabajo futuro ([`plan.md`](./plan.md)); la tabla ya tiene `origen`
+  (`declarado` / `verificado`) para que un resultado pueda llegar por la API
+  sin cambiar el esquema.
+- *Automatizar su página* (abrirla en un marco o leer el resultado del
+  navegador del joven): viola sus condiciones de uso y se rompe con
+  cualquier cambio de su sitio.
+- *Pedir el resultado completo* (las cuatro o cinco puntuaciones por área):
+  cada test da áreas distintas y un formulario por test sería largo para un
+  dato que nadie verifica. Nivel o puntaje y una frase alcanzan para que la
+  empresa tenga de qué hablar en la entrevista.
+- *Que el obligatorio bloquee la postulación*: pondría un test externo y
+  autodeclarado como requisito para buscar trabajo, sin ganar nada (se
+  puede declarar cualquier cosa) y castigando a quien no tiene tiempo o no
+  quiere hacerlo. El aviso en el inicio recuerda sin trabar.
+- *Una sola tabla para la personalidad y los tests*: la personalidad ya
+  existe (migración 009) con un dato distinto (un código validado contra 16
+  tipos) y está en producción. Mudarla no aporta nada; el lab las lee juntas.
+- *Dejar que el joven elija `origen`*: cualquiera podría marcar su resultado
+  como verificado. La columna no tiene permiso de escritura para
+  `authenticated`.
+
+**Por qué.** Suma preparación para entrevistas (RF5.2, en parte: el test se
+hace afuera) sin costo ni dependencia de un proveedor, y sin que LinkYouth
+afirme algo que no verificó. La regla de visibilidad es la misma que la de la
+personalidad, así que el joven entiende una sola.
+
 ## 2026-10-22 — Test de personalidad: resultado declarado, íconos propios y sin efecto en el matching
 
 **Decisión.** El perfil del joven suma una sección opcional con su tipo de
