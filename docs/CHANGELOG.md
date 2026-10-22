@@ -20,6 +20,19 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   de búsqueda cada habilidad pedida se marca «Pública» o «Solo vos»
   (RF3.1.6). Antes solo los intereses podían ser ocultos. Por qué una tabla:
   [`decisiones.md`](./decisiones.md), 2026-10-22.
+- **Fotos de Unsplash por hotlink** (migración 008, `scripts/fotos/`,
+  `src/lib/unsplash.ts`, `src/lib/data/fotos.ts`, CSP): una consulta por
+  categoría (seis en total, 48 consultas con los avisos), hoja de contactos por categoría y 41 fotos
+  elegidas mirándolas (los 10 jóvenes, portadas de empresa, instituciones,
+  eventos, la portada y los estados vacíos), con «Foto de … en Unsplash» y la
+  lista en `/legales#fotos`. Avisos de descarga en segundo plano
+  (`avisar-descargas.mjs`). La página lee la base, nunca la API; sin foto,
+  respaldo propio o avatar con iniciales. Por qué:
+  [`decisiones.md`](./decisiones.md), 2026-10-22.
+- **Demo más chica**: 10 jóvenes y 5 empresas (14 búsquedas, 29
+  postulaciones en los seis estados, 6 eventos, 21 inscripciones, 10
+  reseñas), y la recarga carga las fotos de `scripts/fotos/fotos.json` sin
+  consultar la API. Las fotos de Pexels de personas y eventos se borraron.
 - **La compatibilidad es solo de la empresa** (`FilaVacante`,
   `/empleos/[id]`, `FeedDeVacantes`, textos de la portada y de «Cómo
   funciona»): el joven ya no ve el medidor, las ✓ ni «La que más coincide con

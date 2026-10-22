@@ -58,6 +58,7 @@ const AYUDA: Columna = {
     { href: "/legales#terminos", etiqueta: "Términos de uso" },
     { href: "/legales#privacidad", etiqueta: "Privacidad" },
     { href: "/legales#accesibilidad", etiqueta: "Accesibilidad" },
+    { href: "/legales#fotos", etiqueta: "Créditos de fotos" },
   ],
 };
 

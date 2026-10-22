@@ -26,9 +26,12 @@ async function eliminarEstudio(
  */
 export function ListaFormacion({
   formaciones,
+  fotos = {},
   esEjemplo = false,
 }: {
   formaciones: Formacion[];
+  /** Foto genérica de cada institución, por nombre (`fotosDeInstituciones`). */
+  fotos?: Record<string, string>;
   esEjemplo?: boolean;
 }) {
   if (formaciones.length === 0) {
@@ -50,6 +53,7 @@ export function ListaFormacion({
           <div className="flex min-w-0 flex-1 items-start gap-4">
             <Avatar
               nombre={formacion.institucion}
+              url={fotos[formacion.institucion]}
               semilla={formacion.institucion}
               forma="cuadrado"
             />

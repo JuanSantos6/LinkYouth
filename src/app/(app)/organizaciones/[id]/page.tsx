@@ -9,6 +9,7 @@ import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Estrellas } from "@/components/ui/Estrellas";
 import { Foto } from "@/components/ui/Foto";
+import { FotoConCredito } from "@/components/ui/FotoConCredito";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import {
   obtenerPerfilActual,
@@ -16,11 +17,12 @@ import {
   obtenerUsuarioId,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
+import { creditosDe, imagenDeLugar } from "@/lib/data/fotos";
 import { obtenerOrganizacion } from "@/lib/data/publico";
 import { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
 import { ResumenDeResenias } from "@/lib/dominio/ResumenDeResenias";
 import { tiempoRelativo } from "@/lib/formato";
-import { imagenDeRubro } from "@/lib/imagenes";
+import { imagenDeRubro, lugarDeRubro } from "@/lib/imagenes";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +66,16 @@ export default async function PaginaOrganizacion({ params }: Props) {
   const feed = FeedDeVacantes.armar(organizacion.vacantes, perfil);
   const resumen = new ResumenDeResenias(organizacion.resenias);
   const logo = rutaDeImagen(organizacion.logo_url);
-  const fotoRubro = imagenDeRubro(organizacion.rubro);
+  // La portada propia de la empresa; si no tiene, la de su rubro (de
+  // Unsplash o la propia). Así ninguna empresa queda sin imagen de cabecera.
+  const [creditos, fotoRubro] = await Promise.all([
+    creditosDe([organizacion.portada_url]),
+    imagenDeLugar(
+      lugarDeRubro(organizacion.rubro),
+      imagenDeRubro(organizacion.rubro),
+    ),
+  ]);
+  const portada = organizacion.portada_url;
 
   return (
     <article className="mx-auto max-w-4xl space-y-10">
@@ -78,10 +89,27 @@ export default async function PaginaOrganizacion({ params }: Props) {
       <AvisoOrigen resultado={resultado} />
 
       <Tarjeta como="header" className="space-y-5 p-6 sm:p-8">
-        {fotoRubro && (
-          <div className="aspect-[16/9] w-full overflow-hidden rounded-tarjeta border border-borde sm:aspect-[21/9] sm:max-h-56">
-            <Foto imagen={fotoRubro} sizes="(min-width: 896px) 832px, 100vw" />
-          </div>
+        {portada ? (
+          <FotoConCredito
+            url={portada}
+            alt={
+              creditos.get(portada)?.descripcion ??
+              `Portada de ${organizacion.razon_social}`
+            }
+            ancho={1280}
+            alto={548}
+            credito={creditos.get(portada)}
+            className="aspect-[16/9] w-full rounded-tarjeta border border-borde sm:aspect-[21/9] sm:max-h-56"
+          />
+        ) : (
+          fotoRubro && (
+            <div className="aspect-[16/9] w-full overflow-hidden rounded-tarjeta border border-borde sm:aspect-[21/9] sm:max-h-56">
+              <Foto
+                imagen={fotoRubro}
+                sizes="(min-width: 896px) 832px, 100vw"
+              />
+            </div>
+          )
         )}
 
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">

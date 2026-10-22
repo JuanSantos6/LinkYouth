@@ -1,0 +1,193 @@
+{
+  "_": "Por categoría de categorias.json: lugar → número en la hoja de buscar.mjs y texto alternativo en español. Lo lee registrar.mjs.",
+  "elegidas": {
+    "retratos": {
+      "persona:lucia": {
+        "numero": 14,
+        "alt": "Joven de pelo rizado con camisa a rayas, sonriendo frente a un fondo naranja."
+      },
+      "persona:valentina": {
+        "numero": 8,
+        "alt": "Joven rubia con remera a rayas, riéndose frente a una pared clara con una ventana."
+      },
+      "persona:camila": {
+        "numero": 21,
+        "alt": "Joven con remera negra, sonriendo con una mano en la cintura sobre fondo celeste."
+      },
+      "persona:agustina": {
+        "numero": 13,
+        "alt": "Joven de pelo largo con campera clara, sonriendo de noche en la calle."
+      },
+      "persona:florencia": {
+        "numero": 30,
+        "alt": "Joven con el pelo recogido y remera a rayas, sonriendo sobre fondo blanco."
+      },
+      "persona:sofia": {
+        "numero": 29,
+        "alt": "Joven con campera de jean, sonriendo al aire libre."
+      },
+      "persona:mateo": {
+        "numero": 1,
+        "alt": "Joven de pelo oscuro con remera roja, sonriendo a cámara."
+      },
+      "persona:santiago": {
+        "numero": 2,
+        "alt": "Joven con bufanda y saco oscuro, sonriendo al aire libre."
+      },
+      "persona:joaquin": {
+        "numero": 7,
+        "alt": "Joven de pelo rizado con remera negra, sonriendo frente a una pared clara."
+      },
+      "persona:facundo": {
+        "numero": 25,
+        "alt": "Joven con saco azul, sonriendo en un parque."
+      }
+    },
+    "trabajo": {
+      "empresa:nube": {
+        "numero": 1,
+        "alt": "Oficina amplia con personas trabajando en escritorios con computadoras."
+      },
+      "empresa:puerto": {
+        "numero": 15,
+        "alt": "Estantería de un depósito con cascos de seguridad amarillos y blancos."
+      },
+      "empresa:ceibo": {
+        "numero": null,
+        "alt": ""
+      },
+      "empresa:vital": {
+        "numero": null,
+        "alt": ""
+      },
+      "empresa:trebol": {
+        "numero": null,
+        "alt": ""
+      }
+    },
+    "instituciones": {
+      "institucion:universidad-de-montevideo": {
+        "numero": 1,
+        "alt": "Auditorio universitario con una pantalla al frente y filas de asientos."
+      },
+      "institucion:universidad-de-la-republica": {
+        "numero": 14,
+        "alt": "Césped de un campus universitario con estudiantes sentados al sol."
+      },
+      "institucion:universidad-catolica-del-uruguay": {
+        "numero": 2,
+        "de": "eventos",
+        "alt": "Auditorio universitario lleno de estudiantes sentados."
+      },
+      "institucion:utu-escuela-superior-de-la-construccion": {
+        "numero": 3,
+        "alt": "Bancos de madera de un aula, vistos de cerca."
+      },
+      "institucion:utu-escuela-superior-de-administracion": {
+        "numero": 9,
+        "alt": "Aula con muchas sillas y mesas de madera, vacía."
+      },
+      "institucion:utu-instituto-tecnologico-superior": {
+        "numero": 30,
+        "alt": "Salón de clases largo con filas de sillas y ventanales."
+      },
+      "institucion:liceo-n-35-iava": {
+        "numero": 29,
+        "alt": "Salón de clase con pupitres celestes junto a una ventana."
+      },
+      "institucion:plan-ceibal-jovenes-a-programar": {
+        "numero": 26,
+        "alt": "Espacio de estudio con mesas y sillas, en penumbra."
+      },
+      "institucion:instituto-anglo-uruguayo": {
+        "numero": 19,
+        "alt": "Salón de clases luminoso con estudiantes en sus bancos."
+      }
+    },
+    "eventos": {
+      "evento:nube-charla": {
+        "numero": 6,
+        "alt": "Público joven sentado y sonriendo durante una charla."
+      },
+      "evento:nube-taller-cv": {
+        "numero": 26,
+        "alt": "Jóvenes tomando notas sentados en un taller, en una sala luminosa."
+      },
+      "evento:ceibo-cata": {
+        "numero": 13,
+        "alt": "Grupo pequeño conversando en una sala cálida con cuadros en las paredes."
+      },
+      "evento:puerto-puertas-abiertas": {
+        "numero": 29,
+        "alt": "Personas sentadas en mesas largas escuchando una presentación."
+      },
+      "evento:vital-jornada": {
+        "numero": 7,
+        "alt": "Asistentes atentos durante un seminario en una sala con ventanales."
+      },
+      "evento:trebol-sustentabilidad": {
+        "numero": 9,
+        "alt": "Público sentado en un auditorio escuchando con atención."
+      },
+      "portada:eventos": {
+        "numero": 20,
+        "alt": "Joven con micrófono hablando frente a un público en un salón."
+      }
+    },
+    "portada": {
+      "portada:bienvenida": {
+        "numero": 6,
+        "alt": "Grupo de jóvenes estudiando juntos alrededor de una computadora."
+      },
+      "portada:empresas": {
+        "numero": 10,
+        "alt": "Dos jóvenes trabajando con computadoras en una mesa, en una sala luminosa."
+      },
+      "portada:nosotros": {
+        "numero": 2,
+        "de": "instituciones",
+        "alt": "Aula universitaria vacía con filas de bancos de madera y ventanas a un costado."
+      },
+      "portada:ficha": {
+        "numero": 26,
+        "alt": "Joven usando el teléfono junto a una computadora, en un living."
+      },
+      "portada:busqueda": {
+        "numero": 3,
+        "alt": "Tres jóvenes conversando con computadoras en la mesa de un café."
+      },
+      "portada:feria": {
+        "numero": 2,
+        "alt": "Grupo de jóvenes mirando juntos la pantalla de una computadora."
+      },
+      "portada:cierre": {
+        "numero": 1,
+        "alt": "Cuatro jóvenes sonriendo frente a una computadora en un espacio de trabajo."
+      },
+      "vacio:postulaciones": {
+        "numero": 7,
+        "alt": "Manos sobre el teclado de una computadora portátil."
+      },
+      "vacio:avisos": {
+        "numero": 28,
+        "alt": "Rincón tranquilo con una pared de ladrillo, una mesa y una computadora."
+      },
+      "vacio:eventos": {
+        "numero": 17,
+        "alt": "Joven sentada en un sillón junto a una ventana, con una computadora en la mesa."
+      },
+      "vacio:busquedas": {
+        "numero": 23,
+        "alt": "Joven concentrado escribiendo en una computadora, junto a una lámpara."
+      },
+      "vacio:personas": {
+        "numero": 21,
+        "alt": "Joven escribiendo en una computadora junto a una ventana."
+      },
+      "portada:preguntas": {
+        "numero": 12,
+        "alt": "Joven de pelo rizado trabajando en una computadora, con una taza al lado."
+      }
+    }
+  }
+}

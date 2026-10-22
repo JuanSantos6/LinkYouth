@@ -2,8 +2,8 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
+import { createClient } from "@/lib/supabase/server";
 
 import {
   type ClienteSupabase,
@@ -20,6 +20,7 @@ import {
   POSTULACIONES_RECIBIDAS_EJEMPLO,
   RESENIAS_EJEMPLO,
 } from "./ejemplos";
+import { conCreditos } from "./fotos";
 import {
   type BusquedaCompleta,
   comoEstadoEvento,
@@ -375,7 +376,9 @@ export async function obtenerEventoDeEmpresa(
     .eq("id", id)
     .maybeSingle();
 
-  return data ? { origen: "supabase", datos: comoEvento(data) } : null;
+  if (!data) return null;
+  const [evento] = await conCreditos([comoEvento(data)]);
+  return { origen: "supabase", datos: evento };
 }
 
 /** Quiénes se inscribieron a un evento propio, del primero al último. */

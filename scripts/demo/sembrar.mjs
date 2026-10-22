@@ -11,8 +11,9 @@
  *   node scripts/demo/sembrar.mjs --borrar-todo --confirmo \
  *       [--correo-demo-joven=…] [--correo-demo-empresa=…]
  *       BORRA TODAS LAS CUENTAS (auth.users y, en cascada, todo lo suyo) y
- *       las imágenes del bucket `avatars`, y carga el contenido. Irreversible:
- *       antes, `~/bin/respaldo-linkyouth.sh`.
+ *       las imágenes del bucket `avatars`, y carga el contenido con sus fotos
+ *       de Unsplash (`scripts/fotos/fotos.json`, sin consultar la API).
+ *       Irreversible: antes, `~/bin/respaldo-linkyouth.sh`.
  *
  * Usa la clave de servicio de `.env.local`, que saltea RLS. Los disparadores
  * de la base sí corren: las postulaciones avanzan por el mismo camino que en
@@ -32,6 +33,8 @@ import { fileURLToPath } from "node:url";
 
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
+
+import { cargarFotos } from "../fotos/cargar.mjs";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, "..", "..");
@@ -94,12 +97,11 @@ function fechaMontevideo(enDias, hora) {
 }
 
 // Imágenes de la demo (docs/imagenes.md). Los logos son dibujos propios en
-// SVG (`logos/<clave>.svg`); las fotos de personas y eventos, WebP ya
-// recortados por `scripts/imagenes/preparar.mjs` (`imagenes/<espacio>.webp`).
-// Quien no tiene foto queda sin `foto_url` a propósito: la aplicación le
-// muestra el avatar automático con sus iniciales.
+// SVG (`logos/<clave>.svg`) y se suben a Storage. Las fotos de las personas,
+// las portadas de las empresas y las de los eventos son de Unsplash por
+// hotlink: las pone `cargarFotos` al final, desde `scripts/fotos/fotos.json`.
+// Quien no tiene foto ve el avatar automático con sus iniciales.
 const LOGOS = join(AQUI, "logos");
-const IMAGENES = join(AQUI, "imagenes");
 
 /** El logo SVG de una empresa, como WebP de 512 px. */
 async function logoDe(clave) {
@@ -109,12 +111,6 @@ async function logoDe(clave) {
     .resize(512, 512)
     .webp({ quality: 90 })
     .toBuffer();
-}
-
-/** La foto WebP de un espacio (`persona-lucia`, `evento-nube-charla`), o `null`. */
-function fotoDe(espacio) {
-  const archivo = join(IMAGENES, `${espacio}.webp`);
-  return existsSync(archivo) ? readFileSync(archivo) : null;
 }
 
 async function subirImagen(usuarioId, nombre, webp) {
@@ -445,8 +441,6 @@ async function cargar(cat) {
       db.from("cuentas").insert({ id, tipo: "individual" }),
       `cuenta ${j.clave}`,
     );
-    const foto = fotoDe(`persona-${j.clave}`);
-    const foto_url = foto ? await subirImagen(id, "perfil", foto) : null;
     await exigir(
       db.from("perfiles").insert({
         id,
@@ -456,7 +450,6 @@ async function cargar(cat) {
         fecha_nacimiento: j.fecha_nacimiento,
         pais: j.pais,
         bio: j.bio,
-        foto_url,
         creado_en: diasAtras(20 + Math.floor(Math.random() * 60)),
       }),
       `perfil ${j.clave}`,
@@ -486,7 +479,7 @@ async function cargar(cat) {
     );
   }
   console.log(
-    `✓ ${c.jovenes.length} jóvenes (${c.jovenes.filter((j) => fotoDe(`persona-${j.clave}`)).length} con foto, el resto con avatar automático), intereses, habilidades y formación`,
+    `✓ ${c.jovenes.length} jóvenes con intereses, habilidades y formación`,
   );
 
   for (const [i, v] of c.vacantes.entries()) {
@@ -576,18 +569,6 @@ async function cargar(cat) {
     );
   }
 
-  const imagenDeEvento = {};
-  for (const e of c.eventos) {
-    const foto = fotoDe(`evento-${e.clave}`);
-    if (foto) {
-      imagenDeEvento[e.clave] = await subirImagen(
-        ids.empresas[e.empresa],
-        `evento-${e.clave}`,
-        foto,
-      );
-    }
-  }
-
   for (const e of c.eventos) {
     const fila = await exigir(
       db
@@ -600,7 +581,6 @@ async function cargar(cat) {
           direccion: e.direccion,
           latitud: e.latitud,
           longitud: e.longitud,
-          imagen_url: imagenDeEvento[e.clave] ?? null,
           estado: "activo",
         })
         .select("id")
@@ -700,6 +680,7 @@ async function cargar(cat) {
   );
   chmodSync(CREDENCIALES, 0o600);
   console.log(`✓ credenciales en ${CREDENCIALES} (600)`);
+  return ids;
 }
 
 // ── principal ──────────────────────────────────────────────────────────────
@@ -722,7 +703,13 @@ if (!args.has("borrar-todo") || !args.has("confirmo")) {
 console.log("Hoy hay en la base:");
 await contar();
 await borrarTodo();
-await cargar(cat);
+const ids = await cargar(cat);
+// Las fotos de Unsplash que ya se eligieron (scripts/fotos/fotos.json): así
+// la recarga nunca deja a nadie sin imagen y no consulta la API.
+const fotos = await cargarFotos(db, contenido, ids);
+console.log(
+  `✓ ${fotos.fotos} fotos de Unsplash: ${fotos.fijos} lugares de la página, ${fotos.personas} jóvenes, ${fotos.empresas} portadas de empresa, ${fotos.eventos} eventos`,
+);
 console.log("Quedó en la base:");
 await contar();
 await verificarCorreosConfirmados();

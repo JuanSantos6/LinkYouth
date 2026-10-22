@@ -2,12 +2,11 @@ import { AccionConCuenta } from "@/components/auth/InvitacionACuenta";
 import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { FotoConCredito } from "@/components/ui/FotoConCredito";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-
 import { cancelarInscripcion, inscribirse } from "@/lib/acciones/eventos";
 import type { Evento } from "@/lib/data/tipos";
 import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
-import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 /**
  * El botón de inscribirse o cancelar inscripción a un evento (RF4.5, RF4.6),
@@ -123,19 +122,14 @@ export function TarjetaEvento({
       como="article"
       className="group relative overflow-hidden transition-[border-color,box-shadow] duration-200 hover:border-borde-control hover:shadow-elevada"
     >
-      {evento.imagen_url && (
-        // La imagen del evento vive en Supabase Storage, fuera del optimizador.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={rutaDeImagen(evento.imagen_url) ?? undefined}
-          alt={`Foto del evento ${evento.titulo}`}
-          width={640}
-          height={360}
-          loading="lazy"
-          decoding="async"
-          className="h-36 w-full border-b border-borde object-cover"
-        />
-      )}
+      <FotoConCredito
+        url={evento.imagen_url}
+        alt={`Foto del evento ${evento.titulo}`}
+        ancho={640}
+        alto={360}
+        credito={evento.credito}
+        className="h-36 w-full border-b border-borde"
+      />
 
       <div className="flex gap-4 p-5 sm:gap-5 sm:p-6">
         <div className="flex h-[68px] w-16 shrink-0 flex-col items-center justify-center rounded-ficha bg-lavanda">

@@ -11,6 +11,7 @@ import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { BotonEnlace } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { obtenerCatalogos, obtenerPerfilActual } from "@/lib/data/consultas";
+import { fotosDeInstituciones } from "@/lib/data/fotos";
 import { CompletitudDeFicha } from "@/lib/dominio/CompletitudDeFicha";
 
 export const metadata: Metadata = { title: "Mi perfil" };
@@ -106,6 +107,9 @@ export default async function PaginaPerfil() {
         <div className="space-y-6">
           <ListaFormacion
             formaciones={datos.formaciones}
+            fotos={await fotosDeInstituciones(
+              datos.formaciones.map((f) => f.institucion),
+            )}
             esEjemplo={esEjemplo}
           />
           <FormularioDeFormacion esEjemplo={esEjemplo} />

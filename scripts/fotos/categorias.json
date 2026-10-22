@@ -1,0 +1,221 @@
+{
+  "_": "Una consulta a Unsplash por categoría; sus resultados se reparten entre los lugares de la categoría, sin repetir foto. Lo leen buscar.mjs y registrar.mjs. Presupuesto: 6 consultas de búsqueda + 1 aviso de descarga por foto, menos de 50 por hora. Las búsquedas usan la foto de su rubro, propia (src/lib/imagenes.ts); «Postularte» también queda con la propia.",
+  "categorias": [
+    {
+      "categoria": "retratos",
+      "consulta": "young adult portrait smiling",
+      "orientacion": "squarish",
+      "criterio": "18–25 años, creíbles para Uruguay, luz natural, mirando a cámara, fondo simple, sin logos ni texto.",
+      "lugares": [
+        {
+          "lugar": "persona:lucia",
+          "nota": "Lucía Fernández"
+        },
+        {
+          "lugar": "persona:mateo",
+          "nota": "Mateo Silveira"
+        },
+        {
+          "lugar": "persona:valentina",
+          "nota": "Valentina Rodríguez"
+        },
+        {
+          "lugar": "persona:santiago",
+          "nota": "Santiago Pereira"
+        },
+        {
+          "lugar": "persona:camila",
+          "nota": "Camila Bentancur"
+        },
+        {
+          "lugar": "persona:joaquin",
+          "nota": "Joaquín Cabrera"
+        },
+        {
+          "lugar": "persona:agustina",
+          "nota": "Agustina Morales"
+        },
+        {
+          "lugar": "persona:facundo",
+          "nota": "Facundo Olivera"
+        },
+        {
+          "lugar": "persona:florencia",
+          "nota": "Florencia Duarte"
+        },
+        {
+          "lugar": "persona:sofia",
+          "nota": "Sofía Methol"
+        }
+      ]
+    },
+    {
+      "categoria": "trabajo",
+      "consulta": "workers",
+      "orientacion": "landscape",
+      "criterio": "Portadas de empresa: un lugar de trabajo que se reconozca por el rubro (oficina, cafetería, depósito, clínica, campo). Sin logos ni marcas legibles.",
+      "lugares": [
+        {
+          "lugar": "empresa:nube",
+          "nota": "Portada de Nube Sur S.A. (Tecnología)"
+        },
+        {
+          "lugar": "empresa:ceibo",
+          "nota": "Portada de Tostadores del Ceibo S.R.L. (Gastronomía)"
+        },
+        {
+          "lugar": "empresa:puerto",
+          "nota": "Portada de Puerto Sur Logística S.A. (Logística)"
+        },
+        {
+          "lugar": "empresa:vital",
+          "nota": "Portada de Clínica Parque Rodó S.A. (Salud)"
+        },
+        {
+          "lugar": "empresa:trebol",
+          "nota": "Portada de Agrotecnia El Trébol S.A. (Agro y Sustentabilidad)"
+        }
+      ]
+    },
+    {
+      "categoria": "instituciones",
+      "consulta": "university classroom campus",
+      "orientacion": "landscape",
+      "criterio": "Campus o aulas genéricos. Nunca un logo ni un edificio que se confunda con la institución real.",
+      "lugares": [
+        {
+          "lugar": "institucion:instituto-anglo-uruguayo",
+          "nota": "Instituto Anglo Uruguayo"
+        },
+        {
+          "lugar": "institucion:liceo-n-35-iava",
+          "nota": "Liceo N.º 35 IAVA"
+        },
+        {
+          "lugar": "institucion:plan-ceibal-jovenes-a-programar",
+          "nota": "Plan Ceibal — Jóvenes a Programar"
+        },
+        {
+          "lugar": "institucion:utu-escuela-superior-de-administracion",
+          "nota": "UTU — Escuela Superior de Administración"
+        },
+        {
+          "lugar": "institucion:utu-escuela-superior-de-la-construccion",
+          "nota": "UTU — Escuela Superior de la Construcción"
+        },
+        {
+          "lugar": "institucion:utu-instituto-tecnologico-superior",
+          "nota": "UTU — Instituto Tecnológico Superior"
+        },
+        {
+          "lugar": "institucion:universidad-catolica-del-uruguay",
+          "nota": "Universidad Católica del Uruguay"
+        },
+        {
+          "lugar": "institucion:universidad-de-montevideo",
+          "nota": "Universidad de Montevideo"
+        },
+        {
+          "lugar": "institucion:universidad-de-la-republica",
+          "nota": "Universidad de la República"
+        }
+      ]
+    },
+    {
+      "categoria": "eventos",
+      "consulta": "workshop talk audience",
+      "orientacion": "landscape",
+      "criterio": "Charlas y talleres con gente joven; sin carteles ni pantallas legibles.",
+      "lugares": [
+        {
+          "lugar": "evento:nube-charla",
+          "nota": "Charla: tu primer trabajo en tecnología"
+        },
+        {
+          "lugar": "evento:nube-taller-cv",
+          "nota": "Taller práctico: armá tu porfolio y perfil técnico"
+        },
+        {
+          "lugar": "evento:ceibo-cata",
+          "nota": "Introducción al barismo y tostado de café"
+        },
+        {
+          "lugar": "evento:puerto-puertas-abiertas",
+          "nota": "Recorrida por el centro de distribución y logística"
+        },
+        {
+          "lugar": "evento:vital-jornada",
+          "nota": "Encuentro sobre gestión y atención en centros de salud"
+        },
+        {
+          "lugar": "evento:trebol-sustentabilidad",
+          "nota": "Charla abierta: datos y tecnología en el agro uruguayo"
+        },
+        {
+          "lugar": "portada:eventos",
+          "nota": "Diapositiva 3 de la portada"
+        }
+      ]
+    },
+    {
+      "categoria": "portada",
+      "consulta": "young people studying laptop",
+      "orientacion": "landscape",
+      "criterio": "Portada: jóvenes estudiando o empezando a trabajar, luz natural. Estados vacíos: las más tranquilas (escritorio, ventana), sin caras en primer plano.",
+      "lugares": [
+        {
+          "lugar": "portada:bienvenida",
+          "nota": "Diapositiva 1: jóvenes que buscan su primer trabajo"
+        },
+        {
+          "lugar": "portada:empresas",
+          "nota": "Diapositiva 2: empresas que apuestan por gente que empieza"
+        },
+        {
+          "lugar": "portada:nosotros",
+          "nota": "Nosotros: un aula o un espacio de estudio, nunca «el equipo»"
+        },
+        {
+          "lugar": "portada:ficha",
+          "nota": "Paso 1: armar la ficha desde el teléfono"
+        },
+        {
+          "lugar": "portada:busqueda",
+          "nota": "Paso 2: encontrar búsquedas"
+        },
+        {
+          "lugar": "portada:feria",
+          "nota": "Fondo de «Búsquedas», se oscurece"
+        },
+        {
+          "lugar": "portada:preguntas",
+          "nota": "Junto a las preguntas frecuentes, vertical"
+        },
+        {
+          "lugar": "portada:cierre",
+          "nota": "Cierre: «Tu primer trabajo empieza acá»"
+        },
+        {
+          "lugar": "vacio:postulaciones",
+          "nota": "Estado vacío: sin postulaciones"
+        },
+        {
+          "lugar": "vacio:avisos",
+          "nota": "Estado vacío: sin avisos"
+        },
+        {
+          "lugar": "vacio:eventos",
+          "nota": "Estado vacío: sin eventos"
+        },
+        {
+          "lugar": "vacio:busquedas",
+          "nota": "Estado vacío: sin búsquedas"
+        },
+        {
+          "lugar": "vacio:personas",
+          "nota": "Estado vacío: sin personas"
+        }
+      ]
+    }
+  ]
+}

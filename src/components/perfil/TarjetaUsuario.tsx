@@ -4,6 +4,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { BotonEnlace } from "@/components/ui/Boton";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import { fotosDeInstituciones } from "@/lib/data/fotos";
 import type { Formacion, PerfilCompleto } from "@/lib/data/tipos";
 import { Institucion } from "@/lib/dominio/Institucion";
 
@@ -103,12 +104,12 @@ export function TarjetaUsuario({
  * Toda la fila es el enlace, no una flecha ni un «ver más» al final: el área
  * de toque en un teléfono tiene que ser la fila entera.
  *
- * El recuadro son iniciales y no un logo porque no hay logo que traer: la
- * institución es texto libre en `formaciones` y no tiene fila propia. Cuando
- * exista la tabla, el logo entra acá sin tocar el resto.
+ * El recuadro es una foto genérica de la institución (campus, aula) si
+ * `scripts/fotos/` eligió una, y si no, sus iniciales. Nunca el logo real.
  */
-function BloqueInstitucion({ formacion }: { formacion: Formacion }) {
+async function BloqueInstitucion({ formacion }: { formacion: Formacion }) {
   const institucion = new Institucion(formacion.institucion);
+  const fotos = await fotosDeInstituciones([formacion.institucion]);
 
   return (
     <Link
@@ -117,6 +118,7 @@ function BloqueInstitucion({ formacion }: { formacion: Formacion }) {
     >
       <Avatar
         nombre={formacion.institucion}
+        url={fotos[formacion.institucion]}
         semilla={institucion.id}
         tamano="sm"
         forma="cuadrado"

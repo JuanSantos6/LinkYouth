@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <rect x="0" y="0" width="256" height="256" fill="#9C4A1A" />
-  <polygon points="68,92 88,64 168,64 188,92" fill="#F4D35E" />
-  <rect x="76" y="92" width="104" height="52" rx="4" fill="#FFF3E0" />
-  <rect x="112" y="108" width="32" height="36" fill="#9C4A1A" />
-  <path d="M68 158 Q98 146 128 158 T188 158" stroke="#F4D35E" stroke-width="6" stroke-linecap="round" fill="none" />
-  <text x="128" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#FFF3E0">LR</text>
-</svg>

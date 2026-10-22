@@ -26,10 +26,18 @@ cambia lo que se anotó.
 
 ## Qué carga
 
-8 empresas con logo, 15 jóvenes con foto, intereses, habilidades y
-formación, 20 búsquedas (16 activas, 2 pausadas, 2 cerradas), 40
-postulaciones en todos los estados, 8 eventos con dirección y coordenadas
-(6 futuros, uno cancelado, y 2 pasados), 30 inscripciones y 16 reseñas.
+5 empresas con logo (dibujos propios, sin parecido con marcas reales), 10
+jóvenes con foto, intereses, habilidades y formación, 14 búsquedas (11
+activas, 2 pausadas, 1 cerrada), 29 postulaciones en todos los estados, 6
+eventos con dirección y coordenadas (3 futuros, uno cancelado y 2 pasados), 21
+inscripciones y 10 reseñas. Empresas: Nube Sur (demo, tecnología), Tostadores
+del Ceibo, Puerto Sur Logística, Clínica Parque Rodó y Agrotecnia El Trébol.
+
+**Fotos.** Al final, la carga pone las fotos de Unsplash que ya están
+elegidas en `scripts/fotos/fotos.json`: la de cada joven, las portadas de
+empresa, las de los eventos y las de la página (portada, estados vacíos,
+instituciones). No consulta la API de Unsplash, así que se puede recargar
+cuantas veces haga falta. Cómo se eligieron: [`imagenes.md`](./imagenes.md).
 
 Las postulaciones entran `pendiente` y avanzan por el mismo camino que en la
 aplicación, así que los avisos al joven, el cierre de búsquedas y el aviso

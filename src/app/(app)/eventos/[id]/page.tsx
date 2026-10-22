@@ -8,6 +8,7 @@ import { EnlaceTransicion } from "@/components/navegacion/Transiciones";
 import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { FotoConCredito } from "@/components/ui/FotoConCredito";
 import {
   obtenerEvento,
   obtenerEventosInscriptos,
@@ -15,7 +16,6 @@ import {
 } from "@/lib/data/consultas";
 import { ReglasDeEvento } from "@/lib/dominio/ReglasDeEvento";
 import { fechaBloque, fechaLarga, hora } from "@/lib/formato";
-import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +53,6 @@ export default async function PaginaDetalleEvento({ params }: Props) {
   const esEjemplo = resultado.origen === "ejemplo";
   const yaInscripto = yaInscriptos.has(evento.id);
   const { dia, mes } = fechaBloque(evento.fecha_hora);
-  const imagen = evento.imagen_url ? rutaDeImagen(evento.imagen_url) : null;
   const conMapa = ReglasDeEvento.tieneUbicacion(evento);
 
   return (
@@ -120,19 +119,14 @@ export default async function PaginaDetalleEvento({ params }: Props) {
             </div>
           </header>
 
-          {imagen && (
-            // La imagen del evento vive en Supabase Storage, fuera del optimizador.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imagen}
-              alt={`Foto del evento ${evento.titulo}`}
-              width={1280}
-              height={720}
-              loading="lazy"
-              decoding="async"
-              className="aspect-[16/9] max-h-72 w-full rounded-tarjeta border border-borde object-cover"
-            />
-          )}
+          <FotoConCredito
+            url={evento.imagen_url}
+            alt={`Foto del evento ${evento.titulo}`}
+            ancho={1280}
+            alto={720}
+            credito={evento.credito}
+            className="aspect-[16/9] max-h-72 w-full rounded-tarjeta border border-borde"
+          />
 
           <section className="space-y-2">
             <h2 className="text-[20px] text-tinta">De qué se trata</h2>

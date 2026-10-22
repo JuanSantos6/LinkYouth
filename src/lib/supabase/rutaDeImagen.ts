@@ -1,3 +1,5 @@
+import { esDeUnsplash } from "@/lib/unsplash";
+
 /** Prefijo de los archivos públicos de Supabase Storage. */
 const PREFIJO_PUBLICO = "/storage/v1/object/public/";
 
@@ -14,14 +16,17 @@ const PREFIJO_PUBLICO = "/storage/v1/object/public/";
  * cualquier origen: lo que se mira es el camino. La vista previa `blob:` (la
  * foto elegida antes de subirla) vuelve tal cual.
  *
- * Cualquier otra cosa devuelve `null`: un `logo_url` apuntando a otro sitio
- * haría que cada visitante de la portada le pida la imagen a ese sitio (y le
- * entregue su IP). Ver `docs/seguridad.md`.
+ * Las fotos de Unsplash (`images.unsplash.com`) vuelven tal cual: sus
+ * directrices piden mostrarlas por hotlink, y la CSP solo deja ese origen
+ * (2026-10-22). Cualquier otra cosa devuelve `null`: un `logo_url` apuntando
+ * a otro sitio haría que cada visitante de la portada le pida la imagen a ese
+ * sitio (y le entregue su IP). Ver `docs/seguridad.md`.
  */
 export function rutaDeImagen(url: string | null | undefined): string | null {
   if (!url) return null;
   if (url.startsWith(PREFIJO_PUBLICO)) return url;
   if (url.startsWith("blob:")) return url;
+  if (esDeUnsplash(url)) return url;
 
   let analizada: URL;
   try {

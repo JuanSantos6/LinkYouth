@@ -1,4 +1,5 @@
 import { ORIGEN_DE_TESELAS } from "@/lib/mapa/teselas";
+import { ORIGEN_DE_UNSPLASH } from "@/lib/unsplash";
 
 /**
  * Content-Security-Policy con nonce (CN-002 de la auditoría del 2026-09-12;
@@ -19,9 +20,11 @@ import { ORIGEN_DE_TESELAS } from "@/lib/mapa/teselas";
  * Imágenes: las fotos de Storage llegan por el `rewrite` del mismo origen;
  * `blob:` es la vista previa del avatar antes de subirlo; `data:` lo usan
  * algunos íconos. El único origen de afuera es el servidor de teselas del
- * mapa (`ORIGEN_DE_TESELAS`, 2026-10-20): solo imágenes, sin scripts ni
- * conexiones. La búsqueda de direcciones la hace el servidor, así que
- * `connect-src` sigue cerrado.
+ * mapa (`ORIGEN_DE_TESELAS`, 2026-10-20) y, desde el 2026-10-22, las fotos de
+ * Unsplash (`ORIGEN_DE_UNSPLASH`, solo `images.unsplash.com`): las dos, solo
+ * imágenes, sin scripts ni conexiones. Sus directrices piden mostrar la foto
+ * con la URL de la API, sin descargarla. La búsqueda de direcciones y la API
+ * de Unsplash las usa el servidor, así que `connect-src` sigue cerrado.
  *
  * Sin `upgrade-insecure-requests`: la aplicación también se abre por
  * `http://` desde la tailnet, y esa directiva rompería esos accesos.
@@ -52,7 +55,13 @@ export function politicaDeContenido(nonce: string): string {
       ...(desarrollo ? ["'unsafe-eval'"] : []),
     ],
     "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", "blob:", ORIGEN_DE_TESELAS],
+    "img-src": [
+      "'self'",
+      "data:",
+      "blob:",
+      ORIGEN_DE_TESELAS,
+      ORIGEN_DE_UNSPLASH,
+    ],
     "font-src": ["'self'", "data:"],
     // El navegador no habla con Supabase: todo pasa por el servidor de Next.
     "connect-src": ["'self'", ...(desarrollo ? ["ws:"] : [])],
