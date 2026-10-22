@@ -487,6 +487,59 @@ using (
 );
 
 -- ============================================================
+-- VACANTE_HABILIDADES_OCULTAS (migración 008, RF3.1.6) — mismo trato
+-- que los tags ocultos: solo la empresa dueña la ve o la toca.
+-- ============================================================
+
+alter table vacante_habilidades_ocultas enable row level security;
+revoke all on vacante_habilidades_ocultas from public, anon;
+grant select, insert, delete on vacante_habilidades_ocultas to authenticated;
+
+create policy "habilidades_ocultas_solo_empresa_duena_lee"
+on vacante_habilidades_ocultas for select
+to authenticated
+using (
+  exists (select 1 from vacantes v where v.id = vacante_id and v.empresa_id = (select auth.uid()))
+);
+
+create policy "habilidades_ocultas_solo_empresa_duena_escribe"
+on vacante_habilidades_ocultas for insert
+to authenticated
+with check (
+  exists (select 1 from vacantes v where v.id = vacante_id and v.empresa_id = (select auth.uid()))
+);
+
+create policy "habilidades_ocultas_solo_empresa_duena_elimina"
+on vacante_habilidades_ocultas for delete
+to authenticated
+using (
+  exists (select 1 from vacantes v where v.id = vacante_id and v.empresa_id = (select auth.uid()))
+);
+
+-- ============================================================
+-- FOTOS / LUGARES_CON_FOTO (migración 008)
+-- La lista de fotos de banco y su atribución: no son datos de nadie y la
+-- portada las lee sin sesión. Nadie escribe desde la API: las carga el
+-- script con `service_role`.
+-- ============================================================
+
+alter table fotos enable row level security;
+alter table lugares_con_foto enable row level security;
+revoke all on fotos, lugares_con_foto from public, anon, authenticated;
+grant select on fotos, lugares_con_foto to anon, authenticated;
+grant all on fotos, lugares_con_foto to service_role;
+
+create policy "fotos_lectura_publica"
+on fotos for select
+to anon, authenticated
+using (true);
+
+create policy "lugares_con_foto_lectura_publica"
+on lugares_con_foto for select
+to anon, authenticated
+using (true);
+
+-- ============================================================
 -- POSTULACIONES
 -- El postulante ve y crea las propias. La empresa ve las de sus
 -- vacantes. Las transiciones de estado están acotadas: el
@@ -849,6 +902,7 @@ begin
         rut = null,
         descripcion = null,
         logo_url = null,
+        portada_url = null,
         sitio_web = null
     where id = yo;
   end if;

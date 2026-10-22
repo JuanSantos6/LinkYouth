@@ -13,8 +13,10 @@ export type DatosDeBusqueda = {
   modalidad: string;
   ubicacion: string;
   posiciones: number;
-  /** Ids del catálogo. */
+  /** Ids del catálogo. Las públicas se muestran en la publicación. */
   habilidades: string[];
+  /** Las que pide sin publicarlas (RF3.1.6): solo las ve la empresa. */
+  habilidadesOcultas: string[];
   tags: string[];
   tagsOcultos: string[];
 };
@@ -72,7 +74,10 @@ export class ReglasDeBusqueda {
   static readonly UBICACION_MAX = 120;
   static readonly POSICIONES_MIN = 1;
   static readonly POSICIONES_MAX = 50;
-  /** Sin al menos una habilidad no hay con qué ordenar a los postulantes. */
+  /**
+   * Sin al menos una habilidad no hay con qué ordenar a los postulantes. Los
+   * dos límites cuentan las públicas y las ocultas juntas.
+   */
   static readonly HABILIDADES_MIN = 1;
   static readonly HABILIDADES_MAX = 10;
   static readonly TAGS_MAX = 8;
@@ -123,10 +128,17 @@ export class ReglasDeBusqueda {
       errores.posiciones = `Las posiciones van de ${this.POSICIONES_MIN} a ${this.POSICIONES_MAX}.`;
     }
 
-    if (datos.habilidades.length < this.HABILIDADES_MIN) {
+    const pedidas = datos.habilidades.length + datos.habilidadesOcultas.length;
+    const enLasDos = datos.habilidades.some((id) =>
+      datos.habilidadesOcultas.includes(id),
+    );
+    if (pedidas < this.HABILIDADES_MIN) {
       errores.habilidades = "Elegí al menos una habilidad que pidas.";
-    } else if (datos.habilidades.length > this.HABILIDADES_MAX) {
+    } else if (pedidas > this.HABILIDADES_MAX) {
       errores.habilidades = `Elegí hasta ${this.HABILIDADES_MAX} habilidades: más que eso deja afuera a todo el mundo.`;
+    } else if (enLasDos) {
+      errores.habilidades =
+        "Cada habilidad es pública u oculta, no las dos. Revisá las marcadas.";
     }
 
     if (datos.tags.length > this.TAGS_MAX) {

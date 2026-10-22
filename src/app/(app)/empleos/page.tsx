@@ -60,15 +60,15 @@ export default async function PaginaEmpleos({
         titulo="Empleos y pasantías"
         descripcion={
           conSesion
-            ? "Búsquedas abiertas para primera experiencia laboral, ordenadas por cuánto coinciden con tu ficha."
+            ? "Búsquedas abiertas para primera experiencia laboral, con las más afines a tu ficha primero."
             : "Búsquedas abiertas para primera experiencia laboral, de la más reciente a la más vieja."
         }
       />
 
       {!conSesion && (
         <InvitacionACuenta
-          titulo="Creá tu cuenta para ver cuánto coincidís con cada búsqueda"
-          texto="Elegís tus habilidades e intereses una vez, y cada vacante te muestra qué tenés de lo que pide. Postularte también se hace desde tu cuenta."
+          titulo="Creá tu cuenta para postularte"
+          texto="Elegís tus habilidades e intereses una vez, y las búsquedas más afines a tu ficha aparecen primero. Postularte también se hace desde tu cuenta."
           siguiente="/empleos"
         />
       )}

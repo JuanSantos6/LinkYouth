@@ -4,7 +4,6 @@ import { Avatar } from "@/components/ui/Avatar";
 import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Insignia } from "@/components/ui/Insignia";
-import { Medidor } from "@/components/ui/Medidor";
 import { postularse } from "@/lib/acciones/postulaciones";
 import type { EntradaDelFeed } from "@/lib/dominio/FeedDeVacantes";
 import { ETIQUETA_MODALIDAD } from "@/lib/dominio/ReglasDeBusqueda";
@@ -17,9 +16,9 @@ import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
  * botón de postularse queda por encima, clickeable aparte. Hover solo porque
  * de verdad lleva a algún lado.
  *
- * El medidor «Tenés 3 de 4» reemplaza al porcentaje suelto. Sin sesión no hay
- * perfil contra el que medir, así que no aparece, y «Postularme» lleva a crear
- * la cuenta y vuelve al detalle.
+ * Muestra lo que la vacante pide, sin marcar qué de eso tiene quien mira: la
+ * compatibilidad y las coincidencias son solo para la empresa (RF3.9.2). Sin
+ * sesión, «Postularme» lleva a crear la cuenta y vuelve al detalle.
  */
 export function FilaVacante({
   entrada,
@@ -33,15 +32,11 @@ export function FilaVacante({
   esEjemplo?: boolean;
   conSesion?: boolean;
 }) {
-  const { vacante, compatibilidad, destacada } = entrada;
+  const { vacante } = entrada;
   const detalle = `/empleos/${vacante.id}`;
 
   return (
-    <article
-      className={`group relative grid gap-4 rounded-tarjeta border bg-superficie p-5 transition-[border-color,box-shadow] duration-200 hover:border-borde-control hover:shadow-elevada sm:grid-cols-[minmax(0,1fr)_auto] sm:p-6 ${
-        destacada ? "border-tinta border-[1.5px]" : "border-borde"
-      }`}
-    >
+    <article className="group relative grid gap-4 rounded-tarjeta border border-borde bg-superficie p-5 transition-[border-color,box-shadow] duration-200 hover:border-borde-control hover:shadow-elevada sm:grid-cols-[minmax(0,1fr)_auto] sm:p-6">
       <div className="flex min-w-0 gap-4">
         <Avatar
           nombre={vacante.empresa.razon_social}
@@ -51,18 +46,6 @@ export function FilaVacante({
         />
 
         <div className="min-w-0 flex-1">
-          {destacada && (
-            <p className="mb-1.5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-tinta">
-              <span
-                aria-hidden="true"
-                className="flex h-4 w-4 items-center justify-center rounded-full bg-turquesa text-[10px] font-extrabold text-sobre-turquesa"
-              >
-                ✓
-              </span>
-              La que más coincide con vos
-            </p>
-          )}
-
           <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[13px] text-apagado">
             <span className="font-semibold text-tinta">
               {vacante.empresa.razon_social}
@@ -88,11 +71,7 @@ export function FilaVacante({
             <ul className="mt-3 flex flex-wrap gap-1.5">
               {[...vacante.habilidades, ...vacante.tags].map((requisito) => (
                 <li key={requisito}>
-                  <Etiqueta
-                    coincide={conSesion && compatibilidad.cubre(requisito)}
-                  >
-                    {requisito}
-                  </Etiqueta>
+                  <Etiqueta>{requisito}</Etiqueta>
                 </li>
               ))}
             </ul>
@@ -115,17 +94,7 @@ export function FilaVacante({
         </div>
       </div>
 
-      <div className="relative z-10 flex flex-wrap items-end justify-between gap-4 sm:w-44 sm:flex-col sm:items-stretch sm:justify-between">
-        {conSesion && compatibilidad.medible ? (
-          <Medidor
-            cubiertos={compatibilidad.cantidadCubierta}
-            total={compatibilidad.cantidadRequerida}
-            className="min-w-36"
-          />
-        ) : (
-          <span />
-        )}
-
+      <div className="relative z-10 flex items-end sm:w-44 sm:flex-col sm:items-stretch sm:justify-end">
         {conSesion || esEjemplo ? (
           <BotonAccion
             accion={postularse}
@@ -134,7 +103,7 @@ export function FilaVacante({
             hecho={yaPostulado}
             esEjemplo={esEjemplo}
             celebrar
-            variante={destacada ? "primario" : "secundario"}
+            variante="secundario"
             textos={{
               inicial: "Postularme",
               enCurso: "Enviando…",
@@ -146,7 +115,7 @@ export function FilaVacante({
           <AccionConCuenta
             etiqueta="Postularme"
             siguiente={detalle}
-            variante={destacada ? "primario" : "secundario"}
+            variante="secundario"
           />
         )}
       </div>

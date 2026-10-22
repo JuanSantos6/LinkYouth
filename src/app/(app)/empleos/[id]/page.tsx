@@ -9,15 +9,12 @@ import { BotonAccion } from "@/components/ui/BotonAccion";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Foto } from "@/components/ui/Foto";
 import { Insignia } from "@/components/ui/Insignia";
-import { Medidor } from "@/components/ui/Medidor";
 import { postularse } from "@/lib/acciones/postulaciones";
 import {
-  obtenerPerfilActual,
   obtenerUsuarioId,
   obtenerVacante,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
-import { Compatibilidad } from "@/lib/dominio/Compatibilidad";
 import { ETAPAS } from "@/lib/dominio/ProcesoDePostulacion";
 import { ETIQUETA_MODALIDAD } from "@/lib/dominio/ReglasDeBusqueda";
 import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
@@ -45,7 +42,8 @@ const QUE_PASA: Record<(typeof ETAPAS)[number], string> = {
  * RF3.5.3 — El detalle de una vacante: el «ver más» del feed.
  *
  * Dos columnas en escritorio: a la izquierda qué vas a hacer y qué pide; a la
- * derecha, fija, la acción con el medidor y «Qué pasa después». En el
+ * derecha, fija, la acción y «Qué pasa después». Sin medidor ni marcas de
+ * lo que ya tenés: la compatibilidad es solo para la empresa (RF3.9.2). En el
  * teléfono todo va en una columna y la acción queda después de «Qué pide»,
  * que es lo que se lee antes de decidir.
  *
@@ -58,9 +56,8 @@ export default async function PaginaVacante({ params }: Props) {
   const usuarioId = (await obtenerUsuarioId()) ?? undefined;
   const conSesion = usuarioId !== undefined;
 
-  const [resultado, perfil, yaPostuladas] = await Promise.all([
+  const [resultado, yaPostuladas] = await Promise.all([
     obtenerVacante(id),
-    conSesion ? obtenerPerfilActual(usuarioId) : null,
     obtenerVacantesPostuladas(usuarioId),
   ]);
 
@@ -68,9 +65,7 @@ export default async function PaginaVacante({ params }: Props) {
 
   const vacante = resultado.datos;
   const esEjemplo = resultado.origen === "ejemplo";
-  const compatibilidad = Compatibilidad.entre(vacante, perfil?.datos);
   const requisitos = [...vacante.habilidades, ...vacante.tags];
-  const faltantes = compatibilidad.faltantes;
   const fotoRubro = imagenDeRubro(vacante.empresa.rubro);
 
   return (
@@ -150,39 +145,15 @@ export default async function PaginaVacante({ params }: Props) {
               <ul className="flex flex-wrap gap-1.5">
                 {requisitos.map((requisito) => (
                   <li key={requisito}>
-                    <Etiqueta
-                      coincide={conSesion && compatibilidad.cubre(requisito)}
-                    >
-                      {requisito}
-                    </Etiqueta>
+                    <Etiqueta>{requisito}</Etiqueta>
                   </li>
                 ))}
               </ul>
-              {!conSesion && (
-                <p className="text-[14px] text-apagado">
-                  Creá tu cuenta para ver cuánto coincidís con esta búsqueda.
-                </p>
-              )}
             </section>
           )}
         </div>
 
         <aside className="space-y-5 rounded-tarjeta border border-borde bg-superficie p-5 sm:p-6 lg:sticky lg:top-24">
-          {conSesion && compatibilidad.medible && (
-            <div className="space-y-2">
-              <Medidor
-                cubiertos={compatibilidad.cantidadCubierta}
-                total={compatibilidad.cantidadRequerida}
-                detalle="de lo que pide."
-              />
-              {faltantes.length > 0 && (
-                <p className="text-[13.5px] text-apagado">
-                  Te falta: {faltantes.join(", ")}.
-                </p>
-              )}
-            </div>
-          )}
-
           <div className="[&_form]:w-full [&_form_button]:w-full [&>div]:items-stretch">
             {conSesion || esEjemplo ? (
               <BotonAccion

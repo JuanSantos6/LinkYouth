@@ -98,6 +98,7 @@ export type Database = {
           descripcion: string | null
           id: string
           logo_url: string | null
+          portada_url: string | null
           razon_social: string
           rubro: string
           rut: string | null
@@ -108,6 +109,7 @@ export type Database = {
           descripcion?: string | null
           id: string
           logo_url?: string | null
+          portada_url?: string | null
           razon_social: string
           rubro: string
           rut?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           descripcion?: string | null
           id?: string
           logo_url?: string | null
+          portada_url?: string | null
           razon_social?: string
           rubro?: string
           rut?: string | null
@@ -210,6 +213,48 @@ export type Database = {
           },
         ]
       }
+      fotos: {
+        Row: {
+          alto: number
+          ancho: number
+          autor: string
+          autor_enlace: string
+          color: string | null
+          creada_en: string
+          descarga_avisada_en: string | null
+          descripcion: string
+          enlace: string
+          unsplash_id: string
+          url: string
+        }
+        Insert: {
+          alto: number
+          ancho: number
+          autor: string
+          autor_enlace: string
+          color?: string | null
+          creada_en?: string
+          descarga_avisada_en?: string | null
+          descripcion: string
+          enlace: string
+          unsplash_id: string
+          url: string
+        }
+        Update: {
+          alto?: number
+          ancho?: number
+          autor?: string
+          autor_enlace?: string
+          color?: string | null
+          creada_en?: string
+          descarga_avisada_en?: string | null
+          descripcion?: string
+          enlace?: string
+          unsplash_id?: string
+          url?: string
+        }
+        Relationships: []
+      }
       formaciones: {
         Row: {
           estado: string
@@ -301,6 +346,29 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "perfiles_publicos"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      lugares_con_foto: {
+        Row: {
+          lugar: string
+          url: string
+        }
+        Insert: {
+          lugar: string
+          url: string
+        }
+        Update: {
+          lugar?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lugares_con_foto_url_fkey"
+            columns: ["url"]
+            isOneToOne: false
+            referencedRelation: "fotos"
+            referencedColumns: ["url"]
           },
         ]
       }
@@ -596,6 +664,36 @@ export type Database = {
           },
           {
             foreignKeyName: "vacante_habilidades_vacante_id_fkey"
+            columns: ["vacante_id"]
+            isOneToOne: false
+            referencedRelation: "vacantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vacante_habilidades_ocultas: {
+        Row: {
+          habilidad_id: string
+          vacante_id: string
+        }
+        Insert: {
+          habilidad_id: string
+          vacante_id: string
+        }
+        Update: {
+          habilidad_id?: string
+          vacante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacante_habilidades_ocultas_habilidad_id_fkey"
+            columns: ["habilidad_id"]
+            isOneToOne: false
+            referencedRelation: "habilidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vacante_habilidades_ocultas_vacante_id_fkey"
             columns: ["vacante_id"]
             isOneToOne: false
             referencedRelation: "vacantes"

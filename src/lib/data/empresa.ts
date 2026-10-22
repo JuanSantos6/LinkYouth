@@ -131,6 +131,7 @@ function consultarBusquedas(supabase: ClienteSupabase, empresaId: string) {
        creada_en,
        postulaciones ( estado ),
        vacante_habilidades ( habilidades ( id, nombre ) ),
+       vacante_habilidades_ocultas ( habilidades ( id, nombre ) ),
        vacante_tags_publicos ( tags ( id, nombre ) ),
        vacante_tags_ocultos ( tags ( id, nombre ) )`,
     )
@@ -156,6 +157,10 @@ function comoBusqueda(fila: FilaBusqueda): BusquedaCompleta {
     postulaciones: estados.length,
     nuevas: estados.filter((estado) => estado === "pendiente").length,
     habilidades: opcionesDe(fila.vacante_habilidades, "habilidades"),
+    habilidadesOcultas: opcionesDe(
+      fila.vacante_habilidades_ocultas,
+      "habilidades",
+    ),
     tags: opcionesDe(fila.vacante_tags_publicos, "tags"),
     tagsOcultos: opcionesDe(fila.vacante_tags_ocultos, "tags"),
   };

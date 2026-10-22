@@ -98,10 +98,7 @@ export class ResumenDePanel {
       .map((recomendado) => ({
         ...recomendado,
         coincidencia: CoincidenciaDeCandidato.entre(
-          {
-            habilidades: recomendado.busqueda.habilidades.map((h) => h.nombre),
-            tagsOcultos: recomendado.busqueda.tagsOcultos.map((t) => t.nombre),
-          },
+          CoincidenciaDeCandidato.requisitosDe(recomendado.busqueda),
           recomendado.postulacion,
         ),
       }))

@@ -26,8 +26,6 @@ import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
 export const metadata: Metadata = { title: "Búsqueda" };
 export const dynamic = "force-dynamic";
 
-const nombres = (opciones: OpcionCatalogo[]) => opciones.map((o) => o.nombre);
-
 type Evaluada = {
   postulacion: PostulacionRecibida;
   coincidencia: CoincidenciaDeCandidato;
@@ -179,10 +177,7 @@ export default async function PaginaBusqueda({
 
   const postulaciones = await obtenerPostulacionesRecibidas(busqueda.id);
   const ordenadas = CoincidenciaDeCandidato.ordenar(
-    {
-      habilidades: nombres(busqueda.habilidades),
-      tagsOcultos: nombres(busqueda.tagsOcultos),
-    },
+    CoincidenciaDeCandidato.requisitosDe(busqueda),
     postulaciones.datos,
   );
   const grupos = agruparPorEstado(
@@ -272,12 +267,23 @@ export default async function PaginaBusqueda({
         }
         className="rounded-tarjeta border border-borde bg-superficie px-5 py-4"
       >
-        <div className="grid gap-5 pt-4 md:grid-cols-3">
+        <div className="grid gap-5 pt-4 md:grid-cols-2">
           <div className="space-y-2">
             <h3 className="text-[14px] font-semibold text-tinta">
               Habilidades pedidas
             </h3>
             <ListaDeEtiquetas opciones={busqueda.habilidades} />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[14px] font-semibold text-tinta">
+              Habilidades ocultas
+            </h3>
+            <p className="text-[13px] text-apagado">
+              Solo las ves vos: cuentan para la coincidencia, pero no aparecen
+              en la publicación.
+            </p>
+            <ListaDeEtiquetas opciones={busqueda.habilidadesOcultas} />
           </div>
 
           <div className="space-y-2">
@@ -295,7 +301,7 @@ export default async function PaginaBusqueda({
             <ListaDeEtiquetas opciones={busqueda.tagsOcultos} />
           </div>
 
-          <div className="space-y-2 md:col-span-3">
+          <div className="space-y-2 md:col-span-2">
             <h3 className="text-[14px] font-semibold text-tinta">
               Descripción
             </h3>

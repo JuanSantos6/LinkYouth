@@ -4,13 +4,11 @@ import { Compatibilidad, type PerfilDeclarado } from "./Compatibilidad";
 
 export type EntradaDelFeed = {
   vacante: Vacante;
-  compatibilidad: Compatibilidad;
   /**
-   * La vacante que encabeza el listado por compatibilidad alta. Es la única
-   * que lleva el canto ámbar: si se destacaran varias, ninguna estaría
-   * destacada.
+   * Solo para ordenar: no se muestra. La compatibilidad y las coincidencias
+   * son de la empresa (RF3.9.2).
    */
-  destacada: boolean;
+  compatibilidad: Compatibilidad;
 };
 
 /**
@@ -30,7 +28,7 @@ export class FeedDeVacantes {
     perfil?: PerfilDeclarado,
   ): FeedDeVacantes {
     const evaluadas = vacantes
-      .map((vacante) => ({
+      .map((vacante): EntradaDelFeed => ({
         vacante,
         compatibilidad: Compatibilidad.entre(vacante, perfil),
       }))
@@ -46,16 +44,7 @@ export class FeedDeVacantes {
         );
       });
 
-    // Solo se destaca la primera, y solo si su compatibilidad es alta de
-    // verdad: encabezar un listado flojo no es un logro.
-    const destacar = evaluadas[0]?.compatibilidad.alta ?? false;
-
-    return new FeedDeVacantes(
-      evaluadas.map((entrada, indice) => ({
-        ...entrada,
-        destacada: destacar && indice === 0,
-      })),
-    );
+    return new FeedDeVacantes(evaluadas);
   }
 
   get vacio(): boolean {

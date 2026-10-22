@@ -263,12 +263,14 @@ export type BusquedaResumen = {
  * Una búsqueda completa, para el detalle y el formulario de edición.
  *
  * Los ids viajan porque son lo que se guarda en las tablas puente; los nombres,
- * porque son lo que se muestra. `tagsOcultos` solo llega acá: lo lee la
- * empresa dueña y nadie más (RF3.1.6, RNF5).
+ * porque son lo que se muestra. `tagsOcultos` y `habilidadesOcultas` solo
+ * llegan acá: los lee la empresa dueña y nadie más (RF3.1.6, RNF5).
  */
 export type BusquedaCompleta = BusquedaResumen & {
   descripcion: string;
   habilidades: OpcionCatalogo[];
+  /** Las que pide sin publicarlas (RF3.1.6, migración 008): como `tagsOcultos`. */
+  habilidadesOcultas: OpcionCatalogo[];
   tags: OpcionCatalogo[];
   tagsOcultos: OpcionCatalogo[];
 };
@@ -340,7 +342,7 @@ export type Recomendado = {
   postulacion: PostulacionRecibida;
   busqueda: Pick<
     BusquedaCompleta,
-    "id" | "titulo" | "habilidades" | "tagsOcultos"
+    "id" | "titulo" | "habilidades" | "habilidadesOcultas" | "tagsOcultos"
   >;
 };
 
