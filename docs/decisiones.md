@@ -6,6 +6,43 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-22 — La compatibilidad es solo de la empresa
+
+**Decisión.** El joven no ve compatibilidad ni coincidencias: sin el medidor
+«Tenés 3 de 4», sin las ✓ sobre los requisitos que ya tiene, sin «La que más
+coincide con vos» ni «Te falta». Lo que pide una búsqueda se muestra tal
+cual. La coincidencia se ve solo en las pantallas de empresa
+(`CoincidenciaDeCandidato`), como pide RF3.9.2 («visible únicamente para la
+empresa»). El listado del joven sigue ordenado con lo más afín primero, sin
+número ni marca.
+
+**Alternativas.** *Dejarle al joven la comparación con lo público* (la de
+antes): no filtraba nada oculto, pero contradecía RF3.9.2 y lo pidió el
+equipo explícitamente. *Ordenar el listado por fecha*: más neutro, pero
+pierde la recomendación sin que eso exponga ningún puntaje; queda como
+opción si se prefiere.
+
+**Por qué.** El puntaje es una herramienta de selección de la empresa; para
+el joven, ver «2 de 5» frente a una búsqueda desalentaba postularse a algo
+que la empresa igual podía querer.
+
+## 2026-10-22 — Habilidades ocultas en su propia tabla
+
+**Decisión.** La empresa marca cada habilidad pedida como «Pública» o «Solo
+vos» (RF3.1.6). Las ocultas van a `vacante_habilidades_ocultas`, con las
+mismas políticas que `vacante_tags_ocultos`, y cuentan para la coincidencia
+igual que las públicas.
+
+**Alternativas.** *Una columna `oculta` en `vacante_habilidades`*: esa tabla
+se lee sin sesión y RLS decide filas, no columnas; la fila oculta viajaría a
+cualquiera. *Una vista que filtre*: la tabla seguiría abierta debajo. *Dejar
+ocultos solo los intereses*: era lo que había, y la empresa no podía pedir
+una habilidad sin publicarla.
+
+**Por qué.** Es el mismo razonamiento de RNF5 que ya protegía los tags
+ocultos: lo que el postulante no tiene que ver no tiene que existir para su
+sesión.
+
 ## 2026-10-20 — Fotos de banco libres y avatar automático
 
 Reemplaza la regla «nada de fotos de banco» de la decisión del 2026-09-27

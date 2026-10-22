@@ -69,7 +69,7 @@ su propia tabla `vacante_tags_ocultos`, cuya política de lectura habilita solo
 a la empresa dueña de la vacante. No existe consulta del postulante que los
 alcance, ni por descuido ni a propósito.
 
-Las 50 políticas cubren las 18 tablas del esquema. Toda tabla tiene
+Las 55 políticas cubren las 21 tablas del esquema. Toda tabla tiene
 `enable row level security`.
 
 **Qué significa «lectura pública».** Significa «cualquier usuario con sesión»,
@@ -180,10 +180,18 @@ bien, redirigen al detalle con `?guardada=1` o `?guardado=1`, que la pantalla
 convierte en un aviso. La acción no reemplaza a la política
 de RLS: la acompaña. Quien decide es la base.
 
-**Los tags ocultos.** Solo `src/lib/data/empresa.ts` menciona
-`vacante_tags_ocultos`, para que la empresa dueña los vea y edite (RF3.1.6,
-RF3.2.2). Ninguna consulta del joven los pide, y aunque lo hiciera la política
-de RLS se los niega a cualquier sesión que no sea la empresa dueña (RNF5).
+**Los tags y las habilidades ocultas.** Solo `src/lib/data/empresa.ts`
+menciona `vacante_tags_ocultos` y `vacante_habilidades_ocultas` (migración
+008), para que la empresa dueña los vea y edite (RF3.1.6, RF3.2.2). Ninguna
+consulta del joven los pide, y aunque lo hiciera la política de RLS se los
+niega a cualquier sesión que no sea la empresa dueña (RNF5).
+`e2e/compatibilidad.spec.ts` lo comprueba con la clave pública, con y sin
+sesión.
+
+**La compatibilidad.** La calcula `CoincidenciaDeCandidato` y se muestra solo
+en las pantallas de empresa (RF3.9.2). Del lado del joven, `Compatibilidad`
+sigue existiendo solo para ordenar el listado (lo más afín primero), sin
+número ni marcas.
 
 **Las fotos.** El navegador nunca le habla a Supabase: Supabase no se publica
 en internet. Las fotos y logos se guardan y se muestran como rutas relativas
@@ -214,7 +222,7 @@ pisaría.
 ```
 db/
   schema.sql              Tablas, restricciones, funciones y disparadores
-  politicas.sql           Row Level Security (50 políticas, 18 tablas)
+  politicas.sql           Row Level Security (55 políticas, 21 tablas)
   migraciones/            Cambios para una base ya creada (001 a 005)
   verificar-etapa2.sql    25 comprobaciones de RLS del lado empresa
 
@@ -693,7 +701,7 @@ validan con la clase de dominio que corresponde antes de escribir.
 
 | Función | Qué hace | Requisito |
 | --- | --- | --- |
-| `guardarBusqueda` (`busquedas.ts`) | Crea o edita una búsqueda con habilidades, áreas y tags ocultos. Comprueba el título repetido entre las activas antes de escribir (el índice único es la defensa final). Una nueva se crea pausada, se cargan las tablas puente y recién ahí se activa: nadie ve una búsqueda a medio cargar. Una vez creada, nunca vuelve al formulario (reintentar la duplicaría): redirige al detalle, con `falto=` si algo quedó sin hacer. | RF3.1, RF3.1.2, RF3.1.6, RF3.2 |
+| `guardarBusqueda` (`busquedas.ts`) | Crea o edita una búsqueda con habilidades públicas y ocultas, áreas y tags ocultos. Comprueba el título repetido entre las activas antes de escribir (el índice único es la defensa final). Una nueva se crea pausada, se cargan las tablas puente y recién ahí se activa: nadie ve una búsqueda a medio cargar. Una vez creada, nunca vuelve al formulario (reintentar la duplicaría): redirige al detalle, con `falto=` si algo quedó sin hacer. | RF3.1, RF3.1.2, RF3.1.6, RF3.2 |
 | `cambiarEstadoBusqueda` | Pausar, reactivar o cerrar, según `ReglasDeBusqueda`. Cerrar es final y la base rechaza las pendientes (RF3.3.3). | RF3.3 |
 | `eliminarBusqueda` | Borra una búsqueda sin postulaciones; con postulaciones la política no lo deja y el mensaje propone cerrarla. | — |
 | `cambiarEstadoPostulacion` | Lleva una postulación al estado siguiente, solo hacia adelante (`EstadoParaEmpresa`). La base avisa a la persona. | RF3.4.3, RF6.2 |
@@ -736,13 +744,11 @@ no hay comportamiento compartido, y una jerarquía ahí sería decorativa.
 
 `Compatibilidad.entre(vacante, perfil)` compara lo que pide la vacante —sus
 tags públicos y sus habilidades— con lo que el perfil declara. Expone
-`medible`, `porcentaje`, `alta`, `cubre(requisito)` y, para el medidor
-«Tenés 3 de 4», `cantidadCubierta`, `cantidadRequerida` y `faltantes`.
+`medible`, `porcentaje`, `alta`, `cubre(requisito)`, `cantidadCubierta`,
+`cantidadRequerida` y `faltantes`.
 
-Es una clase y no una función porque la pantalla necesita tres cosas del mismo
-cálculo: el número, si una etiqueta puntual coincide y si el total alcanza para
-destacar la vacante. Devolver solo el porcentaje obligaba a cada componente a
-rehacer la comparación.
+Desde el 2026-10-22 **no se muestra**: el joven no ve compatibilidad ni
+coincidencias (RF3.9.2). Solo la usa `FeedDeVacantes` para ordenar.
 
 Solo mira datos públicos. La coincidencia que ve la empresa, con los tags
 ocultos (RF3.9), es otra clase: `CoincidenciaDeCandidato`.
@@ -772,7 +778,9 @@ habilidades pedidas declara la persona y cuántos de los intereses clave (tags
 ocultos) tiene, como dos cuentas separadas y sin porcentaje (RF3.4.2, RF3.9).
 `declara`, `pide`, `esInteresClave`, `habilidadesQueNoDeclara`,
 `habilidadesCubiertas`, `habilidadesPedidas`, `interesesClaveCubiertos`,
-`interesesClave`, `comparar(a, b)` y `ordenar(busqueda, postulaciones)`.
+`interesesClave`, `comparar(a, b)`, `ordenar(busqueda, postulaciones)` y
+`requisitosDe(busqueda)`, que arma lo pedido con las habilidades públicas y
+las ocultas juntas (migración 008): las ocultas cuentan igual.
 
 #### `EstadoParaEmpresa`
 
@@ -787,7 +795,8 @@ hay alguien (2026-10-22).
 #### `ReglasDeBusqueda`
 
 Límites de una búsqueda (título, descripción, ubicación, posiciones,
-habilidades, áreas, intereses clave), `pideUbicacion(modalidad)`,
+habilidades públicas y ocultas contadas juntas, áreas, intereses clave; una
+habilidad no puede ser pública y oculta a la vez), `pideUbicacion(modalidad)`,
 `validar(datos)`, `acciones(estado)`, `estadoTras(estado, accion)`,
 `puedeEliminar(postulaciones)` y `puedeEditar(estado)`. Exporta
 `ETIQUETA_MODALIDAD`, `ETIQUETA_ESTADO_BUSQUEDA` y el tipo `ErroresDeCampo`.
@@ -828,8 +837,8 @@ de cada persona, `intereses(candidatos)` cuenta los intereses presentes y
 #### `FeedDeVacantes`
 
 `FeedDeVacantes.armar(vacantes, perfil)` ordena por compatibilidad y, a
-igualdad, por fecha. Marca **una sola** entrada como destacada, y solo si su
-compatibilidad es alta: encabezar un listado flojo no es un logro.
+igualdad, por fecha. Desde el 2026-10-22 ya no destaca ninguna («La que más
+coincide con vos»): la compatibilidad no se le muestra al joven (RF3.9.2).
 
 #### `ProcesoDePostulacion`
 
@@ -935,7 +944,6 @@ para que no se lea como permiso general.
 | `Aviso` | `titulo?`, `children` | Aviso discreto: una línea con filete a la izquierda. Lo que la aplicación aclara sobre sí misma se ve igual, sin dominar la pantalla. |
 | `MensajeDeAccion` | `estado`, `className?` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
-| `Medidor` | `cubiertos`, `total`, `detalle?` | Compatibilidad como segmentos, uno por requisito, con el texto «Tenés 3 de 4». Reemplaza al porcentaje suelto. |
 | `FiltroDeslizante` | `opciones`, `etiqueta` | Filtros y pestañas como enlaces con `searchParams`; la marca de la activa se desliza (`transform`). Sin JavaScript, funciona igual. |
 | `DetallesSuaves` | `resumen`, `children`, `abiertoAlInicio?` | Un `<details>` que se despliega y se pliega con transición. Sin JavaScript, un `<details>` común. |
 | `EsqueletoDePantalla` | `tarjetas?`, `columnas?` | Silueta de carga para los `loading.tsx`. |
@@ -990,7 +998,7 @@ para que no se lea como permiso general.
 | `FormularioRegistro` | — | Alta de cuenta individual (RF1.1). Los campos son exactamente las columnas obligatorias de `perfiles`, más el correo y la contraseña que van a `auth.users`. La mayoría de edad la exige la base: acá el campo es un `type="date"` común y el mensaje llega desde la acción. |
 | `RegistroPendiente` | `email`, `mensaje` | Reemplaza al formulario cuando el registro salió bien pero falta confirmar el correo. Antes ese caso dejaba campos vacíos con una línea verde, que se lee como «no pasó nada» y empuja a reintentar un registro que no se puede repetir. |
 | `ListadoDeVacantes` | `feed`, `yaPostuladas`, `esEjemplo?`, `conSesion?` | Tarjetas apiladas; la que más coincide va primera y destacada. |
-| `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?`, `conSesion?` | Una vacante como tarjeta clickeable entera hacia el detalle; el botón de postularse queda por encima. Medidor «Tenés X de Y» a la derecha. |
+| `FilaVacante` | `entrada`, `yaPostulado?`, `esEjemplo?`, `conSesion?` | Una vacante como tarjeta clickeable entera hacia el detalle; el botón de postularse queda por encima. Muestra lo que pide sin marcar coincidencias: la compatibilidad es solo de la empresa (RF3.9.2, 2026-10-22). |
 | `TarjetaEvento` | `evento`, `yaInscripto?`, `esEjemplo?`, `conSesion?` | Tarjeta clickeable entera hacia `/eventos/[id]`, con imagen opcional, bloque de fecha en lavanda y dirección. Exporta también `AccionDeInscripcion` (inscribirse une los anillos; cancelar inscripción la revierte). |
 | `eventos/ComoLlegar` | `evento` | Botón secundario «Cómo llegar» (RF4.4): lee `User-Agent` con `headers()` y delega en `ReglasDeEvento.comoLlegar` el enlace a Mapas de Apple, `geo:` o indicaciones de OpenStreetMap. No aparece si no hay coordenadas ni dirección. |
 | `mapa/MapaInteractivo` | `puntos`, `respaldoSinJs?`, `etiqueta?` | Mapa embebido con Leaflet y teselas de OpenStreetMap (RF4.1, RF4.4). Carga diferida con `IntersectionObserver`, esqueleto y dirección sin JS, marcador SVG en violeta de marca, gestos táctiles que no atrapan el scroll del celular y emergentes armados con nodos del DOM. |
@@ -1022,6 +1030,7 @@ para que no se lea como permiso general.
 | Componente | Props | Qué resuelve |
 | --- | --- | --- |
 | `FormularioDeBusqueda` | `busqueda?`, `catalogos`, `esEjemplo?` | Publicar o editar una búsqueda. Errores por campo y valores que no se pierden (`valoresDeFormulario`). |
+| `SelectorDeHabilidades` | `opciones`, `publicas?`, `ocultas?`, `minimo?`, `maximo?`, `error?` | Las habilidades que pide la búsqueda, cada una «Pública» o «Solo vos» (RF3.1.6). Manda `habilidades` y `habilidadesOcultas`. `"use client"` por la elección. |
 | `AccionesDeBusqueda` | `busqueda`, `esEjemplo?` | Editar, pausar, reactivar, cerrar y eliminar, según `ReglasDeBusqueda`. |
 | `TarjetaDePostulante` | `postulacion`, `coincidencia`, `href` | Una persona en el tablero de postulantes de una búsqueda: foto, nombre, cuántas pedidas declara y hace cuánto. Entra en una columna angosta. Reemplazó a `FilaDePostulante` (2026-10-22). |
 | `CambioDeEstado` | `postulacionId`, `estado`, `nombre`, `esEjemplo?` | Los pasos siguientes de una postulación; seleccionar y descartar con confirmación. |
@@ -1210,6 +1219,21 @@ Verificación: `db/verificar-007.sql` (12 comprobaciones, termina en
 - `notificaciones`: `update` solo de la columna `leida`.
 
 Verificación: `db/verificar-006.sql` (9 comprobaciones, termina en
+`ROLLBACK`).
+
+#### Migración 008: habilidades ocultas y fotos
+
+- `vacante_habilidades_ocultas`: las habilidades que una búsqueda pide sin
+  publicarlas (RF3.1.6). Mismas tres políticas que `vacante_tags_ocultos`
+  (solo la empresa dueña lee, agrega y borra) y sin permisos para `anon`.
+  Tabla aparte y no una columna en `vacante_habilidades`, que se lee sin
+  sesión: RLS decide filas, no columnas.
+- `fotos` (atribución de cada URL de Unsplash) y `lugares_con_foto` (las
+  fotos de los lugares fijos de la página): lectura para `anon` y
+  `authenticated`, escritura solo con `service_role`. `empresas.portada_url`.
+- `eliminar_mi_cuenta()` borra también `portada_url`.
+
+Verificación: `db/verificar-008.sql` (8 comprobaciones, termina en
 `ROLLBACK`).
 
 #### Restricción `perfiles_mayor_de_edad`
