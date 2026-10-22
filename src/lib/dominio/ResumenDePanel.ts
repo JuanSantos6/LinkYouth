@@ -9,6 +9,9 @@ import { CoincidenciaDeCandidato } from "@/lib/dominio/CoincidenciaDeCandidato";
 /** Cuántos recomendados entran en el panel: los demás, en cada búsqueda. */
 const RECOMENDADOS_EN_PANEL = 4;
 
+/** Cuántos postulantes nuevos lista el panel antes de «Ver todos». */
+const NUEVOS_EN_PANEL = 5;
+
 /**
  * Los números y listas del panel de empresa. Qué cuenta como «activa»,
  * «nueva», «próximo» o «recomendado» es una regla de negocio: vive acá y no
@@ -54,6 +57,23 @@ export class ResumenDePanel {
           new Date(evento.fecha_hora) >= this.ahora,
       )
       .sort((a, b) => a.fecha_hora.localeCompare(b.fecha_hora));
+  }
+
+  /**
+   * Las postulaciones `pendiente` de las búsquedas activas, de la más reciente
+   * a la más vieja: lo primero que el panel pide revisar. Quienes ya no
+   * comparten sus datos (`persona` nula) no se listan.
+   */
+  nuevosParaRevisar(limite = NUEVOS_EN_PANEL): Recomendado[] {
+    return this.panel.recomendados
+      .filter(
+        ({ postulacion }) =>
+          postulacion.persona !== null && postulacion.estado === "pendiente",
+      )
+      .sort((a, b) =>
+        b.postulacion.creada_en.localeCompare(a.postulacion.creada_en),
+      )
+      .slice(0, limite);
   }
 
   /**

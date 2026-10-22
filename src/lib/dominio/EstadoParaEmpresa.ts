@@ -107,3 +107,38 @@ export class EstadoParaEmpresa {
     return SIGUIENTES[this.estado].includes(destino);
   }
 }
+
+/** Un grupo del tablero de postulantes: un estado, su nombre y quiénes están. */
+export type GrupoDeEstado<T> = {
+  estado: EstadoPostulacion;
+  etiqueta: string;
+  items: T[];
+};
+
+/**
+ * Los postulantes de una búsqueda agrupados por estado, en el orden de
+ * `ESTADOS_PARA_EMPRESA`, con todos los grupos aunque estén vacíos: el tablero
+ * muestra «Nadie en este estado» en lugar de esconder la columna. «Se
+ * retiró» va al final y solo si hay alguien. Dentro de cada grupo se respeta
+ * el orden de `items` (el de `CoincidenciaDeCandidato.ordenar`).
+ */
+export function agruparPorEstado<T>(
+  items: readonly T[],
+  estadoDe: (item: T) => EstadoPostulacion,
+): GrupoDeEstado<T>[] {
+  const grupos: GrupoDeEstado<T>[] = ESTADOS_PARA_EMPRESA.map((estado) => ({
+    estado,
+    etiqueta: ETIQUETAS[estado],
+    items: items.filter((item) => estadoDe(item) === estado),
+  }));
+
+  const retirados = items.filter((item) => estadoDe(item) === "cancelada");
+  if (retirados.length > 0) {
+    grupos.push({
+      estado: "cancelada",
+      etiqueta: ETIQUETAS.cancelada,
+      items: retirados,
+    });
+  }
+  return grupos;
+}

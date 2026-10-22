@@ -2,16 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Coincidencia } from "@/components/empresa/Coincidencia";
-import { Encabezado } from "@/components/layout/Encabezado";
 import { Avatar } from "@/components/ui/Avatar";
-import { Aviso, AvisoOrigen } from "@/components/ui/AvisoOrigen";
+import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { BotonEnlace } from "@/components/ui/Boton";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Insignia } from "@/components/ui/Insignia";
 import { obtenerPanelDeEmpresa } from "@/lib/data/empresa";
 import { EstadoParaEmpresa } from "@/lib/dominio/EstadoParaEmpresa";
 import { ResumenDePanel } from "@/lib/dominio/ResumenDePanel";
-import { fechaBloque, fechaLarga, hora, tiempoRelativo } from "@/lib/formato";
+import { fechaBloque, hora, tiempoRelativo } from "@/lib/formato";
 
 export const metadata: Metadata = { title: "Panel de empresa" };
 export const dynamic = "force-dynamic";
@@ -44,9 +43,12 @@ function TituloDeBloque({
 }
 
 /**
- * Panel de empresa (RF7): lo que pide atención hoy. Cuántas búsquedas están
- * activas y cuántas personas se postularon sin que nadie las mirara, los
- * postulantes que más declaran de lo que se pide y los próximos eventos.
+ * Panel de empresa (RF7), en orden de importancia y pensado primero para el
+ * teléfono: el saludo con las dos acciones principales; las cifras en
+ * tarjetas compactas; lo que pide atención («Para revisar»: las
+ * postulaciones nuevas); y al final el resto (los que más declaran, las
+ * búsquedas activas y los próximos eventos). Un título por bloque y casi
+ * nada de texto de ayuda.
  *
  * Qué cuenta como «nuevo», «próximo» o «recomendado» lo decide
  * `ResumenDePanel`. Los recomendados salen solo de los postulantes propios
@@ -59,6 +61,7 @@ export default async function PaginaEmpresa() {
   const { empresa } = panel;
 
   const activas = resumen.busquedasActivas;
+  const nuevos = resumen.nuevosParaRevisar();
   const recomendados = resumen.recomendados;
   const proximos = resumen.eventosProximos.slice(0, 3);
   const falta = resumen.faltaEnElPerfil;
@@ -96,94 +99,130 @@ export default async function PaginaEmpresa() {
   ];
 
   return (
-    <div className="space-y-10">
-      <Encabezado
-        titulo={`Hola, ${empresa.razon_social}`}
-        descripcion="Lo que pide tu atención hoy en LinkYouth."
-        acciones={
-          <>
-            <BotonEnlace href="/empresa/eventos/nuevo">
-              Crear evento
-            </BotonEnlace>
-            <BotonEnlace href="/empresa/busquedas/nueva" variante="primario">
-              Publicar búsqueda
-            </BotonEnlace>
-          </>
-        }
-      />
+    <div className="space-y-12">
+      <header className="space-y-5">
+        <div>
+          <h1 className="text-[28px] leading-tight font-extrabold text-tinta sm:text-[32px]">
+            Hola, {empresa.razon_social}
+          </h1>
+          <p className="mt-1.5 text-[15px] text-apagado">
+            {resumen.postulantesNuevos === 0
+              ? "Estás al día con tus postulantes."
+              : resumen.postulantesNuevos === 1
+                ? "Tenés 1 postulante nuevo para revisar."
+                : `Tenés ${resumen.postulantesNuevos} postulantes nuevos para revisar.`}
+          </p>
+        </div>
+        <div className="grid gap-2.5 sm:flex sm:flex-wrap">
+          <BotonEnlace
+            href="/empresa/busquedas/nueva"
+            variante="primario"
+            className="w-full sm:w-auto"
+          >
+            Publicar búsqueda
+          </BotonEnlace>
+          <BotonEnlace
+            href="/empresa/eventos/nuevo"
+            className="w-full sm:w-auto"
+          >
+            Crear evento
+          </BotonEnlace>
+        </div>
+      </header>
 
       <AvisoOrigen resultado={resultado} />
 
-      {falta.length > 0 && (
-        <Aviso titulo="Tu perfil está incompleto">
-          Los jóvenes miran quién publica antes de postularse. Sumá{" "}
-          {new Intl.ListFormat("es", { type: "conjunction" }).format(falta)}{" "}
-          desde{" "}
-          <Link
-            href="/empresa/perfil"
-            className="font-medium text-acento underline underline-offset-4"
-          >
-            el perfil de la empresa
-          </Link>
-          .
-        </Aviso>
-      )}
+      <section aria-label="Tus números">
+        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {metricas.map(({ valor, texto, href }) => (
+            <li key={texto}>
+              <Link
+                href={href}
+                className="block h-full rounded-tarjeta border border-borde bg-superficie px-4 py-3.5 transition-shadow duration-150 hover:shadow-elevada"
+              >
+                <span className="cifra block text-[30px] leading-none text-tinta">
+                  {valor}
+                </span>
+                <span className="mt-1.5 block text-[13px] leading-snug text-apagado">
+                  {texto}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {metricas.map(({ valor, texto, href }) => (
-          <li key={texto}>
-            <Link
-              href={href}
-              className="block h-full rounded-tarjeta border border-borde bg-superficie px-5 py-4 transition-shadow duration-150 hover:shadow-elevada"
-            >
-              <span className="cifra block text-[34px] text-tinta">
-                {valor}
-              </span>
-              <span className="mt-1 block text-[14px] text-apagado">
-                {texto}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <section aria-labelledby="t-recomendados" className="space-y-4">
+      <section aria-labelledby="t-revisar" className="space-y-4">
         <TituloDeBloque
-          id="t-recomendados"
-          titulo="Postulantes recomendados"
+          id="t-revisar"
+          titulo="Para revisar"
           href="/empresa/candidatos"
-          enlace="Ver todos los candidatos"
+          enlace="Ver todos"
         />
-        <p className="-mt-2 text-[14px] text-apagado">
-          Entre quienes se postularon a tus búsquedas activas y siguen en
-          proceso, los que declaran más de las habilidades que pedís.
-        </p>
 
-        {recomendados.length === 0 ? (
-          <EstadoVacio
-            ilustracion="personas"
-            titulo={
-              activas.length === 0
-                ? "Sin búsquedas activas no hay a quién recomendar"
-                : "Todavía no hay postulantes para recomendar"
-            }
-            descripcion={
-              activas.length === 0
-                ? "Publicá una búsqueda con las habilidades que pedís y acá vas a ver primero a quienes más declaran de ellas."
-                : "Cuando alguien que declara al menos una de las habilidades que pedís se postule, aparece acá."
-            }
-            accion={
-              activas.length === 0 ? (
-                <Link
-                  href="/empresa/busquedas/nueva"
-                  className="text-[14px] font-medium text-acento hover:underline"
-                >
-                  Publicar una búsqueda
-                </Link>
-              ) : undefined
-            }
-          />
+        {nuevos.length === 0 ? (
+          <p className="rounded-tarjeta border border-dashed border-borde-control/70 bg-superficie px-5 py-6 text-center text-[14.5px] text-apagado">
+            {activas.length === 0
+              ? "Cuando publiques una búsqueda, quienes se postulen aparecen acá."
+              : "No hay postulantes nuevos. Te avisamos cuando llegue alguien."}
+          </p>
         ) : (
+          <ul className="divide-y divide-filete overflow-hidden rounded-tarjeta border border-borde bg-superficie">
+            {nuevos.map(({ postulacion, busqueda }) => {
+              const persona = postulacion.persona!;
+              const nombre = `${persona.nombre} ${persona.apellido}`;
+              return (
+                <li
+                  key={postulacion.id}
+                  className="relative flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-realce"
+                >
+                  <Avatar
+                    nombre={nombre}
+                    url={persona.foto_url}
+                    semilla={persona.id}
+                    tamano="sm"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <Link
+                      href={`/empresa/busquedas/${busqueda.id}/postulantes/${postulacion.id}`}
+                      className="block truncate text-[15px] font-semibold text-tinta after:absolute after:inset-0"
+                    >
+                      {nombre}
+                    </Link>
+                    <span className="block truncate text-[13px] text-apagado">
+                      {busqueda.titulo} ·{" "}
+                      {tiempoRelativo(postulacion.creada_en)}
+                    </span>
+                  </span>
+                  <Insignia tono="acento">Nueva</Insignia>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {falta.length > 0 && (
+          <p className="text-[14px] text-apagado">
+            A tu perfil le falta{" "}
+            {new Intl.ListFormat("es", { type: "conjunction" }).format(falta)}.{" "}
+            <Link
+              href="/empresa/perfil"
+              className="font-medium text-acento underline-offset-4 hover:underline"
+            >
+              Completar el perfil
+            </Link>
+          </p>
+        )}
+      </section>
+
+      {recomendados.length > 0 && (
+        <section aria-labelledby="t-recomendados" className="space-y-4">
+          <TituloDeBloque
+            id="t-recomendados"
+            titulo="Los que más declaran"
+            href="/empresa/candidatos"
+            enlace="Candidatos"
+          />
           <ul className="grid gap-3 md:grid-cols-2">
             {recomendados.map(({ postulacion, busqueda, coincidencia }) => {
               const persona = postulacion.persona!;
@@ -192,28 +231,28 @@ export default async function PaginaEmpresa() {
               return (
                 <li
                   key={postulacion.id}
-                  className="relative flex gap-4 rounded-tarjeta border border-borde bg-superficie p-5 transition-shadow duration-150 hover:shadow-elevada"
+                  className="relative flex gap-3 rounded-tarjeta border border-borde bg-superficie p-4 transition-shadow duration-150 hover:shadow-elevada"
                 >
                   <Avatar
                     nombre={nombre}
                     url={persona.foto_url}
                     semilla={persona.id}
+                    tamano="sm"
                   />
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="text-[17px] font-semibold text-tinta">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="min-w-0 truncate text-[15.5px] font-semibold text-tinta">
                         <Link
                           href={`/empresa/busquedas/${busqueda.id}/postulantes/${postulacion.id}`}
-                          className="underline-offset-4 after:absolute after:inset-0 hover:underline"
+                          className="after:absolute after:inset-0"
                         >
                           {nombre}
                         </Link>
                       </h3>
                       <Insignia tono={estado.tono}>{estado.etiqueta}</Insignia>
                     </div>
-                    <p className="text-[13.5px] text-apagado">
-                      Se postuló a «{busqueda.titulo}»{" "}
-                      {tiempoRelativo(postulacion.creada_en)}
+                    <p className="truncate text-[13px] text-apagado">
+                      {busqueda.titulo}
                     </p>
                     <Coincidencia coincidencia={coincidencia} />
                   </div>
@@ -221,11 +260,11 @@ export default async function PaginaEmpresa() {
               );
             })}
           </ul>
-        )}
-      </section>
+        </section>
+      )}
 
-      <div className="grid gap-10 lg:grid-cols-2">
-        <section aria-labelledby="t-busquedas" className="space-y-4">
+      <div className="grid gap-12 lg:grid-cols-2 lg:gap-8">
+        <section aria-labelledby="t-busquedas" className="min-w-0 space-y-4">
           <TituloDeBloque
             id="t-busquedas"
             titulo="Búsquedas activas"
@@ -239,21 +278,21 @@ export default async function PaginaEmpresa() {
               titulo="No tenés búsquedas activas"
               descripcion={
                 panel.busquedas.length === 0
-                  ? "Publicá la primera: tarda unos minutos y la ven los jóvenes apenas la guardás."
-                  : "Las que tenés están pausadas o cerradas. Podés reactivar una pausada desde Mis búsquedas."
+                  ? "Publicá la primera: la ven los jóvenes apenas la guardás."
+                  : "Podés reactivar una pausada desde Mis búsquedas."
               }
             />
           ) : (
-            <ul className="divide-y divide-filete border-y border-filete">
+            <ul className="divide-y divide-filete overflow-hidden rounded-tarjeta border border-borde bg-superficie">
               {activas.map((busqueda) => (
                 <li
                   key={busqueda.id}
-                  className="flex items-center justify-between gap-4 py-3.5"
+                  className="relative flex items-center justify-between gap-3 px-4 py-3 transition-colors duration-150 hover:bg-realce"
                 >
                   <span className="min-w-0">
                     <Link
                       href={`/empresa/busquedas/${busqueda.id}`}
-                      className="block truncate text-[15.5px] font-semibold text-tinta underline-offset-4 hover:underline"
+                      className="block truncate text-[15px] font-semibold text-tinta after:absolute after:inset-0"
                     >
                       {busqueda.titulo}
                     </Link>
@@ -261,8 +300,7 @@ export default async function PaginaEmpresa() {
                       {busqueda.postulaciones}{" "}
                       {busqueda.postulaciones === 1
                         ? "postulación"
-                        : "postulaciones"}{" "}
-                      · publicada {tiempoRelativo(busqueda.creada_en)}
+                        : "postulaciones"}
                     </span>
                   </span>
                   {busqueda.nuevas > 0 && (
@@ -277,7 +315,7 @@ export default async function PaginaEmpresa() {
           )}
         </section>
 
-        <section aria-labelledby="t-eventos" className="space-y-4">
+        <section aria-labelledby="t-eventos" className="min-w-0 space-y-4">
           <TituloDeBloque
             id="t-eventos"
             titulo="Próximos eventos"
@@ -289,15 +327,7 @@ export default async function PaginaEmpresa() {
             <EstadoVacio
               ilustracion="eventos"
               titulo="No tenés eventos próximos"
-              descripcion="Una charla o un taller es la forma más directa de que te conozcan antes de postularse."
-              accion={
-                <Link
-                  href="/empresa/eventos/nuevo"
-                  className="text-[14px] font-medium text-acento hover:underline"
-                >
-                  Crear un evento
-                </Link>
-              }
+              descripcion="Una charla o un taller es la forma más directa de que te conozcan."
             />
           ) : (
             <ul className="space-y-3">
@@ -306,28 +336,25 @@ export default async function PaginaEmpresa() {
                 return (
                   <li
                     key={evento.id}
-                    className="relative flex items-center gap-4 rounded-tarjeta border border-borde bg-superficie p-4 transition-shadow duration-150 hover:shadow-elevada"
+                    className="relative flex items-center gap-3 rounded-tarjeta border border-borde bg-superficie p-3 transition-shadow duration-150 hover:shadow-elevada"
                   >
-                    <span className="flex h-[60px] w-14 shrink-0 flex-col items-center justify-center rounded-ficha bg-lavanda">
-                      <span className="cifra text-[24px] text-tinta">
+                    <span className="flex h-[52px] w-12 shrink-0 flex-col items-center justify-center rounded-ficha bg-lavanda">
+                      <span className="cifra text-[20px] leading-none text-tinta">
                         {dia}
                       </span>
-                      <span className="mt-1 text-[11px] font-bold tracking-wide text-acento uppercase">
+                      <span className="mt-1 text-[10.5px] font-bold tracking-wide text-acento uppercase">
                         {mes}
                       </span>
                     </span>
                     <span className="min-w-0">
                       <Link
                         href={`/empresa/eventos/${evento.id}`}
-                        className="block font-semibold text-tinta underline-offset-4 after:absolute after:inset-0 hover:underline"
+                        className="block truncate text-[15px] font-semibold text-tinta after:absolute after:inset-0"
                       >
                         {evento.titulo}
                       </Link>
-                      <span className="block text-[13.5px] text-apagado">
-                        <time dateTime={evento.fecha_hora}>
-                          {fechaLarga(evento.fecha_hora)}
-                        </time>
-                        , {hora(evento.fecha_hora)} · {evento.inscriptos}{" "}
+                      <span className="block text-[13px] text-apagado">
+                        {hora(evento.fecha_hora)} · {evento.inscriptos}{" "}
                         {evento.inscriptos === 1 ? "inscripto" : "inscriptos"}
                       </span>
                     </span>
