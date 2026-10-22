@@ -193,7 +193,14 @@ en las pantallas de empresa (RF3.9.2). Del lado del joven, `Compatibilidad`
 sigue existiendo solo para ordenar el listado (lo más afín primero), sin
 número ni marcas.
 
-**Las fotos.** El navegador nunca le habla a Supabase: Supabase no se publica
+**Las fotos de Unsplash** (2026-10-22). Las elige `scripts/fotos/` una vez,
+con seis consultas a la API, y las guarda en `fotos` y `lugares_con_foto`; la
+aplicación las lee de la base (`src/lib/data/fotos.ts`) y el navegador las
+pide directo a `images.unsplash.com` (hotlink, como piden sus directrices; es
+el único origen de imágenes de afuera en la CSP además de las teselas). La
+clave de la API vive en `~/.linkyouth-unsplash` y solo la usan los scripts.
+
+**Las fotos de Storage.** El navegador nunca le habla a Supabase: Supabase no se publica
 en internet. Las fotos y logos se guardan y se muestran como rutas relativas
 (`/storage/v1/object/public/avatars/…`, ver `rutaDeImagen`) y la propia app las
 trae de Storage por la red interna con el `rewrite` de `next.config.ts`. El
@@ -285,8 +292,9 @@ lugar de fallar es lo que sostiene la regla §2.3.
 Convierte la URL de una imagen pública de Storage en ruta relativa, mirando el
 camino y no el origen: sirve también para las URLs absolutas que ya estaban
 guardadas (`http://<ip interna>:8000/…`). La vista previa `blob:` vuelve tal
-cual; cualquier otra URL —un logo en otro sitio— devuelve `null`, para que la
-portada no le pida imágenes a terceros en nombre de cada visitante (Fase 3 del
+cual, y desde el 2026-10-22 también las de `images.unsplash.com`, que se
+muestran por hotlink; cualquier otra URL —un logo en otro sitio— devuelve
+`null`, para que la portada no le pida imágenes a terceros en nombre de cada visitante (Fase 3 del
 incidente 2026-10-08, `docs/seguridad.md`). La usan `Avatar`,
 `CintaDeOrganizaciones`, `TarjetaEvento`, `subirImagenDePerfil` y
 `logoDeLaCuenta` (alta de empresa).
@@ -372,7 +380,8 @@ salida —página, redirección o la vía sin credenciales—.
 `politicaDeContenido` arma la CSP: scripts solo con ese nonce más
 `'strict-dynamic'` (sin `'unsafe-inline'`), estilos con `'unsafe-inline'`
 (React escribe atributos `style`), imágenes del mismo origen más `data:`,
-`blob:` y el servidor de teselas del mapa (`ORIGEN_DE_TESELAS`, 2026-10-20),
+`blob:`, el servidor de teselas del mapa (`ORIGEN_DE_TESELAS`, 2026-10-20) y
+`https://images.unsplash.com` (`ORIGEN_DE_UNSPLASH`, 2026-10-22),
 `connect-src 'self'` (el navegador no habla con Supabase),
 `frame-ancestors 'none'`. En desarrollo suma `'unsafe-eval'` y `ws:` para el
 refresco en caliente. `CABECERA_NONCE` (`x-nonce`) es el header interno con el
@@ -420,13 +429,27 @@ fuente, y cada uno pagaría una revalidación de token.
 Un solo lugar para el servidor de teselas: lo leen el mapa y la CSP, que así
 no pueden quedar en desacuerdo. Ver `docs/decisiones.md`, 2026-10-20.
 
-### 5.3d `src/lib/imagenes.ts`
+### 5.3d `src/lib/imagenes.ts` · `src/lib/unsplash.ts` · `src/lib/data/fotos.ts`
 
-`imagen(espacio)` e `imagenDeRubro(rubro)` → `{ src, srcSet, ancho, alto,
-alt }` de las fotos de `public/imagenes/` (o `null` si el rubro no tiene
-foto: no se muestra la de otro). Los datos salen de `imagenes.generado.ts`,
-que escribe `scripts/imagenes/preparar.mjs` desde el manifiesto. Ver
-`docs/imagenes.md`.
+`ImagenDePagina`: `{ src, srcSet?, ancho, alto, alt, color?, credito? }`.
+`imagen(espacio)` e `imagenDeRubro(rubro)` dan las fotos propias de
+`public/imagenes/` (o `null` si el rubro no tiene foto: no se muestra la de
+otro), desde `imagenes.generado.ts`, que escribe `scripts/imagenes/preparar.mjs`.
+`lugarDeRubro(rubro)` da la clave `rubro:<slug>`.
+
+`src/lib/unsplash.ts` (puro, servidor y navegador): `ORIGEN_DE_UNSPLASH`,
+`esDeUnsplash(url)`, `urlConTamanio(url, ancho, { alto?, encuadre? })` (los
+parámetros de imgix de la misma URL), `conReferencia(enlace)` (`utm_source` y
+`utm_medium=referral`), `creditoDe(fila)` e `imagenDeUnsplash(fila)`.
+
+`src/lib/data/fotos.ts` (2026-10-22): las fotos de Unsplash que eligió
+`scripts/fotos/`, leídas de la base y nunca de la API.
+`obtenerLugaresConFoto()` (con `cache`, una consulta por request),
+`imagenDeLugar(lugar, respaldo)`, `creditosDe(urls)`, `conCreditos(items)`
+(le suma `credito` a cada evento), `fotosDeInstituciones(nombres)` y
+`obtenerTodasLasFotos()` (la lista de `/legales#fotos`). Sin base o sin la
+tabla, todo da vacío y cada pantalla usa su respaldo: la foto propia, la
+ilustración o el avatar con iniciales. Ver `docs/imagenes.md`.
 
 ### 5.4 `src/lib/formato.ts`
 
@@ -932,7 +955,8 @@ para que no se lea como permiso general.
 | `Boton` | `variante?`, + props de `<button>` | Botón de acción. `primario` es mandarina con texto tinta y es el único lugar de la app con mandarina: uno por pantalla. Baja 1 px al presionar. |
 | `BotonEnlace` | `variante?`, + props de `<Link>` | Mismo aspecto, pero navega. Separado del anterior porque un enlace no es un botón para un lector de pantalla. |
 | `Avatar` | `nombre`, `url?`, `semilla?`, `tamano?`, `forma?` | Foto o iniciales con color determinista (`colorDeAvatar(semilla ?? nombre)`), incluido detrás del `<img>` por si falla la carga. Tamaños `xs` (28 px), `sm`, `md`, `lg`. Reserva el espacio siempre, así la grilla no salta. Usa `<img>` y no `next/image` porque los archivos viven en Supabase Storage, con dominios variables. |
-| `Foto` | `imagen`, `sizes`, `prioridad?`, `className?` | Imagen estática de la página (`ImagenDePagina` de `src/lib/imagenes.ts`) con `srcSet` WebP (640/1280/1920), dimensiones intrínsecas y `object-cover`. Con `prioridad`, `loading="eager"` y `fetchPriority="high"`. |
+| `Foto` | `imagen`, `sizes`, `prioridad?`, `className?` | Una `ImagenDePagina` (de Unsplash por hotlink o propia) con `srcSet`, dimensiones intrínsecas y `object-cover`. Con `prioridad`, `loading="eager"` y `fetchPriority="high"`. Si trae `credito`, lleva encima «Foto de Autor en Unsplash» con los dos enlaces (`CreditoDeFoto`). |
+| `FotoConCredito` | `url`, `alt`, `ancho`, `alto`, `credito?`, `className?` | La foto guardada en una fila (evento, portada de empresa): de Storage, o de Unsplash en el tamaño justo y con su crédito encima. |
 | `Ilustracion` | `variante`, `className?` | Cinco ilustraciones SVG de 96 px en el estilo del isotipo (`postulaciones`, `avisos`, `eventos`, `busquedas`, `personas`) con tokens del tema (`fill-lavanda`, `stroke-violeta`, `stroke-turquesa`) para acompañar estados vacíos. |
 | `Etiqueta` | `children`, `coincide?`, `marcada?` | Un tag o una habilidad, en píldora. Lo que el perfil ya declara va en turquesa (suave en claro) con ✓ y un texto para lectores de pantalla: nunca solo color. `marcada` la marca en violeta con ✓ y ese texto: es la de las pantallas de empresa, donde el turquesa no se usa en habilidades declaradas. |
 | `Insignia` | `children`, `tono?` | Estado. `tono="acreditado"` es turquesa, para lo ya logrado (postulación aceptada o seleccionada). Una búsqueda activa va en `acento`. Siempre con palabra. |
@@ -940,7 +964,7 @@ para que no se lea como permiso general.
 | `BotonConfirmado` | `accion`, `campos`, `textos`, `variante?`, `deshabilitado?` | Para lo que no tiene vuelta atrás: el primer toque abre la confirmación en la misma pantalla; el foco va al botón que confirma y vuelve con Esc. |
 | `Campo` | `etiqueta`, `ayuda?`, `error?`, `children` | Etiqueta, control y texto de ayuda. El `<label>` envuelve al control, así que el foco llega al hacer clic en el texto sin `htmlFor`. Exporta además la constante `CAMPO` con las clases del `<input>`, que comparten los tres formularios. |
 | `BotonAccion` | `accion`, `campo`, `valor`, `textos`, `variante?`, `hecho?`, `esEjemplo?`, `celebrar?`, `extras?` | Dispara una acción de servidor sobre un ítem y anuncia el resultado en una región `aria-live`. Con `celebrar`, al salir bien aparecen los anillos del isotipo uniéndose (`ConexionAnillos`). No conoce vacantes ni eventos. |
-| `EstadoVacio` | `titulo`, `descripcion`, `accion?`, `nivel?`, `ilustracion?` | Qué se ve cuando una lista viene vacía, con ilustración opcional (`Ilustracion`) arriba del título. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
+| `EstadoVacio` | `titulo`, `descripcion`, `accion?`, `nivel?`, `ilustracion?` | Qué se ve cuando una lista viene vacía. Arriba, la foto de Unsplash del lugar `vacio:<ilustracion>` con su crédito, o la ilustración propia si no hay. Asíncrono desde el 2026-10-22: solo en Server Components. Nunca un blanco: siempre qué pasó y qué se puede hacer. |
 | `Aviso` | `titulo?`, `children` | Aviso discreto: una línea con filete a la izquierda. Lo que la aplicación aclara sobre sí misma se ve igual, sin dominar la pantalla. |
 | `MensajeDeAccion` | `estado`, `className?` | El resultado de una acción, al lado del control. El error se distingue por peso, filete y la palabra «No se pudo»: la paleta no tiene rojo a propósito. |
 | `AvisoOrigen` | `resultado` | Avisa en pantalla que lo que se ve es contenido de demostración, y por qué. Implementa la regla §2.3. |
@@ -1008,7 +1032,7 @@ para que no se lea como permiso general.
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
-| `ImagenDeInstitucion` | `nombre`, `foto?`, `tamanio?` | La imagen de una institución educativa: una foto genérica de campus o aula si la hay, y si no, sus iniciales sobre un color de la paleta (`colorDeAvatar` del id de `Institucion`). Nunca el logo real (2026-10-22). |
+| `ImagenDeInstitucion` | `nombre`, `url?`, `tamanio?` | La imagen de una institución educativa: una foto genérica de campus o aula si la hay (`fotosDeInstituciones`), y si no, sus iniciales sobre un color de la paleta (`colorDeAvatar` del id de `Institucion`). Nunca el logo real (2026-10-22). |
 | `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca provisoria (iniciales) si no hay logo; el aviso de abajo aparece en cuanto hay una sola. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
 | `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
@@ -1405,12 +1429,12 @@ Con el rediseño «Recreo» (2026-09-27) y la incorporación de fotos reales
 (2026-10-20), la portada quedó con tres cosas que esperan contenido propio,
 todas rotuladas en pantalla:
 
-1. **Fotos propias.** Los seis espacios generales de la portada ya usan fotos
-   reales (`Foto` con `src/lib/imagenes.ts`). Quedan con `FotoProvisional`
-   únicamente los tres espacios que no pueden representarse con fotos de banco:
-   «el equipo de LinkYouth», «un taller de LinkYouth en la Universidad de
-   Montevideo» y «una captura real de la ficha en el teléfono». Ver
-   `docs/imagenes.md`.
+1. **Fotos propias.** Desde el 2026-10-22 todos los espacios de la portada
+   tienen foto de Unsplash, elegida para no presentarse como algo de
+   LinkYouth: un aula en lugar de «el equipo», un taller cualquiera, alguien
+   con el teléfono sin la pantalla de la app. `FotoProvisional` queda solo de
+   respaldo, si la base no tiene las fotos. Las fotos del equipo y de un taller
+   propio siguen pendientes. Ver `docs/imagenes.md`.
 2. **Opiniones.** Son de ejemplo y lo dicen en cada tarjeta. Se reemplazan
    por opiniones verdaderas, con permiso.
 3. **Canal de contacto.** Desde la Etapa 2, `/contacto`, el pie y Legales

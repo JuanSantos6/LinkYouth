@@ -8,10 +8,9 @@
 // al repositorio es la salida:
 //
 // - `portada-*` y `rubro-*` → `public/imagenes/<espacio>-{640,1280}.webp`,
-//   16:9, que sirve la propia aplicación.
-// - `evento-*` → `scripts/demo/imagenes/<espacio>.webp`, 1280×720, y
-//   `persona-*` → `scripts/demo/imagenes/<espacio>.webp`, 512×512: la carga
-//   de la demo los sube a Storage, como subiría la suya una persona.
+//   16:9, que sirve la propia aplicación. Son el respaldo de cada lugar: desde
+//   el 2026-10-22 la primera opción es la foto de Unsplash por hotlink, y las
+//   personas y eventos de la demo salen de ahí (`scripts/fotos/`).
 //
 // Además escribe `src/lib/imagenes.generado.ts` con la ruta, el tamaño y el
 // texto alternativo de cada imagen de la página.
@@ -34,9 +33,7 @@ const manifiesto = JSON.parse(
 const POSICION = { centro: "attention", arriba: "north", abajo: "south" };
 
 const PUBLICO = join(RAIZ, "public/imagenes");
-const DEMO = join(RAIZ, "scripts/demo/imagenes");
 mkdirSync(PUBLICO, { recursive: true });
-mkdirSync(DEMO, { recursive: true });
 
 const deLaPagina = {};
 /**
@@ -59,8 +56,7 @@ async function abrir(foto, proporcion) {
 }
 
 for (const [espacio, foto] of Object.entries(manifiesto)) {
-  const cuadrada = espacio.startsWith("persona-");
-  const entrada = await abrir(foto, cuadrada ? 1 : 16 / 9);
+  const entrada = await abrir(foto, 16 / 9);
   const position = POSICION[foto.foco] ?? "attention";
   const webp = (s) => s.webp({ quality: 74, effort: 6 });
 
@@ -80,14 +76,6 @@ for (const [espacio, foto] of Object.entries(manifiesto)) {
       alto: 720,
       alt: foto.alt,
     };
-  } else if (espacio.startsWith("evento-")) {
-    await webp(
-      entrada.clone().resize(1280, 720, { fit: "cover", position }),
-    ).toFile(join(DEMO, `${espacio}.webp`));
-  } else if (espacio.startsWith("persona-")) {
-    await webp(
-      entrada.clone().resize(512, 512, { fit: "cover", position }),
-    ).toFile(join(DEMO, `${espacio}.webp`));
   } else {
     console.warn(`· ${espacio}: espacio desconocido, se saltea`);
     continue;

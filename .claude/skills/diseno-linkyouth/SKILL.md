@@ -154,13 +154,16 @@ ScrollTrigger + Lenis, cargados con `import()` en
 ## Contenido honesto
 
 - Los datos de ejemplo se anuncian con `AvisoOrigen`.
-- **Fotos** (desde el 2026-10-20): solo de Unsplash o Pexels, elegidas
-  mirándolas (gente joven creíble para Uruguay, luz natural, sin logos ni
-  texto), servidas en WebP desde `public/imagenes/` con `src/lib/imagenes.ts`
-  y anotadas en `docs/imagenes.md`. Nunca enlazadas a otro sitio. Una foto de
-  banco no se presenta como algo de LinkYouth que no pasó: el equipo, un
-  taller propio o una captura de la app siguen con `FotoProvisional` hasta
-  tener la real.
+- **Fotos** (desde el 2026-10-22): de Unsplash **por hotlink**, como piden
+  sus directrices, con «Foto de Autor en Unsplash» encima de cada foto grande
+  (`Foto`, `FotoConCredito`) y la lista completa en `/legales#fotos`. Las
+  elige `scripts/fotos/` una vez, con una hoja de contactos por categoría
+  (gente joven creíble para Uruguay, luz natural, sin logos ni texto
+  legible), y la página las lee de la base (`src/lib/data/fotos.ts`). Las
+  propias de `public/imagenes/` quedan de respaldo. Una foto de banco no se
+  presenta como algo de LinkYouth que no pasó: en «Nosotros» va un aula, no
+  «el equipo». Instituciones reales: foto genérica de campus o aula, nunca su
+  logo.
 - **Personas y empresas sin foto**: `Avatar` con `semilla` (el id), que da
   las iniciales sobre un color de la paleta, siempre el mismo para la misma
   cuenta (`src/lib/diseno/avatar.ts`). Nadie queda sin imagen.

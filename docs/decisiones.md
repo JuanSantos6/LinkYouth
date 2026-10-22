@@ -6,6 +6,34 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-22 — Fotos de Unsplash por hotlink, elegidas una vez
+
+Reemplaza «servidas desde el propio servidor, nunca enlazadas» de la decisión
+del 2026-10-20.
+
+**Decisión.** Las fotos salen de la API de Unsplash y se muestran con la URL
+que devuelve (`images.unsplash.com`), como exigen sus directrices, con la
+atribución al fotógrafo y a Unsplash y el aviso a `download_location`. Se
+eligen una sola vez con `scripts/fotos/`: **una consulta por categoría**
+(retratos, trabajo, instituciones, eventos, portada; seis en total) cuyos 30
+resultados se reparten entre los lugares de la categoría sin repetir foto,
+elegidas mirando una hoja de contactos por categoría. URL, autor y enlaces
+quedan en `fotos.json` (en el repositorio) y en la base; la página nunca
+consulta la API. Los avisos de descarga van después, en segundo plano. La
+CSP suma solo `images.unsplash.com`.
+
+**Alternativas.** *Seguir descargándolas y sirviéndolas nosotros*: lo
+prohíben las directrices de la API. *Consultar la API en cada visita*:
+imposible con 50 consultas por hora y le pondría a Unsplash en el camino de
+cada página. *Una consulta por lugar* (68 lugares): más de dos horas de
+espera por el límite. *Esperar a cada aviso de descarga antes de mostrar*:
+bloqueaba la carga sin ganar nada.
+
+**Por qué.** Cumplir las condiciones de la API con 47 consultas, en una
+corrida, sin esperas. El costo: cada visitante le pide las fotos a Unsplash
+(su IP llega a un tercero), que es lo que la decisión anterior evitaba; las
+fotos propias quedan de respaldo si la base no tiene las de Unsplash.
+
 ## 2026-10-22 — La compatibilidad es solo de la empresa
 
 **Decisión.** El joven no ve compatibilidad ni coincidencias: sin el medidor
