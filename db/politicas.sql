@@ -327,6 +327,49 @@ on perfil_habilidades for delete
 using (auth.uid() = perfil_id);
 
 -- ============================================================
+-- PERFIL_PERSONALIDAD (migración 009)
+-- El resultado del test de personalidad que carga el joven. Lo ve él y,
+-- solo si lo marcó visible, la empresa a cuyas búsquedas se postuló sin
+-- cancelar: mismo criterio que `candidatos_de_mi_empresa` para las
+-- postulaciones (las inscripciones a eventos no cuentan). Sin sesión, nada.
+-- ============================================================
+
+alter table perfil_personalidad enable row level security;
+revoke all on perfil_personalidad from public, anon;
+grant select, insert, update, delete on perfil_personalidad to authenticated;
+
+create policy "personalidad_veo_la_mia_o_la_compartida"
+on perfil_personalidad for select
+to authenticated
+using (
+  perfil_id = (select auth.uid())
+  or (
+    visible_para_empresas
+    and public.cuenta_activa(perfil_id)
+    and public.es_postulante_de_mi_empresa(perfil_id)
+  )
+);
+
+create policy "personalidad_cargo_la_mia"
+on perfil_personalidad for insert
+to authenticated
+with check (
+  perfil_id = (select auth.uid())
+  and exists (select 1 from perfiles where id = (select auth.uid()))
+);
+
+create policy "personalidad_edito_la_mia"
+on perfil_personalidad for update
+to authenticated
+using (perfil_id = (select auth.uid()))
+with check (perfil_id = (select auth.uid()));
+
+create policy "personalidad_borro_la_mia"
+on perfil_personalidad for delete
+to authenticated
+using (perfil_id = (select auth.uid()));
+
+-- ============================================================
 -- FORMACIONES
 -- Parte del perfil público. Cada usuario gestiona las propias.
 -- ============================================================
@@ -844,8 +887,8 @@ grant execute on function public.perfil_publico(text) to authenticated;
 -- (correo, contraseña, bloqueo) la hace la aplicación con la API de
 -- administración de GoTrue, que es la dueña de ese esquema.
 --
--- Postulante: datos del perfil fuera; intereses, habilidades, formación,
--- inscripciones y avisos borrados; postulaciones en curso pasan a
+-- Postulante: datos del perfil fuera; intereses, habilidades, personalidad,
+-- formación, inscripciones y avisos borrados; postulaciones en curso pasan a
 -- `cancelada` (la empresa deja de ver a alguien que ya no existe). Las
 -- reseñas quedan: nunca tuvieron nombre.
 -- Empresa: datos de la empresa fuera; búsquedas activas o pausadas pasan a
@@ -876,6 +919,7 @@ begin
 
     delete from perfil_tags where perfil_id = yo;
     delete from perfil_habilidades where perfil_id = yo;
+    delete from perfil_personalidad where perfil_id = yo;
     delete from formaciones where perfil_id = yo;
     delete from inscripciones_evento where perfil_id = yo;
 

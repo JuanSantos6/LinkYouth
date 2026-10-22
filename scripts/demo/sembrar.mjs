@@ -193,7 +193,26 @@ function validar({ tags, habilidades }) {
     if (edad < 18) errores.push(`${j.clave}: menor de 18`);
     if (!/^[a-z0-9._]+$/.test(j.nombre_usuario))
       errores.push(`${j.clave}: nombre de usuario inválido`);
+    // Resultado del test de personalidad (migración 009): el mismo `check`
+    // de la base.
+    if (j.personalidad) {
+      if (!/^[EI][SN][TF][JP]-[AT]$/.test(j.personalidad.tipo))
+        errores.push(`${j.clave}: tipo de personalidad inválido`);
+      if (typeof j.personalidad.visible !== "boolean")
+        errores.push(`${j.clave}: falta si la personalidad es visible`);
+    }
   }
+  // La demo muestra los tres casos: compartido (la joven demo, siempre),
+  // cargado pero oculto, y sin completar.
+  const conPersonalidad = c.jovenes.filter((j) => j.personalidad);
+  if (!c.jovenes.find((j) => j.demo)?.personalidad?.visible)
+    errores.push("la joven demo tiene que tener la personalidad compartida");
+  if (!conPersonalidad.some((j) => !j.personalidad.visible))
+    errores.push("ningún joven tiene la personalidad cargada y oculta");
+  if (conPersonalidad.length === c.jovenes.length)
+    errores.push(
+      "todos los jóvenes tienen personalidad: falta «sin completar»",
+    );
   const titulos = new Set();
   for (const v of c.vacantes) {
     if (!empresas.has(v.empresa))
@@ -477,9 +496,21 @@ async function cargar(cat) {
         .insert(j.formaciones.map((f) => ({ perfil_id: id, ...f }))),
       `formaciones ${j.clave}`,
     );
+    if (j.personalidad) {
+      await exigir(
+        db.from("perfil_personalidad").insert({
+          perfil_id: id,
+          tipo: j.personalidad.tipo,
+          visible_para_empresas: j.personalidad.visible,
+        }),
+        `personalidad ${j.clave}`,
+      );
+    }
   }
   console.log(
-    `✓ ${c.jovenes.length} jóvenes con intereses, habilidades y formación`,
+    `✓ ${c.jovenes.length} jóvenes con intereses, habilidades y formación ` +
+      `(${c.jovenes.filter((j) => j.personalidad?.visible).length} con la personalidad compartida, ` +
+      `${c.jovenes.filter((j) => j.personalidad && !j.personalidad.visible).length} con la personalidad oculta)`,
   );
 
   for (const [i, v] of c.vacantes.entries()) {

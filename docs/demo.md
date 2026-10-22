@@ -30,7 +30,9 @@ cambia lo que se anotó.
 jóvenes con foto, intereses, habilidades y formación, 14 búsquedas (11
 activas, 2 pausadas, 1 cerrada), 29 postulaciones en todos los estados, 6
 eventos con dirección y coordenadas (3 futuros, uno cancelado y 2 pasados), 21
-inscripciones y 10 reseñas. Empresas: Nube Sur (demo, tecnología), Tostadores
+inscripciones y 10 reseñas. Siete jóvenes cargaron su tipo de
+personalidad: cuatro lo comparten (Lucía, Mateo, Valentina y Facundo) y tres
+lo tienen oculto (Santiago, Camila y Sofía); el resto, sin completar. Empresas: Nube Sur (demo, tecnología), Tostadores
 del Ceibo, Puerto Sur Logística, Clínica Parque Rodó y Agrotecnia El Trébol.
 
 **Fotos.** Al final, la carga pone las fotos de Unsplash que ya están

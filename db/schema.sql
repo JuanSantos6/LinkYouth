@@ -91,6 +91,47 @@ create table perfil_habilidades (
 );
 
 -- ============================================================
+-- MÓDULO: Personalidad declarada (migración 009)
+-- El resultado del test de 16Personalities que el joven carga a mano: el
+-- sitio no tiene API. LinkYouth no lo valida y no lo usa para la
+-- compatibilidad, los filtros ni el orden de los candidatos. Tabla aparte de
+-- `perfiles` para que la visibilidad sea una política (ver politicas.sql).
+-- El nombre del tipo se deriva del código, no se guarda.
+-- ============================================================
+
+create table perfil_personalidad (
+  perfil_id              uuid primary key references perfiles(id) on delete cascade,
+  -- Uno de los 16 tipos con su variante: INTJ-A, ENFP-T…
+  tipo                   text not null
+                         check (tipo ~ '^[EI][SN][TF][JP]-[AT]$'),
+  -- La pone el disparador de abajo: al cargar y cada vez que cambia el tipo.
+  cargada_en             timestamptz not null default now(),
+  -- Por defecto, no: el joven decide mostrarlo.
+  visible_para_empresas  boolean not null default false
+);
+
+-- La fecha de carga no la elige quien escribe: se pone al insertar y al
+-- cambiar el tipo, y no se mueve si solo cambia la visibilidad.
+create or replace function personalidad_fecha_de_carga()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  if tg_op = 'INSERT' or new.tipo is distinct from old.tipo then
+    new.cargada_en := now();
+  else
+    new.cargada_en := old.cargada_en;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger perfil_personalidad_fecha_de_carga
+before insert or update on perfil_personalidad
+for each row execute function personalidad_fecha_de_carga();
+
+-- ============================================================
 -- MÓDULO: Formación declarada
 -- Cubre: RF2.4.1, RF2.4.2
 -- ============================================================
@@ -452,10 +493,6 @@ create trigger postulaciones_notificar_recibida
 after insert on public.postulaciones
 for each row execute function public.notificar_postulacion_recibida();
 
-create trigger postulaciones_notificar_recibida
-after insert on public.postulaciones
-for each row execute function public.notificar_postulacion_recibida();
-
 -- RF6.1 — A la empresa, cuando alguien se inscribe a uno de sus eventos
 -- (migración 007). Sin correo: es un aviso menor.
 create or replace function public.notificar_inscripcion_recibida()
@@ -489,10 +526,6 @@ begin
   return null;
 end;
 $$;
-
-create trigger inscripciones_notificar_recibida
-after insert on public.inscripciones_evento
-for each row execute function public.notificar_inscripcion_recibida();
 
 create trigger inscripciones_notificar_recibida
 after insert on public.inscripciones_evento

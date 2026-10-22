@@ -13,6 +13,26 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-22 — Test de personalidad en el perfil del joven
+
+- **Resultado de 16Personalities** (migración 009, `perfil_personalidad`,
+  `TipoDePersonalidad`, `SeccionPersonalidad`, `InsigniaDePersonalidad`): el
+  joven abre el test en 16personalities.com/es, elige su tipo de una lista de
+  16 con la variante -A o -T y decide si lo ven las empresas a las que se
+  postula (por defecto, no). La empresa lo ve en la ficha del postulante con
+  «Declarado por el postulante», solo si está visible. Por qué declarado,
+  íconos propios y sin efecto en la compatibilidad, filtros ni orden:
+  [`decisiones.md`](./decisiones.md), 2026-10-22. Verificación SQL:
+  `db/verificar-009.sql`; e2e: `e2e/personalidad.spec.ts`.
+- **Demo**: Lucía, Mateo, Valentina y Facundo con el tipo compartido;
+  Santiago, Camila y Sofía con el tipo cargado pero oculto; el resto sin
+  completar. Así la ficha de cada postulante de Nube Sur muestra los tres
+  casos.
+- **`db/schema.sql` creaba dos veces** los disparadores
+  `postulaciones_notificar_recibida` e `inscripciones_notificar_recibida`, y
+  una base nueva no se podía armar desde cero (`trigger … already exists`).
+  Se quitó el bloque repetido; las bases existentes no cambian.
+
 ## 2026-10-22 — Sesión, imágenes y panel de empresa
 
 - **Habilidades públicas u ocultas** (migración 008,

@@ -69,7 +69,7 @@ su propia tabla `vacante_tags_ocultos`, cuya política de lectura habilita solo
 a la empresa dueña de la vacante. No existe consulta del postulante que los
 alcance, ni por descuido ni a propósito.
 
-Las 55 políticas cubren las 21 tablas del esquema. Toda tabla tiene
+Las 59 políticas cubren las 23 tablas del esquema. Toda tabla tiene
 `enable row level security`.
 
 **Qué significa «lectura pública».** Significa «cualquier usuario con sesión»,
@@ -463,6 +463,11 @@ Importa sus alias de tipo de `src/lib/data/tipos.ts` (ver §3).
 
 `"sábado 15 de octubre"`. Sin hora: la pone `hora()` y no se repite.
 
+#### `fechaConAnio(iso): string`
+
+`"22 de octubre de 2026"`, para fechas que pueden ser de otro año (cuándo se
+cargó el resultado de personalidad).
+
 #### `fechaBloque(iso): { dia, mes }`
 
 `{ dia: "15", mes: "OCT" }` para el bloque de fecha de una tarjeta de evento.
@@ -511,7 +516,8 @@ en el conjunto, caen en un respaldo en vez de romper la pantalla: eso solo
 pasa si el esquema cambió y el código todavía no.
 
 También define las formas que consume la interfaz — `Vacante`, `Evento`,
-`PerfilCompleto`, `Formacion`, `PostulacionResumen`, `EmpresaResumen` — y el
+`PerfilCompleto` (con `personalidad: PersonalidadDeclarada | null`, migración
+009), `Formacion`, `PostulacionResumen`, `EmpresaResumen` — y el
 envoltorio `Resultado<T>` con su `OrigenDatos`.
 
 Del lado empresa (Etapa 2): `Modalidad` con `MODALIDADES` y `comoModalidad`;
@@ -562,7 +568,7 @@ cliente, el build falla en vez de filtrar la consulta al navegador.
 | `obtenerVacante(id)` | `Resultado<Vacante> \| null` | RF3.5.3. Una vacante activa para su detalle. Comparte `select` y armado con `obtenerVacantes`. |
 | `obtenerEventos(limite?)` | `Resultado<Evento[]>` | RF4.4.1. Solo eventos activos que todavía no ocurrieron. |
 | `obtenerEvento(id)` | `Resultado<Evento> \| null` | RF4.4. Un evento para `/eventos/[id]`; `null` si no existe o no se ve. Los ids de ejemplo abren el contenido de demostración. |
-| `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. |
+| `obtenerPerfilActual()` | `Resultado<PerfilCompleto>` | RF2.1. Sin sesión devuelve el perfil de ejemplo. Trae también `personalidad` (migración 009), `null` si no la cargó. |
 | `obtenerPostulaciones()` | `Resultado<PostulacionResumen[]>` | RF3.7. |
 | `obtenerVacantesPostuladas()` | `Set<string>` | RF3.6.2. Incluye las canceladas: la restricción única no mira el estado. |
 | `obtenerEventosInscriptos()` | `Set<string>` | RF4.5. |
@@ -603,6 +609,7 @@ paralelo para todas las personas a la vez (`armarPostulaciones`, privada).
 | `obtenerReseniasRecibidas(usuarioId?)` | `Resultado<ReseniaRecibida[]>` | RF7.4. Sin el nombre de quien la escribió. |
 | `obtenerPostulantesPropios(usuarioId?)` | `Resultado<{ postulacion, busqueda }[]>` | RF7.3. Postulantes no retirados de todas las búsquedas propias. |
 | `obtenerPanelDeEmpresa(usuarioId?)` | `Resultado<PanelDeEmpresa>` | RF7. Perfil, búsquedas, eventos y las postulaciones en curso de las búsquedas activas, para recomendar. Si una lectura cae en el ejemplo, el panel entero lo es. |
+| `obtenerPersonalidadCompartida(perfilId, usuarioId?)` | `string \| null` | Migración 009. El código («INTJ-T») del resultado de personalidad que la persona compartió, o `null`. Lo filtra la política de `perfil_personalidad`. Fuera de `armarPostulaciones` a propósito: solo lo usa la ficha del postulante, así no entra en la coincidencia, los filtros ni el orden. |
 
 #### `publico.ts`
 
@@ -641,6 +648,17 @@ seguir», que son **distintas a propósito**:
 - `SIN_PERFIL` para el guardia de tipo de cuenta: hay sesión, pero no es una
   cuenta de postulante con perfil creado. Decirle «iniciá sesión» a alguien
   que ya la tiene lo manda a buscar el problema al lugar equivocado.
+
+#### `personalidad.ts` (migración 009)
+
+El resultado del test de 16Personalities que carga el joven. Las tres pasan
+por `sesionDePostulante()`.
+
+| Función | Firma | Qué hace |
+| --- | --- | --- |
+| `guardarPersonalidad` | `(EstadoFormulario, FormData)` | Carga o cambia el tipo (`letras` de la lista y `variante` A o T, armados con `TipoDePersonalidad.armar`) con un `upsert`. Lleva `visible` («si»). Con error devuelve `campos` y `valores`. La fecha de carga la pone la base. |
+| `cambiarVisibilidadDePersonalidad` | `(EstadoAccion, FormData)` | El interruptor «Mostrar a las empresas a las que me postulo»: cambia solo `visible_para_empresas`. |
+| `borrarPersonalidad` | `()` | Borra el resultado; el perfil vuelve a «Sin completar». |
 
 #### `cuenta.ts` (RF1.5, RF1.7)
 
@@ -804,6 +822,17 @@ ocultos) tiene, como dos cuentas separadas y sin porcentaje (RF3.4.2, RF3.9).
 `interesesClave`, `comparar(a, b)`, `ordenar(busqueda, postulaciones)` y
 `requisitosDe(busqueda)`, que arma lo pedido con las habilidades públicas y
 las ocultas juntas (migración 008): las ocultas cuentan igual.
+
+#### `TipoDePersonalidad`
+
+Los 16 tipos de 16Personalities con su nombre en español y su grupo
+(Analistas NT, Diplomáticos NF, Centinelas SJ, Exploradores SP), y las
+variantes A (asertiva) y T (turbulenta). `de(codigo)` lee lo que guarda la
+base («INTJ-T») y devuelve `null` si no es uno de los 32 códigos; `armar
+(letras, variante)` arma lo que eligió el joven; `opciones()` da la lista
+agrupada del formulario. Getters `codigo`, `nombreDelGrupo`,
+`nombreDeLaVariante`. El nombre no se guarda en la base: sale de acá. No lo
+usa `Compatibilidad` ni `CoincidenciaDeCandidato` (decisiones, 2026-10-22).
 
 #### `EstadoParaEmpresa`
 
@@ -1038,6 +1067,10 @@ para que no se lea como permiso general.
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
 | `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
 | `FormularioDeFormacion` | `esEjemplo?` | Sumar un estudio en curso o finalizado al perfil propio (RF2.4.1), con errores por campo y valores conservados. |
+| `InsigniaDePersonalidad` | `tipo`, `tamano?` (`grande` \| `compacta`), `etiqueta?` | El ícono propio del grupo (SVG de trazo sobre pares de tokens, sin imitar a 16Personalities), debajo el nombre del tipo («Arquitecto») y debajo las letras («INTJ-T»); grupo y variante en palabras para lectores de pantalla. `grande` en el perfil; `compacta`, en fila, en la ficha del postulante. Migración 009. |
+| `SeccionPersonalidad` | `personalidad`, `esEjemplo?` | «Personalidad (opcional)» del perfil: «Hacer el test» (abre 16personalities.com/es en otra pestaña), la aclaración de que es declarado y no entra en la compatibilidad, y «Completado» con la insignia, el interruptor y las opciones de cambiar o borrar, o «Sin completar» con el formulario. |
+| `FormularioDePersonalidad` | `guardado`, `visibleActual?`, `esEjemplo?` | Elegir el tipo de una lista de 16 agrupada y la variante A o T, sin escribir nada; muestra la insignia como va a quedar. Sin resultado ofrece la casilla de mostrarlo (sin marcar); editando, conserva la visibilidad. Conserva lo elegido ante un error. `"use client"` por la vista previa. |
+| `InterruptorDeVisibilidad` | `visible`, `esEjemplo?` | Botón `role="switch"` en un formulario (anda sin JavaScript) que muestra u oculta el resultado a las empresas a las que se postuló. El estado va en palabras («Sí» / «No»). |
 | `avisos/CampanaDeAvisos` | `href`, `sinLeer` | Botón redondo de 44×44 px en la cabecera con el ícono de avisos, contador de no leídos (`TipoDeAviso.textoDelContador`) y nombre accesible `TipoDeAviso.nombreDeLaCampana(sinLeer)` (RF6.1). |
 | `avisos/CampanaDeAvisosDeLaSesion` | `href` | La campana con el número leído de la base (`contarAvisosSinLeer`), dentro de su propio `Suspense`: la cabecera se manda entera y el contador llega después. Es la que usa `CabeceraGlobal`. |
 | `avisos/BandejaDeAvisos` | `avisos`, `descripcion?`, `descripcionVacia?` | Bandeja compartida entre joven y empresa: rótulo e ícono según `TipoDeAviso` (`logro`, `baja`, `novedad`, `neutro`), resaltado de no leídos y acciones para marcarlos o abrir el destino (RF6.1, RF6.2). |
@@ -1259,6 +1292,23 @@ Verificación: `db/verificar-006.sql` (9 comprobaciones, termina en
 
 Verificación: `db/verificar-008.sql` (8 comprobaciones, termina en
 `ROLLBACK`).
+
+#### Migración 009: personalidad declarada
+
+- `perfil_personalidad` (`perfil_id`, `tipo`, `cargada_en`,
+  `visible_para_empresas` en `false` por defecto): el resultado del test de
+  16Personalities que carga el joven. `check` con los 16 tipos y la variante
+  -A o -T. Tabla aparte de `perfiles` para que la visibilidad sea una
+  política: el joven ve, carga, edita y borra lo suyo; una empresa lo lee
+  solo si está visible, la cuenta está activa y la persona se postuló a una
+  de sus búsquedas sin cancelar (`es_postulante_de_mi_empresa`). Sin
+  permisos para `anon`.
+- `personalidad_fecha_de_carga()`: disparador que pone `cargada_en` al
+  cargar y al cambiar el tipo, y no la deja tocar a mano.
+- `eliminar_mi_cuenta()` borra también el resultado.
+
+Verificación: `db/verificar-009.sql` (16 comprobaciones como joven, como
+empresa con y sin postulantes y sin sesión; termina en `ROLLBACK`).
 
 #### Restricción `perfiles_mayor_de_edad`
 

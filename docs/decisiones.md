@@ -6,6 +6,54 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-22 — Test de personalidad: resultado declarado, íconos propios y sin efecto en el matching
+
+**Decisión.** El perfil del joven suma una sección opcional con su tipo de
+16Personalities (migración 009). El joven hace el test en el sitio de
+16Personalities y **carga él mismo el resultado**, eligiéndolo de la lista de
+los 16 tipos con su variante (-A o -T); la base guarda solo el código
+(`INTJ-T`) y valida su forma, y el nombre en español sale del código. Va en
+una tabla propia, `perfil_personalidad`, oculta por defecto: una empresa lo
+lee solo si el joven lo marcó visible y se postuló a una de sus búsquedas sin
+cancelar. Cada grupo (Analistas, Diplomáticos, Centinelas, Exploradores)
+tiene un **ícono propio** en SVG con colores de la paleta Recreo. El
+resultado **no entra** en la compatibilidad, en los filtros ni en el orden de
+los candidatos: la empresa lo ve en la ficha, con «Declarado por el
+postulante», y nada más.
+
+**Alternativas.**
+
+- *Integrarlo con 16Personalities para traer el resultado verificado*: no
+  tienen API pública ni un mecanismo para compartir resultados con
+  terceros. La única forma sería raspar su sitio con la sesión del joven,
+  que viola sus condiciones de uso.
+- *Que el joven escriba el código a mano*: abre la puerta a errores de tipeo
+  y a códigos que no existen; la lista con nombre y letras se entiende sin
+  conocer el sistema de cuatro letras.
+- *Columnas en `perfiles`*: `perfiles` solo deja leer la fila propia y RLS
+  decide filas, no columnas. Para que la empresa lo viera había que abrir la
+  fila entera (con `fecha_nacimiento`, CN-001) o sumar otra función
+  `security definer` con la regla escrita adentro. La tabla aparte deja la
+  regla en una política.
+- *Usar las ilustraciones de 16Personalities*: son obras protegidas por
+  derecho de autor de NERIS Analytics y su uso fuera del sitio no está
+  autorizado; además, sus colores por grupo (verde, violeta, azul, amarillo)
+  chocarían con la paleta. Íconos geométricos propios (cubo, brote, escudo,
+  brújula) evitan las dos cosas y no imitan su estilo.
+- *Usarlo en la compatibilidad o como filtro*: el resultado es autodeclarado,
+  no lo valida nadie, y un test de personalidad no mide si alguien puede
+  hacer un trabajo. Ordenar o filtrar candidatos por eso sería tratarlo como
+  un criterio de selección que no es, y castigar a quien no lo cargó.
+
+**Por qué.** Suma una forma de presentarse que los jóvenes ya usan, sin que
+LinkYouth afirme algo que no verificó: la pantalla del joven dice «Es un
+resultado que cargás vos. LinkYouth no lo valida y no lo usa para calcular tu
+compatibilidad», y la de la empresa, «Declarado por el postulante». Oculto
+por defecto porque es un dato personal que el joven decide compartir. Los
+nombres de los tipos («Arquitecto», «Abogado»…) son los que usa el test en
+español, para que el joven reconozca el suyo; las letras son las del sistema
+de Myers-Briggs, de uso general.
+
 ## 2026-10-22 — Fotos de Unsplash por hotlink, elegidas una vez
 
 Reemplaza «servidas desde el propio servidor, nunca enlazadas» de la decisión
