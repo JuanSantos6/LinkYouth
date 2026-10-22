@@ -185,10 +185,22 @@ export type Catalogos = {
   habilidades: OpcionCatalogo[];
 };
 
+/**
+ * El resultado del test de personalidad que cargó el joven (migración 009).
+ * Solo el código: el nombre sale de `TipoDePersonalidad`.
+ */
+export type PersonalidadDeclarada = {
+  tipo: string;
+  cargada_en: string;
+  visible_para_empresas: boolean;
+};
+
 export type PerfilCompleto = Tabla<"perfiles"> & {
   tags: string[];
   habilidades: string[];
   formaciones: Formacion[];
+  /** `null` si todavía no lo cargó. */
+  personalidad: PersonalidadDeclarada | null;
 };
 
 /** Una notificación de la bandeja (RF6.1). */

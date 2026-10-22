@@ -307,6 +307,33 @@ export async function obtenerPostulacionesRecibidas(
   };
 }
 
+/**
+ * El resultado de personalidad que una persona que se postuló decidió
+ * compartir (migración 009), o `null`.
+ *
+ * Lo decide la política de `perfil_personalidad`: la fila llega solo si el
+ * joven la marcó visible y se postuló a una búsqueda de esta empresa sin
+ * cancelar. Va aparte de `armarPostulaciones` a propósito: la usa solo la
+ * ficha del postulante, y así no puede colarse en la coincidencia, los
+ * filtros ni el orden de las listas (ver `docs/decisiones.md`, 2026-10-22).
+ */
+export async function obtenerPersonalidadCompartida(
+  perfilId: string,
+  usuarioId?: string,
+): Promise<string | null> {
+  if (!esUuid(perfilId)) return null;
+  const s = await sesion(usuarioId);
+  if (!s) return null;
+
+  const { data } = await s.supabase
+    .from("perfil_personalidad")
+    .select("tipo")
+    .eq("perfil_id", perfilId)
+    .maybeSingle();
+
+  return data?.tipo ?? null;
+}
+
 // --- Eventos ----------------------------------------------------------------
 
 function consultarEventos(supabase: ClienteSupabase, empresaId: string) {

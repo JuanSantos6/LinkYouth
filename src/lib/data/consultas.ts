@@ -344,7 +344,8 @@ export async function obtenerPerfilActual(
        foto_url, creado_en,
        perfil_tags ( tags ( nombre ) ),
        perfil_habilidades ( habilidades ( nombre ) ),
-       formaciones ( id, institucion, titulo, estado )`,
+       formaciones ( id, institucion, titulo, estado ),
+       perfil_personalidad ( tipo, cargada_en, visible_para_empresas )`,
     )
     .eq("id", id)
     .maybeSingle();
@@ -354,7 +355,13 @@ export async function obtenerPerfilActual(
     return ejemplo(PERFIL_EJEMPLO, "La sesión todavía no tiene perfil creado");
   }
 
-  const { perfil_tags, perfil_habilidades, formaciones, ...perfil } = data;
+  const {
+    perfil_tags,
+    perfil_habilidades,
+    formaciones,
+    perfil_personalidad,
+    ...perfil
+  } = data;
 
   return {
     datos: {
@@ -367,6 +374,7 @@ export async function obtenerPerfilActual(
         titulo: formacion.titulo,
         estado: comoEstadoFormacion(formacion.estado),
       })),
+      personalidad: perfil_personalidad ?? null,
     },
     origen: "supabase",
   };

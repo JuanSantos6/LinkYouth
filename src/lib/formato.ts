@@ -13,6 +13,16 @@ export function fechaLarga(iso: string): string {
   }).format(new Date(iso));
 }
 
+/** "22 de octubre de 2026": una fecha que puede ser de otro año. */
+export function fechaConAnio(iso: string): string {
+  return new Intl.DateTimeFormat(LOCALE, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: ZONA,
+  }).format(new Date(iso));
+}
+
 /** Día y mes abreviado para el bloque de fecha de un evento: { dia: "15", mes: "OCT" } */
 export function fechaBloque(iso: string): { dia: string; mes: string } {
   const fecha = new Date(iso);

@@ -226,6 +226,7 @@ export const PERFIL_EJEMPLO: PerfilCompleto = {
     "Comunicación",
   ],
   formaciones: FORMACIONES_EJEMPLO,
+  personalidad: null,
 };
 
 /**

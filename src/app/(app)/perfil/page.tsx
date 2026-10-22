@@ -6,6 +6,7 @@ import { FormularioDeFormacion } from "@/components/perfil/FormularioDeFormacion
 import { FormularioPerfil } from "@/components/perfil/FormularioPerfil";
 import { GuiaDeFicha } from "@/components/perfil/GuiaDeFicha";
 import { ListaFormacion } from "@/components/perfil/ListaFormacion";
+import { SeccionPersonalidad } from "@/components/perfil/SeccionPersonalidad";
 import { SelectorTags } from "@/components/perfil/SelectorTags";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { BotonEnlace } from "@/components/ui/Boton";
@@ -114,6 +115,16 @@ export default async function PaginaPerfil() {
           />
           <FormularioDeFormacion esEjemplo={esEjemplo} />
         </div>
+      </Seccion>
+
+      <Seccion
+        titulo="Personalidad (opcional)"
+        descripcion="Tu resultado del test de 16Personalities. Vos decidís si lo ven las empresas."
+      >
+        <SeccionPersonalidad
+          personalidad={datos.personalidad}
+          esEjemplo={esEjemplo}
+        />
       </Seccion>
     </div>
   );

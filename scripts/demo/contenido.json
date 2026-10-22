@@ -94,7 +94,11 @@
           "estado": "finalizado"
         }
       ],
-      "color": "#0a7a73"
+      "color": "#0a7a73",
+      "personalidad": {
+        "tipo": "INFJ-T",
+        "visible": true
+      }
     },
     {
       "clave": "mateo",
@@ -127,7 +131,11 @@
           "estado": "en_curso"
         }
       ],
-      "color": "#6541e0"
+      "color": "#6541e0",
+      "personalidad": {
+        "tipo": "INTJ-A",
+        "visible": true
+      }
     },
     {
       "clave": "valentina",
@@ -161,7 +169,11 @@
           "estado": "en_curso"
         }
       ],
-      "color": "#9e1f47"
+      "color": "#9e1f47",
+      "personalidad": {
+        "tipo": "ISFP-T",
+        "visible": true
+      }
     },
     {
       "clave": "santiago",
@@ -198,7 +210,11 @@
           "estado": "finalizado"
         }
       ],
-      "color": "#5c4033"
+      "color": "#5c4033",
+      "personalidad": {
+        "tipo": "ENTP-T",
+        "visible": false
+      }
     },
     {
       "clave": "camila",
@@ -232,7 +248,11 @@
           "estado": "en_curso"
         }
       ],
-      "color": "#1d4ed8"
+      "color": "#1d4ed8",
+      "personalidad": {
+        "tipo": "ESFJ-A",
+        "visible": false
+      }
     },
     {
       "clave": "joaquin",
@@ -330,7 +350,11 @@
           "estado": "en_curso"
         }
       ],
-      "color": "#2e6b22"
+      "color": "#2e6b22",
+      "personalidad": {
+        "tipo": "ISTJ-A",
+        "visible": true
+      }
     },
     {
       "clave": "florencia",
@@ -402,7 +426,11 @@
           "estado": "finalizado"
         }
       ],
-      "color": "#7c3aed"
+      "color": "#7c3aed",
+      "personalidad": {
+        "tipo": "INTP-T",
+        "visible": false
+      }
     }
   ],
   "vacantes": [

@@ -447,6 +447,42 @@ export type Database = {
           },
         ]
       }
+      perfil_personalidad: {
+        Row: {
+          cargada_en: string
+          perfil_id: string
+          tipo: string
+          visible_para_empresas: boolean
+        }
+        Insert: {
+          cargada_en?: string
+          perfil_id: string
+          tipo: string
+          visible_para_empresas?: boolean
+        }
+        Update: {
+          cargada_en?: string
+          perfil_id?: string
+          tipo?: string
+          visible_para_empresas?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfil_personalidad_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfil_personalidad_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfiles_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfil_tags: {
         Row: {
           perfil_id: string
