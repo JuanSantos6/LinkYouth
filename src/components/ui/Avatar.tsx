@@ -1,6 +1,7 @@
 import { colorDeAvatar } from "@/lib/diseno/avatar";
 import { iniciales } from "@/lib/formato";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
+import { esDeUnsplash, urlConTamanio } from "@/lib/unsplash";
 
 type AvatarProps = {
   nombre: string;
@@ -42,7 +43,15 @@ export function Avatar({
   const color = colorDeAvatar(semilla ?? nombre);
   const clases = `${TAMANOS[tamano]} ${radio} ${color.fondo} shrink-0 border border-borde object-cover`;
 
-  const src = rutaDeImagen(url);
+  const ruta = rutaDeImagen(url);
+  // Las de Unsplash se piden al doble del lado (pantallas densas), recortadas
+  // a las caras. Su crédito está en `/legales#fotos`: en 28–80 px no entra.
+  const src = esDeUnsplash(ruta)
+    ? urlConTamanio(ruta, LADOS[tamano] * 2, {
+        alto: LADOS[tamano] * 2,
+        encuadre: forma === "redondo" ? "caras" : "entropia",
+      })
+    : ruta;
 
   if (src) {
     // Los logos y las fotos viven en Supabase Storage, con dominios variables:

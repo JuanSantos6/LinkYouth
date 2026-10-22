@@ -15,10 +15,11 @@ import {
   obtenerVacante,
   obtenerVacantesPostuladas,
 } from "@/lib/data/consultas";
+import { imagenDeLugar } from "@/lib/data/fotos";
 import { ETAPAS } from "@/lib/dominio/ProcesoDePostulacion";
 import { ETIQUETA_MODALIDAD } from "@/lib/dominio/ReglasDeBusqueda";
 import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
-import { imagenDeRubro } from "@/lib/imagenes";
+import { imagenDeRubro, lugarDeRubro } from "@/lib/imagenes";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,10 @@ export default async function PaginaVacante({ params }: Props) {
   const vacante = resultado.datos;
   const esEjemplo = resultado.origen === "ejemplo";
   const requisitos = [...vacante.habilidades, ...vacante.tags];
-  const fotoRubro = imagenDeRubro(vacante.empresa.rubro);
+  const fotoRubro = await imagenDeLugar(
+    lugarDeRubro(vacante.empresa.rubro),
+    imagenDeRubro(vacante.empresa.rubro),
+  );
 
   return (
     <article className="mx-auto max-w-5xl space-y-6">

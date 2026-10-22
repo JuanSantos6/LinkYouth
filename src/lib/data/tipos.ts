@@ -1,3 +1,4 @@
+import type { CreditoDeFoto } from "@/lib/unsplash";
 import type { Database } from "@/types/database";
 
 /**
@@ -134,6 +135,8 @@ export type Evento = {
   descripcion: string;
   fecha_hora: string;
   imagen_url: string | null;
+  /** Atribución, si la imagen es de Unsplash (`src/lib/data/fotos.ts`). */
+  credito?: CreditoDeFoto | null;
   estado: EstadoEvento;
   direccion: string | null;
   latitud: number | null;
@@ -312,6 +315,7 @@ export type EventoDeEmpresa = {
   descripcion: string;
   fecha_hora: string;
   imagen_url: string | null;
+  credito?: CreditoDeFoto | null;
   estado: EstadoEvento;
   direccion: string | null;
   latitud: number | null;

@@ -21,8 +21,9 @@ import {
   obtenerTipoCuenta,
   obtenerVacantes,
 } from "@/lib/data/consultas";
+import { imagenDeLugar } from "@/lib/data/fotos";
 import { etiquetaTipo, tiempoRelativo } from "@/lib/formato";
-import { imagen } from "@/lib/imagenes";
+import { imagen, type ImagenDePagina } from "@/lib/imagenes";
 import { areaDe } from "@/lib/navegacion";
 
 export const metadata: Metadata = {
@@ -79,12 +80,38 @@ const DIAPOSITIVAS: Diapositiva[] = [
       { href: "#nosotros", etiqueta: "Conocernos" },
     ],
     foto: {
-      que: "un taller de LinkYouth en la Universidad de Montevideo",
+      que: "un taller con jóvenes",
       tono: "mandarina",
       semilla: 3,
     },
   },
 ];
+
+/**
+ * El lugar en `lugares_con_foto` de cada diapositiva y cada paso, en orden.
+ * Si `scripts/fotos/` todavía no eligió una foto de Unsplash para el lugar,
+ * queda la propia (o el recuadro provisional).
+ */
+const LUGARES_DIAPOSITIVAS = [
+  "portada:bienvenida",
+  "portada:empresas",
+  "portada:eventos",
+];
+const LUGARES_PASOS = ["portada:ficha", "portada:busqueda", "portada:postular"];
+
+/** Cambia la imagen de cada elemento por la de su lugar, si la hay. */
+async function conFotos<T extends { imagen?: ImagenDePagina }>(
+  elementos: readonly T[],
+  lugares: readonly string[],
+): Promise<T[]> {
+  return Promise.all(
+    elementos.map(async (elemento, i) => ({
+      ...elemento,
+      imagen:
+        (await imagenDeLugar(lugares[i], elemento.imagen ?? null)) ?? undefined,
+    })),
+  );
+}
 
 const BENEFICIOS = [
   {
@@ -195,10 +222,26 @@ function TituloSeccion({
  * JavaScript y con «reducir movimiento» queda quieto y completo.
  */
 export default async function Portada() {
-  const [empresas, tipo, vacantes] = await Promise.all([
+  const [
+    empresas,
+    tipo,
+    vacantes,
+    diapositivas,
+    pasos,
+    fotoNosotros,
+    fotoBusquedas,
+    fotoPreguntas,
+    fotoCierre,
+  ] = await Promise.all([
     obtenerEmpresas(),
     obtenerTipoCuenta(),
     obtenerVacantes({ limite: 8 }),
+    conFotos(DIAPOSITIVAS, LUGARES_DIAPOSITIVAS),
+    conFotos(PASOS, LUGARES_PASOS),
+    imagenDeLugar("portada:nosotros", null),
+    imagenDeLugar("portada:feria", imagen("portada-feria")),
+    imagenDeLugar("portada:preguntas", null),
+    imagenDeLugar("portada:cierre", imagen("portada-cierre")),
   ]);
   const area = areaDe(tipo);
 
@@ -224,7 +267,7 @@ export default async function Portada() {
               id="bienvenida-interior"
               className="absolute inset-0 origin-[50%_35%] will-change-transform"
             >
-              <SliderBienvenida diapositivas={DIAPOSITIVAS} />
+              <SliderBienvenida diapositivas={diapositivas} />
             </div>
           </section>
 
@@ -261,11 +304,20 @@ export default async function Portada() {
                   data-revelar
                   className="aspect-[4/3] overflow-hidden rounded-[28px]"
                 >
-                  <FotoProvisional
-                    que="el equipo de LinkYouth"
-                    tono="mixto"
-                    semilla={7}
-                  />
+                  {/* Un aula o un campus, nunca «el equipo»: una foto de banco
+                      no se presenta como algo de LinkYouth. */}
+                  {fotoNosotros ? (
+                    <Foto
+                      imagen={fotoNosotros}
+                      sizes="(min-width: 768px) 50vw, 100vw"
+                    />
+                  ) : (
+                    <FotoProvisional
+                      que="el equipo de LinkYouth"
+                      tono="mixto"
+                      semilla={7}
+                    />
+                  )}
                 </div>
                 <div data-revelar className="space-y-4">
                   <h2 className="text-[30px] leading-tight font-extrabold text-tinta sm:text-[40px]">
@@ -299,7 +351,7 @@ export default async function Portada() {
               titulo="Así funciona"
               bajada="Tres pasos, en este orden."
             />
-            <TarjetasPasos pasos={PASOS} />
+            <TarjetasPasos pasos={pasos} />
           </div>
         </section>
 
@@ -316,7 +368,7 @@ export default async function Portada() {
               data-ic-lienzo
               className="absolute inset-x-4 inset-y-10 overflow-hidden rounded-[28px] md:inset-0 md:rounded-none"
             >
-              <Foto imagen={imagen("portada-feria")} sizes="100vw" />
+              <Foto imagen={fotoBusquedas} sizes="100vw" />
               <div
                 aria-hidden="true"
                 className="absolute inset-0 bg-[linear-gradient(180deg,rgb(21_19_42/0.85)_0%,rgb(21_19_42/0.72)_55%,rgb(21_19_42/0.88)_100%)]"
@@ -480,9 +532,30 @@ export default async function Portada() {
           className="relative z-[1] bg-papel pt-8 pb-20"
         >
           <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6">
-            <TituloSeccion id="t-preguntas" titulo="Preguntas frecuentes" />
-            <div data-revelar>
-              <PreguntasFrecuentes />
+            <div
+              className={
+                fotoPreguntas
+                  ? "grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] md:items-start"
+                  : undefined
+              }
+            >
+              <div>
+                <TituloSeccion id="t-preguntas" titulo="Preguntas frecuentes" />
+                <div data-revelar>
+                  <PreguntasFrecuentes />
+                </div>
+              </div>
+              {fotoPreguntas && (
+                <div
+                  data-revelar
+                  className="aspect-[4/5] overflow-hidden rounded-[28px] md:sticky md:top-28"
+                >
+                  <Foto
+                    imagen={fotoPreguntas}
+                    sizes="(min-width: 768px) 40vw, 100vw"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -532,7 +605,7 @@ export default async function Portada() {
               </div>
               <div className="aspect-[16/10] overflow-hidden rounded-[20px]">
                 <Foto
-                  imagen={imagen("portada-cierre")}
+                  imagen={fotoCierre}
                   sizes="(min-width: 768px) 440px, 100vw"
                 />
               </div>

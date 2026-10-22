@@ -11,12 +11,12 @@ import { BotonEnlace } from "@/components/ui/Boton";
 import { BotonConfirmado } from "@/components/ui/BotonConfirmado";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { FotoConCredito } from "@/components/ui/FotoConCredito";
 import { Insignia } from "@/components/ui/Insignia";
 import { cancelarEvento } from "@/lib/acciones/eventosDeEmpresa";
 import { obtenerEventoDeEmpresa, obtenerInscriptos } from "@/lib/data/empresa";
 import { ReglasDeEvento } from "@/lib/dominio/ReglasDeEvento";
 import { fechaLarga, hora, tiempoRelativo } from "@/lib/formato";
-import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
 
 export const metadata: Metadata = { title: "Evento" };
 export const dynamic = "force-dynamic";
@@ -188,18 +188,14 @@ export default async function PaginaEvento({
           <h2 id="t-detalle" className="text-[17px] font-bold text-tinta">
             Lo que publicaste
           </h2>
-          {evento.imagen_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={rutaDeImagen(evento.imagen_url) ?? undefined}
-              alt={`Foto del evento ${evento.titulo}`}
-              width={640}
-              height={360}
-              loading="lazy"
-              decoding="async"
-              className="aspect-[16/9] w-full rounded-ficha object-cover"
-            />
-          )}
+          <FotoConCredito
+            url={evento.imagen_url}
+            alt={`Foto del evento ${evento.titulo}`}
+            ancho={640}
+            alto={360}
+            credito={evento.credito}
+            className="aspect-[16/9] w-full rounded-ficha"
+          />
           <p className="text-[14.5px] leading-relaxed whitespace-pre-line text-tinta">
             {evento.descripcion}
           </p>

@@ -14,6 +14,7 @@ import {
   SIN_SESION,
   TABLA_VACIA,
 } from "./comun";
+import { conCreditos } from "./fotos";
 
 // Sigue saliendo de acá para no tocar a quien ya lo importa de este módulo.
 export { obtenerUsuarioId } from "./comun";
@@ -284,7 +285,7 @@ export async function obtenerEventos(
   }
 
   const eventos = data.flatMap((fila) => comoEvento(fila) ?? []);
-  return { datos: eventos, origen: "supabase" };
+  return { datos: await conCreditos(eventos), origen: "supabase" };
 }
 
 /**
@@ -307,8 +308,10 @@ export async function obtenerEvento(
 
   const { data } = await consultarEventos(supabase).eq("id", id).maybeSingle();
   const evento = data ? comoEvento(data) : null;
+  if (!evento) return null;
 
-  return evento ? { datos: evento, origen: "supabase" } : null;
+  const [conCredito] = await conCreditos([evento]);
+  return { datos: conCredito, origen: "supabase" };
 }
 
 // --- Perfil -----------------------------------------------------------------

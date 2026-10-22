@@ -1,5 +1,6 @@
 import { colorDeAvatar } from "@/lib/diseno/avatar";
 import { Institucion } from "@/lib/dominio/Institucion";
+import { esDeUnsplash, urlConTamanio } from "@/lib/unsplash";
 
 /**
  * La imagen de una institución educativa: una foto genérica de campus o aula
@@ -9,23 +10,24 @@ import { Institucion } from "@/lib/dominio/Institucion";
  */
 export function ImagenDeInstitucion({
   nombre,
-  foto,
+  url,
   tamanio = 48,
 }: {
   nombre: string;
-  foto?: { src: string; alt: string } | null;
+  /** La foto de Unsplash de la institución (`fotosDeInstituciones`). */
+  url?: string | null;
   /** Lado en píxeles. */
   tamanio?: number;
 }) {
   const institucion = new Institucion(nombre);
   const lado = { width: tamanio, height: tamanio };
 
-  if (foto) {
+  if (esDeUnsplash(url)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- foto de Unsplash por hotlink, ver docs/imagenes.md
       <img
-        src={foto.src}
-        alt={foto.alt}
+        src={urlConTamanio(url, tamanio * 2, { alto: tamanio * 2 })}
+        alt=""
         {...lado}
         loading="lazy"
         decoding="async"

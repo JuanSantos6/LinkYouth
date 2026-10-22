@@ -13,6 +13,8 @@ export type PerfilDeOrganizacion = {
   rubro: string;
   descripcion: string | null;
   logo_url: string | null;
+  /** Foto de cabecera (migración 008), de Unsplash por hotlink. */
+  portada_url: string | null;
   sitio_web: string | null;
   vacantes: Vacante[];
   resenias: ReseniaRecibida[];
@@ -33,7 +35,9 @@ export async function obtenerOrganizacion(
 
   const { data: empresa, error } = await supabase
     .from("empresas")
-    .select("id, razon_social, rubro, descripcion, logo_url, sitio_web")
+    .select(
+      "id, razon_social, rubro, descripcion, logo_url, portada_url, sitio_web",
+    )
     .eq("id", id)
     .maybeSingle();
   if (error) return ejemplo(null, error.message);

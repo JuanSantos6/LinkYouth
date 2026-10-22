@@ -15,6 +15,7 @@ import {
   obtenerBusqueda,
   obtenerPostulacionesRecibidas,
 } from "@/lib/data/empresa";
+import { fotosDeInstituciones } from "@/lib/data/fotos";
 import { CoincidenciaDeCandidato } from "@/lib/dominio/CoincidenciaDeCandidato";
 import { EstadoParaEmpresa } from "@/lib/dominio/EstadoParaEmpresa";
 import { etiquetaEstadoFormacion, tiempoRelativo } from "@/lib/formato";
@@ -76,6 +77,9 @@ export default async function PaginaPostulante({
     postulacion,
   );
   const { persona } = postulacion;
+  const fotosInstitucion = await fotosDeInstituciones(
+    postulacion.formaciones.map((f) => f.institucion),
+  );
   const volver = `/empresa/busquedas/${busqueda.id}`;
 
   return (
@@ -200,7 +204,10 @@ export default async function PaginaPostulante({
                     key={formacion.id}
                     className="flex items-center gap-3 rounded-ficha border border-filete p-3"
                   >
-                    <ImagenDeInstitucion nombre={formacion.institucion} />
+                    <ImagenDeInstitucion
+                      nombre={formacion.institucion}
+                      url={fotosInstitucion[formacion.institucion]}
+                    />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[15px] font-semibold text-tinta">
                         {formacion.titulo}

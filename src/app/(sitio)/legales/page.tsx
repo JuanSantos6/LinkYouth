@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CORREO_DE_CONTACTO, enlaceDeCorreo } from "@/lib/contacto";
+import { obtenerTodasLasFotos } from "@/lib/data/fotos";
 
 /** Un enlace al correo de contacto, con el asunto que corresponde. */
 function Correo({ asunto }: { asunto: string }) {
@@ -17,13 +18,18 @@ function Correo({ asunto }: { asunto: string }) {
 export const metadata: Metadata = { title: "Legales" };
 
 /**
- * Términos, privacidad y accesibilidad.
+ * Términos, privacidad, accesibilidad y el crédito de las fotos.
  *
  * El texto describe lo que el proyecto hace hoy y lo que todavía no, sin
  * prometer garantías que nadie revisó: LinkYouth es un proyecto académico en
  * construcción y decirlo es parte de tratar bien los datos de quien lo usa.
  */
-export default function PaginaLegales() {
+export default async function PaginaLegales() {
+  // Cada foto de Unsplash, con su autor (sus directrices piden atribuir).
+  // Las grandes llevan el crédito encima; acá están todas, también las de
+  // los avatares y las instituciones, donde no entra.
+  const fotos = await obtenerTodasLasFotos();
+
   return (
     <article className="space-y-12">
       <header>
@@ -107,6 +113,53 @@ export default function PaginaLegales() {
             <Correo asunto="Accesibilidad en LinkYouth" />. Arreglarlo entra
             antes que cualquier función nueva.
           </p>
+        </div>
+      </section>
+
+      <section id="fotos" className="scroll-mt-20">
+        <h2 className="text-[22px] text-tinta">Fotos</h2>
+        <div className="mt-3 space-y-3 text-[15px] leading-relaxed text-apagado">
+          <p>
+            Las fotos de la página, de las búsquedas, de los eventos y de las
+            cuentas de demostración son de{" "}
+            <a
+              href="https://unsplash.com/?utm_source=linkyouth&utm_medium=referral"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-acento underline-offset-4 hover:underline"
+            >
+              Unsplash
+            </a>
+            , y cada una lleva el nombre de quien la sacó. Son fotos de banco:
+            no muestran a personas, eventos ni instituciones de LinkYouth. Las
+            instituciones educativas aparecen con una foto genérica, nunca con
+            su logo.
+          </p>
+          {fotos.length > 0 && (
+            <ul className="grid gap-1.5 text-[14px] sm:grid-cols-2">
+              {fotos.map((foto) => (
+                <li key={foto.enlace}>
+                  <a
+                    href={foto.enlace}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-tinta underline-offset-4 hover:underline"
+                  >
+                    {foto.descripcion}
+                  </a>
+                  {", de "}
+                  <a
+                    href={foto.autorEnlace}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline-offset-4 hover:underline"
+                  >
+                    {foto.autor}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
     </article>

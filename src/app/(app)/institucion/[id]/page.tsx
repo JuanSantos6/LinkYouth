@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Encabezado } from "@/components/layout/Encabezado";
+import { ImagenDeInstitucion } from "@/components/perfil/ImagenDeInstitucion";
 import { Aviso, AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Foto } from "@/components/ui/Foto";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { obtenerInstitucion } from "@/lib/data/consultas";
+import { imagenDeLugar } from "@/lib/data/fotos";
+import { Institucion } from "@/lib/dominio/Institucion";
 
 export const metadata: Metadata = { title: "Institución" };
 export const dynamic = "force-dynamic";
@@ -35,9 +39,22 @@ export default async function PaginaInstitucion({
   if (!institucion.datos) notFound();
 
   const { nombre, estudiantes, titulos } = institucion.datos;
+  // Una foto genérica de campus o aula, nunca el logo: la institución es real
+  // y su marca no es nuestra. Sin foto, sus iniciales.
+  const foto = await imagenDeLugar(
+    `institucion:${new Institucion(nombre).id}`,
+    null,
+  );
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      {foto ? (
+        <div className="aspect-[21/9] w-full overflow-hidden rounded-tarjeta border border-borde">
+          <Foto imagen={foto} sizes="(min-width: 768px) 768px, 100vw" />
+        </div>
+      ) : (
+        <ImagenDeInstitucion nombre={nombre} tamanio={72} />
+      )}
       <Encabezado
         titulo={nombre}
         descripcion="Institución educativa declarada por perfiles de LinkYouth."
