@@ -184,9 +184,9 @@ test("sin resultado, la empresa no ve ninguna sección de personalidad", async (
 }) => {
   compatibilidadSinResultado = await fichaDeLaEmpresa(page);
   expect(compatibilidadSinResultado).toContain("Declara 1 de 2");
-  await expect(page.getByRole("heading", { name: "Personalidad" })).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByRole("heading", { name: "Personalidad", exact: true }),
+  ).toHaveCount(0);
 });
 
 test("el joven carga su resultado de la lista y nace oculto", async ({
@@ -238,9 +238,9 @@ test("oculto: la empresa no lo ve, ni en la ficha ni por la API", async ({
   page,
 }) => {
   await fichaDeLaEmpresa(page);
-  await expect(page.getByRole("heading", { name: "Personalidad" })).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByRole("heading", { name: "Personalidad", exact: true }),
+  ).toHaveCount(0);
 
   const empresa = await clienteDe(EMPRESA);
   const { data } = await empresa
@@ -264,7 +264,7 @@ test("el joven lo muestra y la empresa lo ve, sin cambiar la compatibilidad", as
 
   const compatibilidad = await fichaDeLaEmpresa(page);
   const seccion = page.locator("section", {
-    has: page.getByRole("heading", { name: "Personalidad" }),
+    has: page.getByRole("heading", { name: "Personalidad", exact: true }),
   });
   await expect(seccion.getByText("Arquitecto")).toBeVisible();
   await expect(seccion.getByText("INTJ-T")).toBeVisible();
@@ -293,9 +293,9 @@ test("el joven lo oculta y la empresa deja de verlo", async ({ page }) => {
   await expect(interruptor).toHaveAttribute("aria-checked", "false");
 
   const compatibilidad = await fichaDeLaEmpresa(page);
-  await expect(page.getByRole("heading", { name: "Personalidad" })).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByRole("heading", { name: "Personalidad", exact: true }),
+  ).toHaveCount(0);
   expect(compatibilidad).toBe(compatibilidadSinResultado);
 });
 
@@ -310,11 +310,10 @@ test("el joven cambia el tipo y después lo borra", async ({ page }) => {
   await seccion.getByLabel("Tu tipo").selectOption("ENFP");
   await seccion.getByRole("radio", { name: /-A/ }).check();
   await seccion.getByRole("button", { name: "Guardar resultado" }).click();
+  // La vista previa ya dice «Activista» antes de guardar: se espera la
+  // confirmación del servidor, no la insignia.
   await expect(
-    seccion
-      .locator('[data-personalidad="ENFP-A"]')
-      .getByText("Activista")
-      .first(),
+    seccion.getByText("Guardaste tu resultado: Activista (ENFP-A)."),
   ).toBeVisible();
   // Cambiar el tipo no cambia lo que decidió sobre mostrarlo.
   expect(await filaDelJoven()).toEqual({
@@ -322,7 +321,7 @@ test("el joven cambia el tipo y después lo borra", async ({ page }) => {
     visible_para_empresas: false,
   });
 
-  await seccion.getByText("Cambiar resultado").click();
+  // «Cambiar resultado» sigue abierto después de guardar.
   await seccion.getByRole("button", { name: "Borrar resultado" }).click();
   await seccion.getByRole("button", { name: "Sí, borrarlo" }).click();
   await expect(seccion.getByText("Sin completar")).toBeVisible();
