@@ -169,8 +169,10 @@ test("el joven se postula y la empresa lo lleva por los estados (RF3.6, RF3.4.3,
 
   await entrar(page, EMPRESA.email);
   await page.goto(`/empresa/busquedas/${vacante!.id}`);
+  // El tablero tiene un marcado para el teléfono y otro para escritorio.
   await page
     .getByRole("link", { name: /Joven De Prueba|e2e_joven/ })
+    .filter({ visible: true })
     .first()
     .click();
   await page.waitForURL(/\/postulantes\//);

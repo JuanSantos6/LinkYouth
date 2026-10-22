@@ -20,6 +20,21 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   joven a `/inicio`. Antes la portada se renderizaba igual y la cabecera de
   una empresa mostraba el menú público («Nosotros», «Cómo funciona»,
   «Búsquedas»…). e2e en `e2e/sesion.spec.ts` para los dos tipos de cuenta.
+- **Panel de empresa con jerarquía** (`src/app/empresa/page.tsx`): arriba el
+  saludo y las dos acciones (publicar búsqueda, crear evento); después las
+  cifras en tarjetas compactas; después «Para revisar», las postulaciones
+  nuevas (`ResumenDePanel.nuevosParaRevisar`); y al final el resto. Se veía
+  amontonado: mucho texto de ayuda, todo con el mismo peso.
+- **Postulantes de una búsqueda agrupados por estado**
+  (`src/app/empresa/busquedas/[id]/page.tsx`, `agruparPorEstado`,
+  `TarjetaDePostulante`): sin el filtro con desplazamiento horizontal; todos
+  los estados a la vista con su contador, tablero por columnas en escritorio
+  y secciones plegables en el teléfono. Con el filtro solo se veía un estado
+  a la vez y había que deslizar para encontrar los demás.
+- **Ficha del postulante en secciones** (`…/postulantes/[postulacionId]`):
+  foto, datos y acciones arriba; compatibilidad, habilidades, intereses,
+  formación (con `ImagenDeInstitucion`, iniciales por ahora, nunca el logo
+  real) y biografía, cada una en su tarjeta. Se leía como un solo bloque.
 
 ## 2026-10-20 — Imágenes en toda la página
 

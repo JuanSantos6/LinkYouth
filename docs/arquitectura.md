@@ -760,8 +760,10 @@ de arriba de `/perfil`.
 `busquedasActivas`, `postulantesNuevos`, `posicionesAbiertas`,
 `eventosProximos`, `recomendados` (hasta cuatro postulantes propios en
 proceso, con al menos una habilidad pedida, de más a menos coincidencia) y
-`faltaEnElPerfil`. Qué cuenta como «activa», «nuevo», «próximo» o
-«recomendado» es una regla de negocio, y vive acá.
+`faltaEnElPerfil`, y `nuevosParaRevisar(limite = 5)`: las postulaciones
+`pendiente` de las búsquedas activas, de la más reciente a la más vieja, que
+el panel muestra en «Para revisar» (2026-10-22). Qué cuenta como «activa»,
+«nuevo», «próximo» o «recomendado» es una regla de negocio, y vive acá.
 
 #### `CoincidenciaDeCandidato`
 
@@ -777,7 +779,10 @@ ocultos) tiene, como dos cuentas separadas y sin porcentaje (RF3.4.2, RF3.9).
 `new EstadoParaEmpresa(estado)`: cómo nombra la empresa cada estado (Nueva, En
 revisión, Entrevista, Seleccionada, Descartada, Se retiró), `tono`, `esNueva`,
 `seRetiro`, `final`, `siguientes` (con el texto del botón) y
-`puedePasarA(destino)`. Solo hacia adelante. Exporta `ESTADOS_PARA_EMPRESA`.
+`puedePasarA(destino)`. Solo hacia adelante. Exporta `ESTADOS_PARA_EMPRESA`
+y `agruparPorEstado(items, estadoDe)`: los grupos del tablero de postulantes
+de una búsqueda, en ese orden, con los vacíos, y «Se retiró» al final solo si
+hay alguien (2026-10-22).
 
 #### `ReglasDeBusqueda`
 
@@ -995,6 +1000,7 @@ para que no se lea como permiso general.
 | `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
+| `ImagenDeInstitucion` | `nombre`, `foto?`, `tamanio?` | La imagen de una institución educativa: una foto genérica de campus o aula si la hay, y si no, sus iniciales sobre un color de la paleta (`colorDeAvatar` del id de `Institucion`). Nunca el logo real (2026-10-22). |
 | `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca provisoria (iniciales) si no hay logo; el aviso de abajo aparece en cuanto hay una sola. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
 | `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
@@ -1017,7 +1023,7 @@ para que no se lea como permiso general.
 | --- | --- | --- |
 | `FormularioDeBusqueda` | `busqueda?`, `catalogos`, `esEjemplo?` | Publicar o editar una búsqueda. Errores por campo y valores que no se pierden (`valoresDeFormulario`). |
 | `AccionesDeBusqueda` | `busqueda`, `esEjemplo?` | Editar, pausar, reactivar, cerrar y eliminar, según `ReglasDeBusqueda`. |
-| `FilaDePostulante` | `postulacion`, `coincidencia`, `href`, `detalle?` | Una persona que se postuló, con su estado y lo que declara de lo pedido. |
+| `TarjetaDePostulante` | `postulacion`, `coincidencia`, `href` | Una persona en el tablero de postulantes de una búsqueda: foto, nombre, cuántas pedidas declara y hace cuánto. Entra en una columna angosta. Reemplazó a `FilaDePostulante` (2026-10-22). |
 | `CambioDeEstado` | `postulacionId`, `estado`, `nombre`, `esEjemplo?` | Los pasos siguientes de una postulación; seleccionar y descartar con confirmación. |
 | `Coincidencia` | `coincidencia` | «Declara 3 de 4 habilidades pedidas · 1 de 2 intereses clave». |
 | `HabilidadesDeclaradas` | `habilidades`, `coincidencia?`, `titulo?` | Las habilidades declaradas, con las pedidas primero y marcadas en violeta. |
