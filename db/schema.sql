@@ -49,6 +49,9 @@ create table empresas (
   rubro          text not null,
   descripcion    text,
   logo_url       text,
+  -- Foto de cabecera del perfil público (migración 008): una URL de
+  -- Unsplash registrada en `fotos`. Sin ella, la de su rubro.
+  portada_url    text,
   -- Sitio web de la empresa (migración 005). La forma la valida también la
   -- aplicación; acá se garantiza que sea una dirección http o https.
   sitio_web      text check (
@@ -150,6 +153,16 @@ create table vacante_tags_ocultos (
   primary key (vacante_id, tag_id)
 );
 
+-- Habilidades ocultas (migración 008, RF3.1.6): la empresa marca cada
+-- habilidad que pide como pública u oculta. Tabla aparte por lo mismo que
+-- los tags ocultos: `vacante_habilidades` se lee sin sesión, y RLS decide
+-- filas, no columnas.
+create table vacante_habilidades_ocultas (
+  vacante_id    uuid not null references vacantes(id) on delete cascade,
+  habilidad_id  uuid not null references habilidades(id) on delete cascade,
+  primary key (vacante_id, habilidad_id)
+);
+
 create table postulaciones (
   id             uuid primary key default gen_random_uuid(),
   vacante_id     uuid not null references vacantes(id) on delete cascade,
@@ -215,6 +228,38 @@ create table inscripciones_evento (
   perfil_id  uuid not null references perfiles(id) on delete cascade,
   creada_en  timestamptz not null default now(),
   primary key (evento_id, perfil_id)
+);
+
+-- ============================================================
+-- MÓDULO: Fotos de Unsplash (migración 008)
+-- Se muestran con la URL que devuelve la API (hotlink), como piden sus
+-- directrices. `fotos` guarda la atribución de cada URL; la URL vive en la
+-- columna de quien la usa (`perfiles.foto_url`, `empresas.portada_url`,
+-- `eventos.imagen_url`) o, para los lugares fijos de la página, en
+-- `lugares_con_foto`. Las elige `scripts/fotos/` una sola vez.
+-- ============================================================
+
+create table fotos (
+  -- `urls.raw` de la API, sin parámetros de tamaño.
+  url             text primary key check (url like 'https://images.unsplash.com/%'),
+  unsplash_id     text not null unique,
+  autor           text not null,
+  autor_enlace    text not null check (autor_enlace like 'https://unsplash.com/%'),
+  enlace          text not null check (enlace like 'https://unsplash.com/%'),
+  descripcion     text not null,
+  ancho           int not null check (ancho > 0),
+  alto            int not null check (alto > 0),
+  color           text check (color is null or color ~ '^#[0-9a-fA-F]{6}$'),
+  -- Cuándo se avisó a `download_location`, como pide Unsplash al usarla.
+  descarga_avisada_en timestamptz,
+  creada_en       timestamptz not null default now()
+);
+
+-- `portada:bienvenida`, `vacio:postulaciones`, `rubro:tecnologia`,
+-- `institucion:udelar`…
+create table lugares_con_foto (
+  lugar  text primary key check (lugar ~ '^[a-z]+:[a-z0-9-]+$'),
+  url    text not null references fotos(url) on update cascade
 );
 
 -- ============================================================
@@ -624,6 +669,8 @@ create index if not exists idx_vacante_tags_publicos_tag
   on vacante_tags_publicos (tag_id);
 create index if not exists idx_vacante_tags_ocultos_tag
   on vacante_tags_ocultos (tag_id);
+create index if not exists idx_vacante_habilidades_ocultas_habilidad
+  on vacante_habilidades_ocultas (habilidad_id);
 create index if not exists idx_vacante_habilidades_habilidad
   on vacante_habilidades (habilidad_id);
 create index if not exists idx_evento_tags_tag

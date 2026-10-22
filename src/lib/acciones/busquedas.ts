@@ -45,13 +45,14 @@ function leerBusqueda(datos: FormData): DatosDeBusqueda {
     ubicacion: texto("ubicacion"),
     posiciones: Number(texto("posiciones")),
     habilidades: lista("habilidades"),
+    habilidadesOcultas: lista("habilidadesOcultas"),
     tags: lista("tags"),
     tagsOcultos: lista("tagsOcultos"),
   };
 }
 
 /**
- * Deja las tres tablas puente de la búsqueda con exactamente lo elegido.
+ * Deja las cuatro tablas puente de la búsqueda con exactamente lo elegido.
  *
  * Borrar todo y volver a insertar, en vez de calcular qué sobra y qué falta:
  * son a lo sumo una decena de filas por tabla y la versión simple no se
@@ -65,6 +66,10 @@ async function sincronizarPuentes(
 ): Promise<string | null> {
   const borrados = await Promise.all([
     supabase.from("vacante_habilidades").delete().eq("vacante_id", vacanteId),
+    supabase
+      .from("vacante_habilidades_ocultas")
+      .delete()
+      .eq("vacante_id", vacanteId),
     supabase.from("vacante_tags_publicos").delete().eq("vacante_id", vacanteId),
     supabase.from("vacante_tags_ocultos").delete().eq("vacante_id", vacanteId),
   ]);
@@ -75,6 +80,14 @@ async function sincronizarPuentes(
     datos.habilidades.length
       ? supabase.from("vacante_habilidades").insert(
           datos.habilidades.map((habilidad_id) => ({
+            vacante_id: vacanteId,
+            habilidad_id,
+          })),
+        )
+      : null,
+    datos.habilidadesOcultas.length
+      ? supabase.from("vacante_habilidades_ocultas").insert(
+          datos.habilidadesOcultas.map((habilidad_id) => ({
             vacante_id: vacanteId,
             habilidad_id,
           })),

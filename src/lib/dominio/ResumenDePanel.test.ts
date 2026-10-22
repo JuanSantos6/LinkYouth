@@ -39,6 +39,7 @@ function recomendado(
       id: "b1",
       titulo: "Pasantía",
       habilidades: [],
+      habilidadesOcultas: [],
       tagsOcultos: [],
     },
   };

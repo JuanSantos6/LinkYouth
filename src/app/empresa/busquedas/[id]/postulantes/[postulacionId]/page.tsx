@@ -72,10 +72,7 @@ export default async function PaginaPostulante({
   const esEjemplo = postulaciones.origen === "ejemplo";
   const estado = new EstadoParaEmpresa(postulacion.estado);
   const coincidencia = CoincidenciaDeCandidato.entre(
-    {
-      habilidades: busqueda.habilidades.map((h) => h.nombre),
-      tagsOcultos: busqueda.tagsOcultos.map((t) => t.nombre),
-    },
+    CoincidenciaDeCandidato.requisitosDe(busqueda),
     postulacion,
   );
   const { persona } = postulacion;

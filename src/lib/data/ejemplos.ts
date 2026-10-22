@@ -372,6 +372,7 @@ export const BUSQUEDAS_EJEMPLO: BusquedaCompleta[] = [
     descripcion:
       "Vas a sumarte al equipo que construye el portal de clientes, con React y TypeScript. Te acompaña un referente técnico y tenés tiempo protegido para aprender.",
     habilidades: opcionesDe(["React", "TypeScript", "HTML y CSS", "Git"]),
+    habilidadesOcultas: opcionesDe(["Inglés B2"]),
     tags: opcionesDe(["Desarrollo web", "Primera experiencia"]),
     tagsOcultos: opcionesDe(["Diseño de interfaces"]),
   },
@@ -389,6 +390,7 @@ export const BUSQUEDAS_EJEMPLO: BusquedaCompleta[] = [
     descripcion:
       "Atención de consultas de clientes por chat y teléfono, con capacitación inicial de dos semanas y horario compatible con el estudio.",
     habilidades: opcionesDe(["Comunicación", "Trabajo en equipo"]),
+    habilidadesOcultas: [],
     tags: opcionesDe(["Atención al cliente"]),
     tagsOcultos: [],
   },
@@ -406,6 +408,7 @@ export const BUSQUEDAS_EJEMPLO: BusquedaCompleta[] = [
     descripcion:
       "Armado de tableros y limpieza de datos para el área comercial, con SQL y planillas. Búsqueda cerrada: se cubrió la posición.",
     habilidades: opcionesDe(["SQL", "Inglés B2"]),
+    habilidadesOcultas: [],
     tags: opcionesDe(["Datos"]),
     tagsOcultos: [],
   },

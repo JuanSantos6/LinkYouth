@@ -11,6 +11,10 @@
  *   coinciden con los intereses públicos de la persona. Solo la empresa ve
  *   este número, porque solo ella conoce los tags ocultos.
  *
+ * Las habilidades ocultas (RF3.1.6, migración 008) cuentan como pedidas igual
+ * que las públicas: la empresa las pide, solo que sin publicarlas.
+ * `requisitosDe` arma la lista.
+ *
  * Un porcentaje combinado esconde qué parte pesa; dos cuentas («3 de 4
  * habilidades», «2 de 3 intereses clave») se leen sin explicación.
  *
@@ -24,6 +28,21 @@ export class CoincidenciaDeCandidato {
     private readonly clave: readonly string[],
     private readonly intereses: ReadonlySet<string>,
   ) {}
+
+  /** Lo que pide una búsqueda, en nombres: públicas y ocultas juntas. */
+  static requisitosDe(busqueda: {
+    habilidades: readonly { nombre: string }[];
+    habilidadesOcultas?: readonly { nombre: string }[];
+    tagsOcultos: readonly { nombre: string }[];
+  }): { habilidades: string[]; tagsOcultos: string[] } {
+    return {
+      habilidades: [
+        ...busqueda.habilidades,
+        ...(busqueda.habilidadesOcultas ?? []),
+      ].map((h) => h.nombre),
+      tagsOcultos: busqueda.tagsOcultos.map((t) => t.nombre),
+    };
+  }
 
   static entre(
     busqueda: { habilidades: string[]; tagsOcultos: string[] },

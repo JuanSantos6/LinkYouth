@@ -47,7 +47,7 @@ const DIAPOSITIVAS: Diapositiva[] = [
     antetitulo: "Para quienes buscan su primer trabajo",
     titulo: "Tu primer trabajo empieza por lo que ya sabés hacer",
     texto:
-      "Sin currículum ni experiencia previa: elegís tus habilidades e intereses, y cada búsqueda te muestra cuánto coincidís.",
+      "Sin currículum ni experiencia previa: elegís tus habilidades e intereses, y las búsquedas más afines a vos aparecen primero.",
     acciones: [
       { href: "/registro", etiqueta: "Crear mi cuenta", primaria: true },
       { href: "#como-funciona", etiqueta: "Ver cómo funciona" },
@@ -93,9 +93,8 @@ const BENEFICIOS = [
       "Elegís habilidades e intereses de un catálogo común y sumás tu formación.",
   },
   {
-    titulo: "Búsquedas que coinciden",
-    texto:
-      "Cada vacante te muestra qué tenés de lo que pide, requisito por requisito.",
+    titulo: "Búsquedas para vos",
+    texto: "Las más afines a tus habilidades e intereses aparecen primero.",
   },
   {
     titulo: "Eventos para crecer",
@@ -120,9 +119,9 @@ const PASOS: Paso[] = [
     },
   },
   {
-    titulo: "Encontrá lo que coincide con vos",
+    titulo: "Encontrá búsquedas para vos",
     texto:
-      "Cada búsqueda te dice qué tenés de lo que pide, requisito por requisito, y las que más coinciden aparecen primero. No hay números misteriosos: siempre ves qué habilidades explican cada resultado, así sabés qué te conviene aprender para las próximas.",
+      "Las búsquedas más afines a tus habilidades e intereses aparecen primero, y cada una dice con claridad qué pide. Así sabés dónde postularte y qué te conviene aprender para las próximas.",
     imagen: imagen("portada-busqueda"),
   },
   {
@@ -506,8 +505,8 @@ export default async function Portada() {
                   Tu primer trabajo empieza acá
                 </h2>
                 <p className="max-w-[60ch] text-[17px] text-papel/85">
-                  Armá tu ficha en cinco minutos y mirá qué búsquedas coinciden
-                  con vos. ¿Tenés una consulta?{" "}
+                  Armá tu ficha en cinco minutos y mirá las búsquedas más afines
+                  a vos. ¿Tenés una consulta?{" "}
                   <Link
                     href="/contacto"
                     className="font-semibold text-papel underline underline-offset-4"

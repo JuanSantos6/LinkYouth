@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
+import { SelectorDeHabilidades } from "@/components/empresa/SelectorDeHabilidades";
 import { Aviso } from "@/components/ui/AvisoOrigen";
 import { Boton } from "@/components/ui/Boton";
 import { CAMPO, Campo } from "@/components/ui/Campo";
@@ -184,17 +185,16 @@ export function FormularioDeBusqueda({
           A quién buscás
         </legend>
 
-        <SelectorDeOpciones
-          nombre="habilidades"
-          leyenda="Habilidades que pedís"
-          ayuda="Con estas se ordena a quienes se postulen: ves cuántas declara cada persona."
+        <SelectorDeHabilidades
           opciones={catalogos.habilidades}
-          inicial={valor.lista("habilidades", ids(busqueda?.habilidades))}
+          publicas={valor.lista("habilidades", ids(busqueda?.habilidades))}
+          ocultas={valor.lista(
+            "habilidadesOcultas",
+            ids(busqueda?.habilidadesOcultas),
+          )}
           minimo={R.HABILIDADES_MIN}
           maximo={R.HABILIDADES_MAX}
           error={error.habilidades}
-          tono="acento"
-          textoMarca="pedida"
         />
 
         <SelectorDeOpciones

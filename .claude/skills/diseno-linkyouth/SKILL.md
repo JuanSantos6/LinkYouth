@@ -27,21 +27,21 @@ portada, donde el fondo no depende del tema.
 
 ## La paleta
 
-| Token                    | Claro     | Oscuro    | Para qué                                                                   |
-| ------------------------ | --------- | --------- | -------------------------------------------------------------------------- |
-| `tinta`                  | `#1E1A38` | `#F3F1FA` | Texto, botón secundario activo                                             |
-| `papel`                  | `#F7F6FB` | `#15132A` | Fondo de página                                                            |
-| `superficie`             | `#FFFFFF` | `#1F1C38` | Tarjetas                                                                   |
-| `apagado`                | `#5B5770` | `#B4B0C9` | Texto secundario                                                           |
-| `violeta`                | `#8C66FA` | `#9D7BFF` | **Marca**, del logo: menú activo, indicadores. **Nunca texto**             |
-| `acento` (violeta texto) | `#6541E0` | `#B39DFF` | Enlaces, foco, texto de acento                                             |
-| `turquesa`               | `#19DDD2` | `#19DDD2` | **«Ya lo tenés»**, del logo: medidor, coincidencias. Siempre con ✓ o texto |
-| `coincide-fondo`         | `#C8F5F2` | `#19DDD2` | Etiqueta que coincide (suave en claro)                                     |
-| `turquesa-texto`         | `#0A7A73` | `#19DDD2` | Borde e ícono de lo que ya tenés                                           |
-| `mandarina`              | `#F25C1A` | `#FF8A4C` | **Solo el botón principal**, con texto tinta                               |
-| `lavanda`                | `#EFEAFF` | `#2C2752` | Fondo suave: fecha de evento, invitación                                   |
-| `alerta`                 | `#B8123F` | `#FF7A99` | Errores, siempre con «No se pudo»                                          |
-| `borde-control`          | `#8A86A0` | `#817C9C` | Borde de campo o botón (3:1)                                               |
+| Token                    | Claro     | Oscuro    | Para qué                                                                               |
+| ------------------------ | --------- | --------- | -------------------------------------------------------------------------------------- |
+| `tinta`                  | `#1E1A38` | `#F3F1FA` | Texto, botón secundario activo                                                         |
+| `papel`                  | `#F7F6FB` | `#15132A` | Fondo de página                                                                        |
+| `superficie`             | `#FFFFFF` | `#1F1C38` | Tarjetas                                                                               |
+| `apagado`                | `#5B5770` | `#B4B0C9` | Texto secundario                                                                       |
+| `violeta`                | `#8C66FA` | `#9D7BFF` | **Marca**, del logo: menú activo, indicadores. **Nunca texto**                         |
+| `acento` (violeta texto) | `#6541E0` | `#B39DFF` | Enlaces, foco, texto de acento                                                         |
+| `turquesa`               | `#19DDD2` | `#19DDD2` | **«Ya lo tenés»**, del logo: lo que el joven eligió en su ficha. Siempre con ✓ o texto |
+| `coincide-fondo`         | `#C8F5F2` | `#19DDD2` | Etiqueta que coincide (suave en claro)                                                 |
+| `turquesa-texto`         | `#0A7A73` | `#19DDD2` | Borde e ícono de lo que ya tenés                                                       |
+| `mandarina`              | `#F25C1A` | `#FF8A4C` | **Solo el botón principal**, con texto tinta                                           |
+| `lavanda`                | `#EFEAFF` | `#2C2752` | Fondo suave: fecha de evento, invitación                                               |
+| `alerta`                 | `#B8123F` | `#FF7A99` | Errores, siempre con «No se pudo»                                                      |
+| `borde-control`          | `#8A86A0` | `#817C9C` | Borde de campo o botón (3:1)                                                           |
 
 Reglas de uso:
 
@@ -51,8 +51,9 @@ Reglas de uso:
 - **El turquesa del logo no se usa para texto** (1,7:1). Va de relleno con
   tinta encima, o como `turquesa-texto`.
 - **El color nunca va solo**: lo que coincide lleva ✓ y un texto para
-  lectores de pantalla; los errores llevan la palabra; el medidor dice
-  «Tenés 3 de 4».
+  lectores de pantalla; los errores llevan la palabra.
+- **La compatibilidad es solo de la empresa** (RF3.9.2): al joven no se le
+  marca qué tiene de lo que pide una búsqueda.
 
 ## Tema
 
@@ -182,7 +183,7 @@ Sin signos de exclamación ni emojis.
 | Acción de servidor sobre un ítem  | `ui/BotonAccion`                              |
 | Tag o habilidad                   | `ui/Etiqueta` (`coincide`)                    |
 | Estado                            | `ui/Insignia`                                 |
-| Compatibilidad                    | `ui/Medidor`                                  |
+| Compatibilidad (empresa)          | `empresa/Coincidencia`                        |
 | Filtros, pestañas                 | `ui/FiltroDeslizante`                         |
 | Desplegable                       | `ui/DetallesSuaves`                           |
 | Carga                             | `ui/Esqueleto`                                |

@@ -15,6 +15,16 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ## 2026-10-22 — Sesión, imágenes y panel de empresa
 
+- **Habilidades públicas u ocultas** (migración 008,
+  `SelectorDeHabilidades`, `vacante_habilidades_ocultas`): en el formulario
+  de búsqueda cada habilidad pedida se marca «Pública» o «Solo vos»
+  (RF3.1.6). Antes solo los intereses podían ser ocultos. Por qué una tabla:
+  [`decisiones.md`](./decisiones.md), 2026-10-22.
+- **La compatibilidad es solo de la empresa** (`FilaVacante`,
+  `/empleos/[id]`, `FeedDeVacantes`, textos de la portada y de «Cómo
+  funciona»): el joven ya no ve el medidor, las ✓ ni «La que más coincide con
+  vos» (RF3.9.2). `Medidor` se borró. e2e en `e2e/compatibilidad.spec.ts`
+  (RLS con la clave pública, pantallas del joven y de la empresa, formulario).
 - **Con sesión, `/` lleva al panel** (`src/middleware.ts`, `PORTADA` y
   `correspondeA` en `src/lib/navegacion.ts`): la empresa a `/empresa` y el
   joven a `/inicio`. Antes la portada se renderizaba igual y la cabecera de

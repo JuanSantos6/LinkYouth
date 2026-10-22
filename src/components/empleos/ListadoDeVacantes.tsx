@@ -3,8 +3,7 @@ import type { FeedDeVacantes } from "@/lib/dominio/FeedDeVacantes";
 import { FilaVacante } from "./FilaVacante";
 
 /**
- * El listado de vacantes: tarjetas apiladas. La que más coincide con el
- * perfil va primero y destacada (una sola, o ninguna).
+ * El listado de vacantes: tarjetas apiladas, en el orden de `FeedDeVacantes`.
  */
 export function ListadoDeVacantes({
   feed,

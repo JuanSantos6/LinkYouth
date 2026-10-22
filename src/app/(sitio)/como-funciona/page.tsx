@@ -11,9 +11,9 @@ const PASOS = [
       "Elegís tus habilidades y tus áreas de interés de un catálogo, y cargás tu formación en curso o terminada. No hay currículum que redactar ni PDF que subir: tu perfil son las cosas que sabés hacer.",
   },
   {
-    titulo: "Ves lo que coincide con vos",
+    titulo: "Ves primero lo más afín a vos",
     texto:
-      "Las búsquedas abiertas se ordenan por cuánto de lo que piden ya tenés. La compatibilidad nunca aparece sola: al lado están las etiquetas que la explican, para que puedas verificar el número.",
+      "Las búsquedas abiertas aparecen con las más afines a tu ficha primero, y cada una dice con claridad qué pide. La compatibilidad con cada postulante la ve solo la empresa.",
   },
   {
     titulo: "Te postulás en un paso",

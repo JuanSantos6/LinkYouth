@@ -11,26 +11,27 @@
 ## Tarjeta de vacante (`empleos/FilaVacante`)
 
 Clickeable entera hacia el detalle; el botón de postularse queda por encima
-(`relative z-10`). A la derecha, el `Medidor` y la acción. La destacada (la
-que más coincide, una o ninguna) lleva borde tinta y «La que más coincide con
-vos» con ✓ turquesa. Sin sesión no hay medidor y «Postularme» lleva a crear
-cuenta.
+(`relative z-10`), a la derecha. Lo que pide se muestra sin marcar qué tiene
+quien mira: **la compatibilidad y las coincidencias son solo de la empresa**
+(RF3.9.2, 2026-10-22). Sin sesión, «Postularme» lleva a crear cuenta.
 
 ## Detalle de vacante
 
 Dos columnas en escritorio; la acción queda fija a la derecha
-(`lg:sticky lg:top-24`) con el medidor, lo que falta y «Qué pasa después»
-(`ETAPAS` de `ProcesoDePostulacion`).
+(`lg:sticky lg:top-24`) con «Qué pasa después» (`ETAPAS` de
+`ProcesoDePostulacion`). Sin medidor ni «te falta».
 
 ## Evento (`eventos/TarjetaEvento`)
 
 Tarjeta con imagen opcional y bloque de fecha en lavanda (día en `.cifra`,
 mes en `acento`).
 
-## Medidor (`ui/Medidor`)
+## Compatibilidad (solo empresa)
 
-Un segmento por requisito. Rellenos: turquesa con borde `turquesa-texto`.
-Siempre con el texto «Tenés X de Y».
+`empresa/Coincidencia`: «Declara 3 de 4 habilidades pedidas · 1 de 2
+intereses clave», en texto, sin porcentaje. El joven nunca ve compatibilidad
+ni coincidencias (RF3.9.2); el `Medidor` «Tenés 3 de 4» se borró el
+2026-10-22.
 
 ## Filtro deslizante (`ui/FiltroDeslizante`)
 
