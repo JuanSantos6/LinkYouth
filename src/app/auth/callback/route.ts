@@ -1,6 +1,7 @@
-import type { EmailOtpType } from "@supabase/supabase-js";
+import type { EmailOtpType, User } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 
+import { completarAltaPendiente } from "@/lib/acciones/alta";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -25,10 +26,11 @@ function esTipo(valor: string | null): valor is EmailOtpType {
  * Verifica el token del correo con la base y abre la sesión.
  *
  * - `recovery` (RF1.8): con la sesión abierta, a elegir la contraseña nueva.
- * - `email` / `signup` (confirmación del registro): se confirma y se cierra la
- *   sesión. El alta pendiente la completa `iniciarSesion`, que es el único
- *   lugar que sabe hacerlo; entrar con la contraseña una vez es el precio de
- *   no duplicar esa lógica acá.
+ * - `email` / `signup` (confirmación del registro): se confirma, se completa
+ *   el alta pendiente (cuenta, perfil o empresa, intereses) con la sesión que
+ *   acaba de abrir el enlace, y se cierra la sesión. Si el alta falla, la
+ *   confirmación no se pierde: `iniciarSesion` vuelve a intentarla (es
+ *   idempotente) y es ahí donde la persona lee qué pasó.
  * - `email_change`: el cambio ya quedó hecho; vuelve al perfil.
  *
  * `code` cubre el flujo PKCE, por si una plantilla vuelve a usar el enlace
@@ -52,21 +54,26 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
   if (!supabase) return ir(fallo);
 
+  let usuario: User | null = null;
   if (tokenHash && esTipo(tipo)) {
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type: tipo,
     });
     if (error) return ir(fallo);
+    usuario = data.user;
   } else if (codigo) {
-    const { error } = await supabase.auth.exchangeCodeForSession(codigo);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(codigo);
     if (error) return ir(fallo);
+    usuario = data.user;
   } else {
     return ir(fallo);
   }
 
   if (tipo === "recovery") return ir("/recuperar/nueva");
   if (tipo === "email_change") return ir("/perfil");
+
+  if (usuario) await completarAltaPendiente(supabase, usuario);
 
   await supabase.auth.signOut();
   return ir("/login?correo=confirmado");

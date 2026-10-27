@@ -51,7 +51,7 @@ export function FormularioDePerfilDeEmpresa({
         <div className="flex-1">
           <Campo
             etiqueta={empresa.logo_url ? "Cambiar el logo" : "Logo"}
-            ayuda="JPG, PNG o WebP de hasta 2 MB. Mejor cuadrado."
+            ayuda="JPG, PNG o WebP de hasta 5 MB. Mejor cuadrado."
             error={error.logo}
           >
             <input

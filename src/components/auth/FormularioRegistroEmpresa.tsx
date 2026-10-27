@@ -186,7 +186,7 @@ export function FormularioRegistroEmpresa() {
       <CampoImagen
         nombre="logo"
         etiqueta="Logo"
-        ayuda="Opcional. JPG, PNG o WebP, hasta 2 MB."
+        ayuda="Opcional. JPG, PNG o WebP, hasta 5 MB."
         estado={estado}
         error={error.logo}
       />

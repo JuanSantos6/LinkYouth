@@ -1,70 +1,6 @@
 {
   "_": "Por categoría de categorias.json: lugar → número en la hoja de buscar.mjs y texto alternativo en español. Lo lee registrar.mjs.",
   "elegidas": {
-    "retratos": {
-      "persona:lucia": {
-        "numero": 14,
-        "alt": "Joven de pelo rizado con camisa a rayas, sonriendo frente a un fondo naranja."
-      },
-      "persona:valentina": {
-        "numero": 8,
-        "alt": "Joven rubia con remera a rayas, riéndose frente a una pared clara con una ventana."
-      },
-      "persona:camila": {
-        "numero": 21,
-        "alt": "Joven con remera negra, sonriendo con una mano en la cintura sobre fondo celeste."
-      },
-      "persona:agustina": {
-        "numero": 13,
-        "alt": "Joven de pelo largo con campera clara, sonriendo de noche en la calle."
-      },
-      "persona:florencia": {
-        "numero": 30,
-        "alt": "Joven con el pelo recogido y remera a rayas, sonriendo sobre fondo blanco."
-      },
-      "persona:sofia": {
-        "numero": 29,
-        "alt": "Joven con campera de jean, sonriendo al aire libre."
-      },
-      "persona:mateo": {
-        "numero": 1,
-        "alt": "Joven de pelo oscuro con remera roja, sonriendo a cámara."
-      },
-      "persona:santiago": {
-        "numero": 2,
-        "alt": "Joven con bufanda y saco oscuro, sonriendo al aire libre."
-      },
-      "persona:joaquin": {
-        "numero": 7,
-        "alt": "Joven de pelo rizado con remera negra, sonriendo frente a una pared clara."
-      },
-      "persona:facundo": {
-        "numero": 25,
-        "alt": "Joven con saco azul, sonriendo en un parque."
-      }
-    },
-    "trabajo": {
-      "empresa:nube": {
-        "numero": 1,
-        "alt": "Oficina amplia con personas trabajando en escritorios con computadoras."
-      },
-      "empresa:puerto": {
-        "numero": 15,
-        "alt": "Estantería de un depósito con cascos de seguridad amarillos y blancos."
-      },
-      "empresa:ceibo": {
-        "numero": null,
-        "alt": ""
-      },
-      "empresa:vital": {
-        "numero": null,
-        "alt": ""
-      },
-      "empresa:trebol": {
-        "numero": null,
-        "alt": ""
-      }
-    },
     "instituciones": {
       "institucion:universidad-de-montevideo": {
         "numero": 1,
@@ -187,6 +123,86 @@
       "portada:preguntas": {
         "numero": 12,
         "alt": "Joven de pelo rizado trabajando en una computadora, con una taza al lado."
+      }
+    },
+    "mujeres-estudio": {
+      "persona:lucia": {
+        "numero": 8,
+        "alt": "Joven con campera roja concentrada frente a una computadora portátil."
+      },
+      "persona:valentina": {
+        "numero": 2,
+        "alt": "Joven escribiendo en un cuaderno junto a una ventana luminosa."
+      },
+      "persona:sofia": {
+        "numero": 23,
+        "alt": "Joven de pelo claro leyendo un libro abierto, con un cárdigan blanco."
+      },
+      "persona:camila": {
+        "numero": 11,
+        "alt": "Joven con anteojos sonriendo en una biblioteca, con un libro abierto."
+      }
+    },
+    "mujer-oficina": {
+      "persona:florencia": {
+        "numero": 5,
+        "alt": "Joven rubia sonriendo frente a su computadora en una oficina luminosa."
+      }
+    },
+    "mujer-atencion": {
+      "persona:agustina": {
+        "numero": 1,
+        "alt": "Joven con gorro de lana amarillo y anteojos atendiendo en una cafetería."
+      }
+    },
+    "hombres-estudio": {
+      "persona:mateo": {
+        "numero": 27,
+        "alt": "Joven con auriculares al cuello trabajando en una computadora portátil, con camisa blanca."
+      },
+      "persona:santiago": {
+        "numero": 11,
+        "alt": "Joven con barba y campera de jean tomando notas en una biblioteca."
+      },
+      "persona:facundo": {
+        "numero": 15,
+        "alt": "Joven con anteojos y buzo marrón escribiendo en un cuaderno al aire libre."
+      }
+    },
+    "empresa-nube": {
+      "empresa:nube": {
+        "numero": 5,
+        "alt": "Oficina de coworking luminosa con dos personas trabajando en sus escritorios."
+      }
+    },
+    "empresa-ceibo": {
+      "empresa:ceibo": {
+        "numero": 20,
+        "alt": "Tostador de café trabajando junto a su máquina en un local con azulejos blancos."
+      }
+    },
+    "empresa-puerto": {
+      "empresa:puerto": {
+        "numero": 1,
+        "alt": "Dos personas con chalecos reflectantes conversando en un pasillo de depósito."
+      }
+    },
+    "empresa-vital": {
+      "empresa:vital": {
+        "numero": 2,
+        "alt": "Recepción de una clínica, con profesionales de la salud atendiendo."
+      }
+    },
+    "empresa-trebol": {
+      "empresa:trebol": {
+        "numero": 29,
+        "alt": "Dos personas con delantal revisando una tablet dentro de un invernadero."
+      }
+    },
+    "hombre-logistica": {
+      "persona:joaquin": {
+        "numero": 3,
+        "alt": "Joven con campera oscura y remera a rayas, mirando a cámara frente a tablas de madera en un depósito."
       }
     }
   }

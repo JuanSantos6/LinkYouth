@@ -18,6 +18,16 @@ import { defineConfig, devices } from "@playwright/test";
  */
 const PUERTO = process.env.E2E_PUERTO ?? "3100";
 
+/**
+ * Con `E2E_URL_PUBLICA` (p. ej. `https://misvcl.tail3c384d.ts.net`) la suite
+ * pega contra la dirección pública, o sea, a través de Tailscale Funnel y del
+ * WAF, en vez de levantar `next dev`. Es lo único que atrapa un 403 del WAF
+ * sobre un formulario que en local anda: el 2026-10-27 nadie podía iniciar
+ * sesión y ningún test lo veía. Correr con `--workers=1`: el WAF limita los
+ * POST de `/login` a 10 por minuto por IP.
+ */
+const PUBLICA = process.env.E2E_URL_PUBLICA;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -26,16 +36,18 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
 
   use: {
-    baseURL: `http://localhost:${PUERTO}`,
+    baseURL: PUBLICA ?? `http://localhost:${PUERTO}`,
     trace: "on-first-retry",
   },
 
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 
-  webServer: {
-    command: `npm run dev -- -p ${PUERTO}`,
-    url: `http://localhost:${PUERTO}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: PUBLICA
+    ? undefined
+    : {
+        command: `npm run dev -- -p ${PUERTO}`,
+        url: `http://localhost:${PUERTO}`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+      },
 });

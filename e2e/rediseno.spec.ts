@@ -146,7 +146,8 @@ test.describe("portada", () => {
     await expect(
       cinta.getByRole("button", { name: /anteriores|siguientes/ }),
     ).toHaveCount(0);
-    await expect(cinta.locator("a")).toHaveCount(0);
+    // Las organizaciones no son enlaces; el aviso de abajo sí lleva uno (créditos).
+    await expect(cinta.locator(".cinta-ventana a")).toHaveCount(0);
     const animacion = await cinta
       .locator(".cinta-pista")
       .evaluate((e) => getComputedStyle(e).animationName);

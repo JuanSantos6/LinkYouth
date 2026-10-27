@@ -41,18 +41,32 @@ Al revisarlas en pantalla se cambió la de «Nosotros» (en la miniatura se veí
 solo un escritorio y en grande mostraba a dos personas, que junto a ese texto
 se leen como el equipo): va un aula vacía, y la Universidad Católica pasó a un
 auditorio de la búsqueda de eventos. La elección del 2026-10-22: 6 consultas (la de «trabajo» se repitió porque la
-primera trajo solo oficinas) y 42 avisos de descarga, 48 en total. Quedaron
-con la foto propia de su rubro, a propósito, Ceibo (café), Vital (clínica) y
-Trébol (agro): ninguna candidata era creíble para esos lugares. Las búsquedas
+primera trajo solo oficinas) y 42 avisos de descarga, 48 en total. Ceibo (café), Vital (clínica) y
+Trébol (agro) quedaron entonces con la foto propia de su rubro; el 2026-10-27
+se resolvió con búsquedas por rubro (ver más abajo). Las búsquedas
 usan siempre la foto propia de su rubro, y «Postularte», en la portada, la
 propia.
+
+### Elección del 2026-10-27: personas y portadas de empresa
+
+Pedido: personas de 18 a 30 años en contexto (estudiando, en la universidad,
+en la oficina, en un taller), de aspecto profesional y natural, una foto
+distinta por perfil y con el género del nombre; y para cada empresa un lugar
+de trabajo de su rubro, sin ilustraciones ni logos inventados. 11 búsquedas
+(una por género y contexto, y una por rubro) y 16 avisos de descarga: 27 en
+total, de las 50 de la hora. Se miró cada hoja de contactos y se descartaron
+las fotos con texto legible, marcas visibles (una campera con su logo en el
+pecho, remeras estampadas) o cara tapada o muy lejana. En la cinta de la
+portada cada organización se muestra con la foto de su rubro y su nombre, y
+un aviso dice que las fotos ilustran el rubro: no son los lugares reales de
+las empresas de la demo, que conservan sus nombres.
 
 ## Fotos de Unsplash
 
 | Lugar | Autor | Foto |
 | --- | --- | --- |
-| `empresa:nube` | [Alex Kotliarskyi](https://unsplash.com/@frantic) | [Oficina amplia con personas trabajando en escritorios con computadoras.](https://unsplash.com/photos/people-doing-office-works-QBpZGqEMsKg) |
-| `empresa:puerto` | [Pop & Zebra](https://unsplash.com/@popandzebra) | [Estantería de un depósito con cascos de seguridad amarillos y blancos.](https://unsplash.com/photos/a-rack-filled-with-lots-of-yellow-hard-hats-wp81DxKUd1E) |
+| `empresa:nube` | [Austin Distel](https://unsplash.com/@austindistel) | [Oficina de coworking luminosa con dos personas trabajando en sus escritorios.](https://unsplash.com/photos/three-men-sitting-on-chair-beside-tables-mpN7xjKQ_Ns) |
+| `empresa:puerto` | [Centre for Ageing Better](https://unsplash.com/@ageing_better) | [Dos personas con chalecos reflectantes conversando en un pasillo de depósito.](https://unsplash.com/photos/women-walking-through-warehouse-aisle-ZlOlRnWk8zU) |
 | `evento:ceibo-cata` | [Antenna](https://unsplash.com/@antenna) | [Grupo pequeño conversando en una sala cálida con cuadros en las paredes.](https://unsplash.com/photos/people-sitting-on-chair-ohNCIiKVT1g) |
 | `evento:nube-charla` | [wes lewis](https://unsplash.com/@westhmus) | [Público joven sentado y sonriendo durante una charla.](https://unsplash.com/photos/diverse-group-at-professional-seminar-zt6OxRORM2g) |
 | `evento:nube-taller-cv` | [Timur Shakerzianov](https://unsplash.com/@shaker_jpg) | [Jóvenes tomando notas sentados en un taller, en una sala luminosa.](https://unsplash.com/photos/a-group-of-people-sitting-in-a-room-mYNR1upvnZM) |
@@ -68,16 +82,19 @@ propia.
 | `institucion:utu-escuela-superior-de-administracion` | [Thuy Duong Nguyen](https://unsplash.com/@duonguyen) | [Aula con muchas sillas y mesas de madera, vacía.](https://unsplash.com/photos/a-young-girl-sitting-in-a-classroom-with-a-book-frGf5WHXzZI) |
 | `institucion:utu-escuela-superior-de-la-construccion` | [Thuy Duong Nguyen](https://unsplash.com/@duonguyen) | [Bancos de madera de un aula, vistos de cerca.](https://unsplash.com/photos/a-row-of-wooden-chairs-in-a-room-3GlPOH56ZdY) |
 | `institucion:utu-instituto-tecnologico-superior` | [Zsófia Hajnal](https://unsplash.com/@zsofiahajnal) | [Salón de clases largo con filas de sillas y ventanales.](https://unsplash.com/photos/empty-lecture-hall-with-rows-of-seats-I8PUo5Xk8DU) |
-| `persona:agustina` | [Branislav Rodman](https://unsplash.com/@branislavrodman) | [Joven de pelo largo con campera clara, sonriendo de noche en la calle.](https://unsplash.com/photos/a-woman-with-long-hair-standing-in-front-of-a-building-LfpPZQ4UI0U) |
-| `persona:camila` | [Ben Masora](https://unsplash.com/@benmasora) | [Joven con remera negra, sonriendo con una mano en la cintura sobre fondo celeste.](https://unsplash.com/photos/a-woman-with-a-toothbrush-in-her-mouth-FAE8sT9HqrI) |
-| `persona:facundo` | [Nicolas Horn](https://unsplash.com/@sysengineer) | [Joven con saco azul, sonriendo en un parque.](https://unsplash.com/photos/man-in-blue-suit-jacket-smiling-dOb-CIj8iFg) |
-| `persona:florencia` | [laura adai](https://unsplash.com/@lauraadaiphoto) | [Joven con el pelo recogido y remera a rayas, sonriendo sobre fondo blanco.](https://unsplash.com/photos/woman-in-black-and-white-striped-shirt-smiling-enkfbbb9yf8) |
-| `persona:joaquin` | [Alef Morais](https://unsplash.com/@alef_visuals) | [Joven de pelo rizado con remera negra, sonriendo frente a una pared clara.](https://unsplash.com/photos/a-smiling-man-in-a-black-shirt-LPvi7DMp-HU) |
-| `persona:lucia` | [Abenezer Shewaga](https://unsplash.com/@abenezer_shewaga) | [Joven de pelo rizado con camisa a rayas, sonriendo frente a un fondo naranja.](https://unsplash.com/photos/a-woman-with-a-smile-on-her-face-21ckukPU3qA) |
-| `persona:mateo` | [Nicolas Horn](https://unsplash.com/@sysengineer) | [Joven de pelo oscuro con remera roja, sonriendo a cámara.](https://unsplash.com/photos/man-in-red-crew-neck-shirt-ARBQCe2GrjQ) |
-| `persona:santiago` | [Nicolas Horn](https://unsplash.com/@sysengineer) | [Joven con bufanda y saco oscuro, sonriendo al aire libre.](https://unsplash.com/photos/smiling-man-standing-near-green-tree-MTZTGvDsHFY) |
-| `persona:sofia` | [Albert Vinas](https://unsplash.com/@treb_vinas24) | [Joven con campera de jean, sonriendo al aire libre.](https://unsplash.com/photos/a-smiling-woman-in-a-denim-jacket-outdoors-zX700UTltlg) |
-| `persona:valentina` | [Tessa Edmiston](https://unsplash.com/@thewildflowerpress) | [Joven rubia con remera a rayas, riéndose frente a una pared clara con una ventana.](https://unsplash.com/photos/woman-wearing-white-and-blue-stripe-crew-neck-shirt-holding-hair-CLgGgEtnD6Y) |
+| `persona:agustina` | [Brooke Cagle](https://unsplash.com/@brookecagle) | [Joven con gorro de lana amarillo y anteojos atendiendo en una cafetería.](https://unsplash.com/photos/woman-holding-clear-drinking-glass-9fHMo1-5Io8) |
+| `persona:camila` | [Rodrigo Rodrigues | WOLF Λ R T](https://unsplash.com/@wolfart32) | [Joven con anteojos sonriendo en una biblioteca, con un libro abierto.](https://unsplash.com/photos/woman-sitting-at-table-with-book-and-tablet-GLhMTHw9A9U) |
+| `persona:facundo` | [Elvis Kaiser](https://unsplash.com/@rmndphoto) | [Joven con anteojos y buzo marrón escribiendo en un cuaderno al aire libre.](https://unsplash.com/photos/man-in-brown-long-sleeve-shirt-sitting-on-green-plastic-chair-reading-book-lqeuAjM05RI) |
+| `persona:florencia` | [Rodrigo Rodrigues | WOLF Λ R T](https://unsplash.com/@wolfart32) | [Joven rubia sonriendo frente a su computadora en una oficina luminosa.](https://unsplash.com/photos/young-woman-working-on-a-laptop-in-an-office-AM2o6g---8o) |
+| `persona:joaquin` | [Timothy Barlin](https://unsplash.com/@timbar) | [Joven con campera oscura y remera a rayas, mirando a cámara frente a tablas de madera en un depósito.](https://unsplash.com/photos/man-standing-beside-wood-planks-FGaknWvNbBk) |
+| `persona:lucia` | [Jonathan Borba](https://unsplash.com/@jonathanborba) | [Joven con campera roja concentrada frente a una computadora portátil.](https://unsplash.com/photos/a-person-in-a-red-coat-QVCtOcqeZnI) |
+| `persona:mateo` | [Mushvig Niftaliyev](https://unsplash.com/@mushvig95) | [Joven con auriculares al cuello trabajando en una computadora portátil, con camisa blanca.](https://unsplash.com/photos/a-man-sitting-at-a-table-using-a-laptop-computer-C7Fw5hsDfe8) |
+| `persona:santiago` | [Farzan Farzadi](https://unsplash.com/@farzanfarzadi) | [Joven con barba y campera de jean tomando notas en una biblioteca.](https://unsplash.com/photos/a-man-sitting-at-a-table-writing-in-a-book-l9u27wEYU_I) |
+| `persona:sofia` | [Humble Lamb](https://unsplash.com/@humblelamb) | [Joven de pelo claro leyendo un libro abierto, con un cárdigan blanco.](https://unsplash.com/photos/woman-reading-book-in-cafe-2g3R-W-NFI0) |
+| `persona:valentina` | [Hannah Olinger](https://unsplash.com/@hannaholinger) | [Joven escribiendo en un cuaderno junto a una ventana luminosa.](https://unsplash.com/photos/woman-sitting-in-front-of-black-table-writing-on-white-book-near-window-NXiIVnzBwZ8) |
+| `empresa:ceibo` | [Battlecreek Coffee Roasters](https://unsplash.com/@battlecreekcoffeeroasters) | [Tostador de café trabajando junto a su máquina en un local con azulejos blancos.](https://unsplash.com/photos/man-in-blue-collared-shirt-operating-gray-and-blue-machine-wH7Vosd0f48) |
+| `empresa:trebol` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Dos personas con delantal revisando una tablet dentro de un invernadero.](https://unsplash.com/photos/two-people-working-in-a-greenhouse-with-plants-p4w1Novu1PY) |
+| `empresa:vital` | [Cdn Pages](https://unsplash.com/@cdnpagesca) | [Recepción de una clínica, con profesionales de la salud atendiendo.](https://unsplash.com/photos/woman-in-white-long-sleeve-shirt-holding-white-printer-paper-xM_1ZYHOc9E) |
 | `portada:bienvenida` | [Vitaly Gariev](https://unsplash.com/@silverkblack) | [Grupo de jóvenes estudiando juntos alrededor de una computadora.](https://unsplash.com/photos/diverse-group-of-students-collaborating-around-a-laptop--X4Qx4_4iMU) |
 | `portada:busqueda` | [Brooke Cagle](https://unsplash.com/@brookecagle) | [Tres jóvenes conversando con computadoras en la mesa de un café.](https://unsplash.com/photos/three-people-sitting-in-front-of-table-laughing-together-g1Kr4Ozfoac) |
 | `portada:cierre` | [Mimi Thian](https://unsplash.com/@mimithian) | [Cuatro jóvenes sonriendo frente a una computadora en un espacio de trabajo.](https://unsplash.com/photos/four-people-watching-on-white-macbook-on-top-of-glass-top-table-vdXMSiX-n6M) |

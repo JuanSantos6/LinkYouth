@@ -29,6 +29,13 @@ const STORAGE_INTERNO = "http://127.0.0.1:8000";
  */
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Las acciones de servidor rechazan por defecto cuerpos de más de 1 MB, y
+    // la foto de perfil, el logo y la imagen de un evento viajan en una de
+    // ellas. Un poco más que `PESO_MAXIMO_IMAGEN` (5 MB) por los otros campos
+    // del formulario.
+    serverActions: { bodySizeLimit: "6mb" },
+  },
   // Es el valor por defecto; queda escrito para que nadie lo active sin ver
   // que publicaría el código fuente original en las DevTools.
   productionBrowserSourceMaps: false,

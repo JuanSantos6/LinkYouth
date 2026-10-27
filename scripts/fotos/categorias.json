@@ -1,82 +1,6 @@
 {
-  "_": "Una consulta a Unsplash por categoría; sus resultados se reparten entre los lugares de la categoría, sin repetir foto. Lo leen buscar.mjs y registrar.mjs. Presupuesto: 6 consultas de búsqueda + 1 aviso de descarga por foto, menos de 50 por hora. Las búsquedas usan la foto de su rubro, propia (src/lib/imagenes.ts); «Postularte» también queda con la propia.",
+  "_": "Una consulta a Unsplash por categoría; sus resultados se reparten entre los lugares de la categoría, sin repetir foto. Lo leen buscar.mjs y registrar.mjs. Presupuesto: 12 consultas de búsqueda (personas y empresas, 2026-10-27; el resto sale de las búsquedas ya guardadas) + 1 aviso de descarga por foto nueva, menos de 50 por hora. Las búsquedas usan la foto propia de su rubro (src/lib/imagenes.ts); «Postularte» también queda con la propia.",
   "categorias": [
-    {
-      "categoria": "retratos",
-      "consulta": "young adult portrait smiling",
-      "orientacion": "squarish",
-      "criterio": "18–25 años, creíbles para Uruguay, luz natural, mirando a cámara, fondo simple, sin logos ni texto.",
-      "lugares": [
-        {
-          "lugar": "persona:lucia",
-          "nota": "Lucía Fernández"
-        },
-        {
-          "lugar": "persona:mateo",
-          "nota": "Mateo Silveira"
-        },
-        {
-          "lugar": "persona:valentina",
-          "nota": "Valentina Rodríguez"
-        },
-        {
-          "lugar": "persona:santiago",
-          "nota": "Santiago Pereira"
-        },
-        {
-          "lugar": "persona:camila",
-          "nota": "Camila Bentancur"
-        },
-        {
-          "lugar": "persona:joaquin",
-          "nota": "Joaquín Cabrera"
-        },
-        {
-          "lugar": "persona:agustina",
-          "nota": "Agustina Morales"
-        },
-        {
-          "lugar": "persona:facundo",
-          "nota": "Facundo Olivera"
-        },
-        {
-          "lugar": "persona:florencia",
-          "nota": "Florencia Duarte"
-        },
-        {
-          "lugar": "persona:sofia",
-          "nota": "Sofía Methol"
-        }
-      ]
-    },
-    {
-      "categoria": "trabajo",
-      "consulta": "workers",
-      "orientacion": "landscape",
-      "criterio": "Portadas de empresa: un lugar de trabajo que se reconozca por el rubro (oficina, cafetería, depósito, clínica, campo). Sin logos ni marcas legibles.",
-      "lugares": [
-        {
-          "lugar": "empresa:nube",
-          "nota": "Portada de Nube Sur S.A. (Tecnología)"
-        },
-        {
-          "lugar": "empresa:ceibo",
-          "nota": "Portada de Tostadores del Ceibo S.R.L. (Gastronomía)"
-        },
-        {
-          "lugar": "empresa:puerto",
-          "nota": "Portada de Puerto Sur Logística S.A. (Logística)"
-        },
-        {
-          "lugar": "empresa:vital",
-          "nota": "Portada de Clínica Parque Rodó S.A. (Salud)"
-        },
-        {
-          "lugar": "empresa:trebol",
-          "nota": "Portada de Agrotecnia El Trébol S.A. (Agro y Sustentabilidad)"
-        }
-      ]
-    },
     {
       "categoria": "instituciones",
       "consulta": "university classroom campus",
@@ -214,6 +138,146 @@
         {
           "lugar": "vacio:personas",
           "nota": "Estado vacío: sin personas"
+        }
+      ]
+    },
+    {
+      "categoria": "mujeres-estudio",
+      "consulta": "young woman university student studying",
+      "orientacion": "portrait",
+      "criterio": "Entre 18 y 30 años, en contexto (estudiando, en la universidad, en la oficina, en un taller), aspecto profesional y natural, cara visible; creíble para Uruguay. Sin texto legible, marcas ni letreros de universidades.",
+      "lugares": [
+        {
+          "lugar": "persona:lucia",
+          "nota": "Lucía Fernández (Ing. en Informática)"
+        },
+        {
+          "lugar": "persona:valentina",
+          "nota": "Valentina Rodríguez (Diseño)"
+        },
+        {
+          "lugar": "persona:sofia",
+          "nota": "Sofía Methol (Estadística)"
+        },
+        {
+          "lugar": "persona:camila",
+          "nota": "Camila Bentancur (Comunicación)"
+        }
+      ]
+    },
+    {
+      "categoria": "mujer-oficina",
+      "consulta": "young woman working in office laptop",
+      "orientacion": "portrait",
+      "criterio": "Entre 18 y 30 años, en contexto (estudiando, en la universidad, en la oficina, en un taller), aspecto profesional y natural, cara visible; creíble para Uruguay. Sin texto legible, marcas ni letreros de universidades.",
+      "lugares": [
+        {
+          "lugar": "persona:florencia",
+          "nota": "Florencia Duarte (Administración)"
+        }
+      ]
+    },
+    {
+      "categoria": "mujer-atencion",
+      "consulta": "young woman barista cafe customer service",
+      "orientacion": "portrait",
+      "criterio": "Entre 18 y 30 años, en contexto (estudiando, en la universidad, en la oficina, en un taller), aspecto profesional y natural, cara visible; creíble para Uruguay. Sin texto legible, marcas ni letreros de universidades.",
+      "lugares": [
+        {
+          "lugar": "persona:agustina",
+          "nota": "Agustina Morales (busca atención al público / cafetería)"
+        }
+      ]
+    },
+    {
+      "categoria": "hombres-estudio",
+      "consulta": "young man university student studying",
+      "orientacion": "portrait",
+      "criterio": "Entre 18 y 30 años, en contexto (estudiando, en la universidad, en la oficina, en un taller), aspecto profesional y natural, cara visible; creíble para Uruguay. Sin texto legible, marcas ni letreros de universidades.",
+      "lugares": [
+        {
+          "lugar": "persona:mateo",
+          "nota": "Mateo Silveira (Computación)"
+        },
+        {
+          "lugar": "persona:santiago",
+          "nota": "Santiago Pereira (Arquitectura)"
+        },
+        {
+          "lugar": "persona:facundo",
+          "nota": "Facundo Olivera (Economía)"
+        }
+      ]
+    },
+    {
+      "categoria": "hombre-logistica",
+      "consulta": "young man warehouse employee portrait smiling",
+      "orientacion": "portrait",
+      "criterio": "Entre 18 y 30 años, en contexto (estudiando, en la universidad, en la oficina, en un taller), aspecto profesional y natural, cara visible; creíble para Uruguay. Sin texto legible, marcas ni letreros de universidades.",
+      "lugares": [
+        {
+          "lugar": "persona:joaquin",
+          "nota": "Joaquín Cabrera (Tecnicatura en Logística)"
+        }
+      ]
+    },
+    {
+      "categoria": "empresa-nube",
+      "consulta": "software developers team office",
+      "orientacion": "landscape",
+      "criterio": "Un lugar de trabajo real que se reconozca por el rubro, con gente trabajando. Sin logos, marcas ni texto legible; nada de ilustraciones.",
+      "lugares": [
+        {
+          "lugar": "empresa:nube",
+          "nota": "Nube Sur S.A. (Tecnología)"
+        }
+      ]
+    },
+    {
+      "categoria": "empresa-ceibo",
+      "consulta": "coffee roastery workshop roasting",
+      "orientacion": "landscape",
+      "criterio": "Un lugar de trabajo real que se reconozca por el rubro, con gente trabajando. Sin logos, marcas ni texto legible; nada de ilustraciones.",
+      "lugares": [
+        {
+          "lugar": "empresa:ceibo",
+          "nota": "Tostadores del Ceibo S.R.L. (Gastronomía)"
+        }
+      ]
+    },
+    {
+      "categoria": "empresa-puerto",
+      "consulta": "warehouse logistics workers",
+      "orientacion": "landscape",
+      "criterio": "Un lugar de trabajo real que se reconozca por el rubro, con gente trabajando. Sin logos, marcas ni texto legible; nada de ilustraciones.",
+      "lugares": [
+        {
+          "lugar": "empresa:puerto",
+          "nota": "Puerto Sur Logística S.A. (Logística)"
+        }
+      ]
+    },
+    {
+      "categoria": "empresa-vital",
+      "consulta": "clinic medical staff nurses doctors",
+      "orientacion": "landscape",
+      "criterio": "Un lugar de trabajo real que se reconozca por el rubro, con gente trabajando. Sin logos, marcas ni texto legible; nada de ilustraciones.",
+      "lugares": [
+        {
+          "lugar": "empresa:vital",
+          "nota": "Clínica Parque Rodó S.A. (Salud)"
+        }
+      ]
+    },
+    {
+      "categoria": "empresa-trebol",
+      "consulta": "agronomist farm field greenhouse workers",
+      "orientacion": "landscape",
+      "criterio": "Un lugar de trabajo real que se reconozca por el rubro, con gente trabajando. Sin logos, marcas ni texto legible; nada de ilustraciones.",
+      "lugares": [
+        {
+          "lugar": "empresa:trebol",
+          "nota": "Agrotecnia El Trébol S.A. (Agro y Sustentabilidad)"
         }
       ]
     }

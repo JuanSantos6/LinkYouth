@@ -268,7 +268,7 @@ export function FormularioRegistro({
       <CampoImagen
         nombre="avatar"
         etiqueta="Foto de perfil"
-        ayuda="Opcional. JPG, PNG o WebP, hasta 2 MB. La podés cambiar cuando quieras."
+        ayuda="Opcional. JPG, PNG o WebP, hasta 5 MB. La podés cambiar cuando quieras."
         estado={estado}
         error={error.avatar}
       />

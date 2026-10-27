@@ -1,12 +1,17 @@
+import Link from "next/link";
+
 import { Avatar } from "@/components/ui/Avatar";
-import type { EmpresaResumen } from "@/lib/data/tipos";
+import type { OrganizacionDeCinta } from "@/lib/data/tipos";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
+import { esDeUnsplash, urlConTamanio } from "@/lib/unsplash";
 
 import { PausaDeCinta } from "./PausaDeCinta";
 
 /**
- * Cinta de logos de las organizaciones que publican, de borde a borde, que
- * se desplaza sola, continua e infinita.
+ * Cinta de las organizaciones que publican, de borde a borde, que se
+ * desplaza sola, continua e infinita. Cada una se muestra con la foto de un
+ * lugar de trabajo de su rubro (`empresas.portada_url`) y su nombre; si no
+ * tiene foto, con su logo, y si tampoco, con sus iniciales.
  *
  * - La animación es CSS pura sobre `transform` (`.cinta-pista` en
  *   `globals.css`): la lista va dos veces seguida y la pista se corre la
@@ -15,7 +20,7 @@ import { PausaDeCinta } from "./PausaDeCinta";
  * - Se detiene al pasar el mouse o al recibir foco (la cinta es enfocable),
  *   y tiene un botón de pausa (WCAG 2.2.2). Con «reducir movimiento» queda
  *   quieta y muestra los logos una sola vez.
- * - Cada logo es solo una imagen: ni botón ni enlace. La segunda copia está
+ * - Cada organización es solo una imagen: ni botón ni enlace. La segunda copia está
  *   oculta para lectores de pantalla, que leen cada organización una vez.
  *
  * Una empresa sin logo se muestra con una marca provisoria (sus iniciales).
@@ -27,13 +32,14 @@ export function CintaDeOrganizaciones({
   empresas,
   deEjemplo,
 }: {
-  empresas: EmpresaResumen[];
+  empresas: OrganizacionDeCinta[];
   /** Las organizaciones mismas son de ejemplo, no salen de la base. */
   deEjemplo: boolean;
 }) {
   const provisorios = empresas.filter(
-    (empresa) => deEjemplo || !empresa.logo_url,
+    (empresa) => deEjemplo || !(empresa.portada_url || empresa.logo_url),
   ).length;
+  const conFoto = empresas.some((e) => esDeUnsplash(e.portada_url));
   const aviso =
     provisorios === 0
       ? "Organizaciones que ya publican búsquedas o eventos."
@@ -67,7 +73,7 @@ export function CintaDeOrganizaciones({
                 }
                 className="cinta-logo shrink-0 px-8 sm:px-12"
               >
-                <Logo empresa={empresa} deEjemplo={deEjemplo} />
+                <Organizacion empresa={empresa} deEjemplo={deEjemplo} />
               </li>
             )),
           )}
@@ -80,6 +86,20 @@ export function CintaDeOrganizaciones({
           data-aviso-cinta={provisorios > 0 ? "provisorios" : "reales"}
         >
           {aviso}
+          {conFoto && (
+            <>
+              {" "}
+              Las fotos son de Unsplash y ilustran el rubro: no son los lugares
+              de cada organización.{" "}
+              <Link
+                href="/legales#fotos"
+                className="underline underline-offset-2"
+              >
+                Créditos
+              </Link>
+              .
+            </>
+          )}
         </p>
         <PausaDeCinta />
       </div>
@@ -87,13 +107,34 @@ export function CintaDeOrganizaciones({
   );
 }
 
-function Logo({
+function Organizacion({
   empresa,
   deEjemplo,
 }: {
-  empresa: EmpresaResumen;
+  empresa: OrganizacionDeCinta;
   deEjemplo: boolean;
 }) {
+  const foto = rutaDeImagen(empresa.portada_url);
+  if (esDeUnsplash(foto)) {
+    return (
+      <figure className="relative h-[120px] w-[200px] overflow-hidden rounded-ficha border border-borde bg-lavanda sm:h-[136px] sm:w-[232px]">
+        {/* Hotlink a Unsplash, como piden sus directrices: fuera del optimizador. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={urlConTamanio(foto, 464, { alto: 272 })}
+          alt=""
+          width={232}
+          height={136}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+        <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[rgb(21_19_42/0.88)] to-transparent px-3 pt-8 pb-2 font-titulo text-[14px] leading-tight font-bold text-white">
+          {empresa.razon_social}
+        </figcaption>
+      </figure>
+    );
+  }
+
   if (empresa.logo_url) {
     const nombre = deEjemplo
       ? `Logo de ejemplo de ${empresa.razon_social}`
