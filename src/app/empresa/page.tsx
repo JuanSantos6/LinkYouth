@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Coincidencia } from "@/components/empresa/Coincidencia";
+import { AvisoDeImagenFallida } from "@/components/perfil/AvisoDeImagenFallida";
 import { Avatar } from "@/components/ui/Avatar";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { BotonEnlace } from "@/components/ui/Boton";
@@ -100,6 +101,7 @@ export default async function PaginaEmpresa() {
 
   return (
     <div className="space-y-12">
+      <AvisoDeImagenFallida area="empresa" />
       <header className="space-y-5">
         <div>
           <h1 className="text-[28px] leading-tight font-extrabold text-tinta sm:text-[32px]">

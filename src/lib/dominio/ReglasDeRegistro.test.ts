@@ -43,3 +43,41 @@ describe("ReglasDeRegistro.problemaDeImagen", () => {
     ).toBeNull();
   });
 });
+
+describe("ReglasDeRegistro.formatoReal", () => {
+  const con = (...bytes: number[]) =>
+    new File(
+      [new Uint8Array([...bytes, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])],
+      "x",
+    );
+
+  it("reconoce JPG, PNG y WebP por sus primeros bytes", async () => {
+    expect(await ReglasDeRegistro.formatoReal(con(0xff, 0xd8, 0xff))).toBe(
+      "image/jpeg",
+    );
+    expect(
+      await ReglasDeRegistro.formatoReal(
+        con(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a),
+      ),
+    ).toBe("image/png");
+    const webp = new File([new TextEncoder().encode("RIFF\0\0\0\0WEBP")], "x");
+    expect(await ReglasDeRegistro.formatoReal(webp)).toBe("image/webp");
+  });
+
+  it("no se deja engañar por el tipo declarado: un HTML que dice ser PNG no pasa", async () => {
+    const html = new File(["<html><script>alert(1)</script></html>"], "x.png", {
+      type: "image/png",
+    });
+    expect(ReglasDeRegistro.problemaDeImagen(html)).toBeNull();
+    expect(await ReglasDeRegistro.formatoReal(html)).toBeNull();
+  });
+
+  it("un GIF o un SVG tampoco", async () => {
+    expect(
+      await ReglasDeRegistro.formatoReal(new File(["GIF89a......"], "x.gif")),
+    ).toBeNull();
+    expect(
+      await ReglasDeRegistro.formatoReal(new File(["<svg></svg>"], "x.svg")),
+    ).toBeNull();
+  });
+});

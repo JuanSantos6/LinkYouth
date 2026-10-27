@@ -2,6 +2,7 @@ import { ListadoDeVacantes } from "@/components/empleos/ListadoDeVacantes";
 import { AvisoDeInterviewLab } from "@/components/interview-lab/AvisoDeInterviewLab";
 import { TarjetaEvento } from "@/components/eventos/TarjetaEvento";
 import { Encabezado } from "@/components/layout/Encabezado";
+import { AvisoDeImagenFallida } from "@/components/perfil/AvisoDeImagenFallida";
 import { TarjetaUsuario } from "@/components/perfil/TarjetaUsuario";
 import { AvisoOrigen } from "@/components/ui/AvisoOrigen";
 import { FiltroDeslizante } from "@/components/ui/FiltroDeslizante";
@@ -83,6 +84,8 @@ export default async function PaginaInicio({
           titulo={`Hola, ${perfil.datos.nombre}`}
           descripcion="Las búsquedas y los eventos que mejor coinciden con tu ficha."
         />
+
+        <AvisoDeImagenFallida area="postulante" />
 
         {faltaElObligatorio && <AvisoDeInterviewLab />}
 

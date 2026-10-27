@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { comoTipoCuenta } from "@/lib/data/tipos";
 import { FuerzaDeContrasenia } from "@/lib/dominio/FuerzaDeContrasenia";
@@ -21,6 +21,7 @@ import {
 } from "@/lib/navegacion";
 import { correoDeUsuario } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { guardarImagenPendiente, marcarImagenFallida } from "./imagenPendiente";
 import { COOKIE_RECORDAR, esConexionSegura } from "@/lib/supabase/sesion";
 import type { Database } from "@/types/database";
 
@@ -236,6 +237,26 @@ async function destinoSegunTipo(
 }
 
 /**
+ * Sin sesión (confirmación de correo pendiente), la imagen elegida en el
+ * registro queda en el bucket privado `pendientes` y el alta la mueve a su
+ * lugar al confirmar (ver `imagenPendiente.ts`). Si no se puede guardar, el
+ * registro sigue y queda `imagen_fallida` para que el panel lo avise.
+ *
+ * Con un correo que ya existe, `signUp` devuelve un usuario falso sin
+ * identidades: no se guarda nada a su nombre, o cualquiera llenaría el
+ * bucket con carpetas de ids que no son de nadie.
+ */
+async function dejarImagenPendiente(
+  user: User,
+  archivo: File,
+): Promise<boolean> {
+  if (!user.identities?.length) return false;
+  const guardada = await guardarImagenPendiente(user.id, archivo);
+  if (!guardada) await marcarImagenFallida(user.id);
+  return guardada;
+}
+
+/**
  * RF1.2 — Registro de una cuenta de empresa.
  *
  * Mismo recorrido que `registrarse()`: `signUp`, y con la sesión que devuelve,
@@ -322,7 +343,7 @@ export async function registrarEmpresa(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: empresa },
+    options: { data: { ...empresa, imagen_pendiente: Boolean(logo) } },
   });
 
   if (error) {
@@ -337,10 +358,14 @@ export async function registrarEmpresa(
   }
 
   if (!data.session) {
+    const conLogo = logo && (await dejarImagenPendiente(data.user, logo));
     return {
       estado: "ok",
-      mensaje:
-        "Te enviamos un correo para confirmar la cuenta. Cuando toques el enlace, el perfil de la empresa queda creado y ya podés iniciar sesión. El logo lo podés cargar después desde el perfil de la empresa.",
+      mensaje: `Te enviamos un correo para confirmar la cuenta. Cuando toques el enlace, el perfil de la empresa queda creado y ya podés iniciar sesión. ${
+        conLogo
+          ? "El logo se guarda al confirmar."
+          : "El logo lo podés cargar después desde el perfil de la empresa."
+      }`,
     };
   }
 
@@ -460,7 +485,7 @@ export async function registrarse(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: perfil },
+    options: { data: { ...perfil, imagen_pendiente: Boolean(avatar) } },
   });
 
   if (error) {
@@ -475,10 +500,14 @@ export async function registrarse(
   }
 
   if (!data.session) {
+    const conFoto = avatar && (await dejarImagenPendiente(data.user, avatar));
     return {
       estado: "ok",
-      mensaje:
-        "Te enviamos un correo para confirmar la cuenta. Cuando toques el enlace, tu perfil queda creado con los intereses que elegiste y ya podés iniciar sesión. La foto la podés cargar después desde tu perfil.",
+      mensaje: `Te enviamos un correo para confirmar la cuenta. Cuando toques el enlace, tu perfil queda creado con los intereses que elegiste y ya podés iniciar sesión. ${
+        conFoto
+          ? "Tu foto se guarda al confirmar."
+          : "La foto la podés cargar después desde tu perfil."
+      }`,
     };
   }
 
