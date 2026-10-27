@@ -6,6 +6,65 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-27 — WAF: la excepción de `$ACTION_` acepta el prefijo numérico
+
+**Decisión.** En `~/waf/Caddyfile`, la regla propia `10001` (que apaga la 922130
+de CRS en pedidos con campos de acciones de Next) pasa de `^\$ACTION_` a
+`^(?:_?\d+_)?\$ACTION_`. Con JavaScript, `useActionState` hace que React
+serialice el formulario con un prefijo (`1_$ACTION_1:0`), y la 922130
+(«cabecera multipart con caracteres fuera de rango») rechazaba el `:`. Efecto:
+403 en el POST de `/login` y nadie entraba.
+
+**Alternativas consideradas.**
+
+- Apagar la 922130 para todo el sitio.
+- Pasar el WAF a `DetectionOnly` o sacarlo del camino un rato.
+- Subir el umbral de anomalía de CRS.
+- Cambiar cómo Next nombra los campos (no es nuestro código).
+
+**Motivo.** La excepción ya existía, con el mismo alcance: solo pedidos que
+traen un campo `$ACTION_`; solo se ensancha el nombre aceptado. Las otras tres
+alternativas bajan la protección de todo el sitio por un fallo de una regla.
+Respaldo: `~/waf/Caddyfile.bak-1027-1133-antes-action-prefijo`. Los e2e
+`acceso-publico` y `confirmacion-correo` con `E2E_URL_PUBLICA` lo cubren.
+
+## 2026-10-27 — El alta pendiente se completa al confirmar, no al primer login
+
+**Decisión.** `/auth/callback` llama a `completarAltaPendiente` con la sesión
+que abre el enlace de confirmación. `iniciarSesion` conserva la misma llamada
+como red de seguridad.
+
+**Alternativas consideradas.**
+
+- Dejarlo solo en `iniciarSesion` (como estaba).
+- Un disparador sobre `auth.users` que cree `cuentas` y `perfiles` al
+  registrarse.
+
+**Motivo.** El disparador sacaría del código la regla de alta y obligaría a
+tocar el esquema `auth` y las políticas que hoy exigen `auth.uid() = id`; la
+lógica idempotente ya existe y está probada. Dejarlo solo en el login hacía
+que el primer ingreso dependiera de un paso que podía fallar con un mensaje
+técnico. Para poder llamarla desde la ruta, los helpers salieron de
+`auth.ts` (`"use server"`, donde cada export es un endpoint) a `alta.ts`.
+
+## 2026-10-27 — Imágenes de hasta 5 MB y la cinta de la portada con fotos
+
+**Decisión.** Tope de 5 MB (regla, bucket y `serverActions.bodySizeLimit` de
+6 MB). La cinta de organizaciones muestra la foto de un lugar de trabajo de su
+rubro con el nombre, y un aviso de que las fotos son de Unsplash e ilustran
+el rubro.
+
+**Alternativas consideradas.** Dejar 2 MB y pedir que se comprima (una foto
+de celular lo supera casi siempre); comprimir en el servidor (agrega
+dependencia y tiempo a la acción); mantener los logos de ejemplo en la cinta
+(parecen logos reales inventados).
+
+**Motivo.** El tope de 1 MB de Next era la primera falla de cualquier subida;
+subirlo sin tocar la regla y el bucket movía el error de lugar. Las fotos de
+la cinta salen de `empresas.portada_url`, que ya cargaba `cargar.mjs`; el
+aviso evita que una foto de banco parezca el lugar real de una empresa de la
+demo.
+
 ## 2026-10-22 — Interview Lab: resultados declarados y un obligatorio que no bloquea
 
 **Decisión.** El joven tiene una sección «Interview Lab» con cuatro tests
