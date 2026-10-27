@@ -2,6 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
+import { ReglasDeRegistro } from "@/lib/dominio/ReglasDeRegistro";
+import {
+  leerArchivo,
+  subirImagenDePerfil,
+} from "@/lib/supabase/almacenamiento";
 import { createClient } from "@/lib/supabase/server";
 
 import { mensajeDeError, sesionDePostulante } from "./sesion";
@@ -75,6 +80,54 @@ export async function actualizarPerfil(
   revalidatePath("/perfil");
 
   return { estado: "ok", mensaje: "Perfil actualizado." };
+}
+
+/**
+ * RF1.5.6 — Cambiar la foto de perfil.
+ *
+ * Reemplaza lo que hubiera: la foto de Unsplash de la demo o el avatar con
+ * iniciales. La política `avatars_subo_los_mios` deja escribir solo en la
+ * carpeta propia; el tipo y el peso los vuelve a exigir el bucket (migración
+ * 004 y 011), esto es para que el mensaje sea una frase.
+ */
+export async function cambiarFotoDePerfil(
+  _estadoPrevio: EstadoAccion,
+  datos: FormData,
+): Promise<EstadoAccion> {
+  const foto = leerArchivo(datos, "foto");
+  if (!foto) {
+    return { estado: "error", mensaje: "Elegí una imagen para subir." };
+  }
+
+  const problema = ReglasDeRegistro.problemaDeImagen(foto);
+  if (problema) return { estado: "error", mensaje: problema };
+
+  const guardia = await sesionDePostulante();
+  if (!guardia.ok) return guardia.error;
+  const { supabase, usuarioId } = guardia.sesion;
+
+  const subida = await subirImagenDePerfil(supabase, usuarioId, foto);
+  if (!subida.url) {
+    console.error(`Foto de ${usuarioId}: ${subida.problema}`);
+    return {
+      estado: "error",
+      mensaje:
+        "No pudimos subir la foto. Probá de nuevo; si sigue pasando, probá con otra imagen.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("perfiles")
+    .update({ foto_url: subida.url })
+    .eq("id", usuarioId)
+    .select("id");
+
+  if (error || !data || data.length === 0) {
+    return { estado: "error", mensaje: "No pudimos guardar la foto." };
+  }
+
+  revalidatePath("/", "layout");
+  return { estado: "ok", mensaje: "Foto actualizada." };
 }
 
 // --- Intereses y habilidades ------------------------------------------------

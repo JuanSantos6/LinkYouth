@@ -635,6 +635,8 @@ Todas llevan `"use server"`, reciben `(estadoPrevio, FormData)` y devuelven
   pantalla de perfil, cada uno con su campo oculto, para un dato que el
   componente ya tiene en la mano.
 
+`alta.ts` **no** lleva `"use server"`: son helpers de servidor (`import "server-only"`) que comparten `iniciarSesion`, `registrarse`, `registrarEmpresa` y `/auth/callback`. Un export de un archivo `"use server"` es un endpoint público, y estas funciones reciben un cliente ya autenticado. Exporta `completarAltaPendiente(supabase, user)` (cuenta, perfil o empresa e intereses según el `user_metadata` del registro; idempotente, necesita la sesión de esa cuenta), `completarAlta`, `completarAltaEmpresa`, `guardarIntereses`, los textos `USUARIO_OCUPADO`, `RAZON_SOCIAL_OCUPADA` y `RUT_OCUPADO`, y los tipos `DatosDePerfil` y `DatosDeEmpresa`. Un fallo del alta se anota en el registro del servidor y la persona lee una frase, no el mensaje de Postgres.
+
 `tipos.ts` exporta además `EstadoFormulario` (el resultado de un formulario
 largo: `campos` con el error de cada uno y `valores` con lo que se mandó),
 `FORMULARIO_INICIAL`, `valoresDe(formData)`, `SIN_EMPRESA`, `ACCION_INICIAL`, `CLAVE_DUPLICADA` (el `23505` de
@@ -747,13 +749,14 @@ exige fila en `empresas`. Mismo criterio: da el mensaje, la regla está en RLS.
 | Función | Qué hace | Requisito |
 | --- | --- | --- |
 | `registrarse` | Crea el usuario en `auth.users` y, con la sesión del `signUp`, las filas de `cuentas` y `perfiles`. Chequea el `nombre_usuario` repetido antes de crear nada. Si el proyecto pide confirmación por correo el `signUp` no devuelve sesión: los datos quedan en `user_metadata` y el alta se completa en el primer login, que es cuando RLS tiene el `auth.uid()` que exige. | RF1.1 |
-| `iniciarSesion` | Autentica y, si el alta había quedado pendiente, la completa. Responde lo mismo ante contraseña incorrecta y correo inexistente: distinguirlos revelaría qué direcciones están registradas. | RF1.3 |
+| `iniciarSesion` | Autentica y, si el alta había quedado pendiente (`/auth/callback` ya la completa al confirmar; esto es la red de seguridad), la completa con `completarAltaPendiente`. Responde lo mismo ante contraseña incorrecta y correo inexistente: distinguirlos revelaría qué direcciones están registradas. | RF1.3 |
 | `cerrarSesion` | `signOut()` y redirección a `/login`. | RF1.3.5 |
 | `postularse` | Inserta la postulación. El estado inicial `pendiente` es el default de la columna. | RF3.6 |
 | `cancelarPostulacion` | **Actualiza** el estado a `cancelada`. No borra la fila. | RF3.8 |
 | `inscribirse` | Inserta en `inscripciones_evento`. | RF4.5 |
 | `cancelarInscripcion` | Borra la inscripción. Acá sí se borra: la tabla no lleva estado y la política habilita el `delete` al dueño. La usa `TarjetaEvento`. | RF4.6 |
 | `actualizarPerfil` | Actualiza nombre, apellido, país y biografía. | RF1.5, RF2.2 |
+| `cambiarFotoDePerfil` | Sube la foto propia a `avatars/<id>/perfil.<ext>` (JPG, PNG o WebP, hasta 5 MB) y la deja en `perfiles.foto_url`, reemplazando la de Unsplash o el avatar con iniciales. Mensajes en frase, nunca el error crudo de Storage. | RF1.5.6 |
 | `agregarTag` / `quitarTag` | Insertan o borran una fila de `perfil_tags`. | RF2.3 |
 | `agregarHabilidad` / `quitarHabilidad` | Insertan o borran una fila de `perfil_habilidades`. | RF2.4.3 |
 
@@ -1091,11 +1094,11 @@ para que no se lea como permiso general.
 | `mapa/SelectorDeUbicacion` | `latitudInicial?`, `longitudInicial?`, `errorLatitud?`, `errorLongitud?` | Selector de coordenadas para `FormularioDeEvento` (RF4.1, RF4.2): buscador con `buscarDireccion`, resultados elegibles y mapa interactivo con marcador arrastrable que consulta `direccionDePunto` y completa la dirección si estaba vacía. |
 | `TarjetaUsuario` | `perfil`, `postulaciones` | Cabecera del perfil con métricas de actividad propia. |
 | `FormularioPerfil` | `perfil` | Edición de los datos públicos (RF1.5, RF2.2). |
-| `AvatarEditable` | `nombre`, `url` | Vista previa al elegir archivo. La subida a Storage no está implementada: el componente avisa qué falta en vez de simular que guardó. |
+| `AvatarEditable` | `nombre`, `url`, `semilla?` | Cambia la foto de perfil (RF1.5.6): valida formato y peso en el navegador con `ReglasDeRegistro.problemaDeImagen`, muestra la vista previa y sube en el acto con `cambiarFotoDePerfil`; si la subida falla, vuelve a la foto anterior y dice por qué. |
 | `BotonCancelarPostulacion` | `postulacionId` | Cancela una postulación propia (RF3.8) pasándola a `cancelada`. No borra la fila. |
 | `SelectorTags` | `catalogos`, `tags`, `habilidades`, `esEjemplo?` | Elección de intereses y habilidades (RF2.3, RF2.4.3). Reemplaza a `NubeTags`, que solo mostraba lo ya elegido: los dos catálogos son cerrados, así que elegir es prender y apagar opciones que ya existen. Dos grupos separados, «lo que sabés hacer» y «hacia dónde querés ir», porque son dos catálogos distintos en el esquema. `"use client"` por el estado optimista, que es lo que hace que la etiqueta responda al toque y vuelva sola si la acción falla. Sin nivel de dominio: `perfil_habilidades` es una tabla puente sin más columnas. |
 | `ImagenDeInstitucion` | `nombre`, `url?`, `tamanio?` | La imagen de una institución educativa: una foto genérica de campus o aula si la hay (`fotosDeInstituciones`), y si no, sus iniciales sobre un color de la paleta (`colorDeAvatar` del id de `Institucion`). Nunca el logo real (2026-10-22). |
-| `landing/CintaDeOrganizaciones` | `empresas`, `deEjemplo` | Cinta de logos de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Logos como imagen, sin enlace. Marca provisoria (iniciales) si no hay logo; el aviso de abajo aparece en cuanto hay una sola. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
+| `landing/CintaDeOrganizaciones` | `empresas` (`OrganizacionDeCinta[]`), `deEjemplo` | Cinta de borde a borde que se desplaza sola (CSS, solo `transform`); se detiene con el mouse o el foco. Cada organización es una ficha con la foto de un lugar de trabajo de su rubro (`empresas.portada_url`, Unsplash) y su nombre; sin foto, su logo; sin logo, una marca provisoria (iniciales). Sin enlaces en las fichas. Si hay fotos, un aviso aclara que ilustran el rubro y enlaza los créditos (2026-10-27). El aviso de logos provisorios aparece en cuanto hay una sola ficha sin foto ni logo. `deEjemplo` indica que las organizaciones mismas son de ejemplo. |
 | `landing/PausaDeCinta` | — | Botón de pausa de la cinta (WCAG 2.2.2): marca `data-pausada`. |
 | `landing/PreguntasFrecuentes` | — | Seis preguntas, cada una un `DetallesSuaves`. |
 | `ListaFormacion` | `formaciones`, `esEjemplo?` | Estudios declarados y opción de quitar cada uno con confirmación (`BotonConfirmado`, RF2.4.2). Cuadro fijo a la izquierda con las iniciales de la institución, para que la lista se lea alineada. El esquema no guarda logo, años ni acreditación. |
@@ -1153,7 +1156,7 @@ para que no se lea como permiso general.
 | `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
 | `/recuperar` | `PaginaRecuperar` | RF1.8: pide el correo y manda el enlace. `?motivo=vencido` explica por qué hay que pedir otro. |
 | `/recuperar/nueva` | `PaginaContraseniaNueva` | RF1.8.4: elegir y confirmar la contraseña nueva, con la sesión del enlace. |
-| `/auth/callback` | `GET` (route handler) | Verifica el `token_hash` de los correos de GoTrue (recuperación, confirmación, cambio de correo) y redirige con una ruta relativa: detrás del Funnel el servidor se ve como `localhost`. Ver `docs/correo.md`. |
+| `/auth/callback` | `GET` (route handler) | Verifica el `token_hash` de los correos de GoTrue (recuperación, confirmación, cambio de correo); en la confirmación completa además el alta pendiente (`completarAltaPendiente`) y redirige con una ruta relativa: detrás del Funnel el servidor se ve como `localhost`. Ver `docs/correo.md`. |
 | `/inicio` | `PaginaInicio` | Feed combinado con pestañas por `searchParams`. Incluye `Pestanas` (privada). |
 | `/empleos` | `PaginaEmpleos` | Listado con búsqueda y filtro por tipo. Se lee sin sesión: sin compatibilidad, con una invitación a crear cuenta. |
 | `/empleos/[id]` | `PaginaVacante` | Detalle de una vacante (RF3.5.3). Se lee sin sesión; «Postularme» lleva a crear cuenta y vuelve acá. |
@@ -1444,10 +1447,9 @@ Resuelto el Hito 1: `(auth)/login` y `(auth)/registro` existen, `auth.ts` tiene
 
 El registro de empresa entró con la Etapa 2. La recuperación de contraseña y
 la confirmación de correo entraron el 2026-10-20 (`/recuperar`,
-`/auth/callback`, `docs/correo.md`). Sigue en pie una parte: con la
-confirmación activada, el alta de `cuentas` y `perfiles` se completa en el
-primer inicio de sesión y no al confirmar, porque esa lógica vive en
-`iniciarSesion`.
+`/auth/callback`, `docs/correo.md`). El alta de `cuentas` y `perfiles` (o
+`empresas`) se completa al confirmar el correo, en `/auth/callback`
+(2026-10-27); `iniciarSesion` la repite por si esa vez falló, y es idempotente.
 
 ### 7.4 La subida de archivos sube, pero falla en silencio
 
@@ -1463,8 +1465,11 @@ Así que el fallo se anota en el registro del servidor, la cuenta se crea igual
 y la persona no se entera hasta que entra a su perfil y no ve su foto.
 
 La salida es un aviso en la pantalla de destino, que hoy no existe: `/inicio` no
-tiene dónde recibirlo. `AvatarEditable` sigue siendo el camino para cargarla
-después.
+tiene dónde recibirlo. Desde el 2026-10-27 el camino para cargarla después
+anda: `AvatarEditable` (foto del joven, `cambiarFotoDePerfil`) y el formulario
+del perfil de empresa (logo). El límite subió a 5 MB (migración 011) y
+`next.config.ts` fija `serverActions.bodySizeLimit` en 6 MB: sin eso, Next
+rechazaba cualquier subida de más de 1 MB.
 
 ### 7.5 La aplicación no distingue postulante de empresa — resuelta
 

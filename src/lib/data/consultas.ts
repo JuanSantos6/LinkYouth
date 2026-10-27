@@ -38,7 +38,7 @@ import {
   comoTipoCuenta,
   comoTipoOportunidad,
   type Aviso,
-  type EmpresaResumen,
+  type OrganizacionDeCinta,
   type FichaDeInstitucion,
   type TipoCuenta,
   type Evento,
@@ -98,18 +98,19 @@ export async function obtenerTipoCuenta(
  */
 export async function obtenerEmpresas(
   limite = 12,
-): Promise<Resultado<EmpresaResumen[]>> {
+): Promise<Resultado<OrganizacionDeCinta[]>> {
+  const ejemplos = EMPRESAS_EJEMPLO.map((e) => ({ ...e, portada_url: null }));
   const supabase = await createClient();
-  if (!supabase) return ejemplo(EMPRESAS_EJEMPLO, SIN_CREDENCIALES);
+  if (!supabase) return ejemplo(ejemplos, SIN_CREDENCIALES);
 
   const { data, error } = await supabase
     .from("empresas")
-    .select("id, razon_social, rubro, logo_url")
+    .select("id, razon_social, rubro, logo_url, portada_url")
     .order("razon_social")
     .limit(limite);
 
-  if (error) return ejemplo(EMPRESAS_EJEMPLO, error.message);
-  if (!data || data.length === 0) return ejemplo(EMPRESAS_EJEMPLO, TABLA_VACIA);
+  if (error) return ejemplo(ejemplos, error.message);
+  if (!data || data.length === 0) return ejemplo(ejemplos, TABLA_VACIA);
 
   return { datos: data, origen: "supabase" };
 }

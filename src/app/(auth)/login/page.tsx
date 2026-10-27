@@ -11,9 +11,9 @@ export const metadata: Metadata = { title: "Iniciar sesión" };
 /** Lo que vuelve de `/auth/callback` al confirmar el correo del registro. */
 const AVISOS_DE_CORREO: Record<string, string> = {
   confirmado:
-    "Tu correo quedó confirmado. Iniciá sesión para terminar el alta.",
+    "Tu correo quedó confirmado y tu cuenta está lista. Ya podés iniciar sesión.",
   vencido:
-    "El enlace ya no sirve: se usa una sola vez y vence. Iniciá sesión y, si hace falta, registrate de nuevo.",
+    "Ese enlace ya no sirve: se usa una sola vez y vence. Si ya confirmaste tu correo, iniciá sesión; si no, registrate de nuevo y te mandamos otro.",
 };
 
 /**

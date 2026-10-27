@@ -105,6 +105,14 @@ export type EmpresaResumen = Pick<
 >;
 
 /**
+ * Lo que necesita la cinta de la portada: además del resumen, la foto del
+ * lugar de trabajo (`empresas.portada_url`), que es lo que se muestra.
+ */
+export type OrganizacionDeCinta = EmpresaResumen & {
+  portada_url: string | null;
+};
+
+/**
  * Vacante lista para mostrar.
  *
  * `tags` son los intereses declarados de la búsqueda y `habilidades` los

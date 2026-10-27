@@ -37,7 +37,7 @@ export class ReglasDeRegistro {
   static readonly TAGS_MINIMOS = 5;
 
   /** Peso máximo de la foto de perfil o el logo, en bytes. */
-  static readonly PESO_MAXIMO_IMAGEN = 2 * 1024 * 1024;
+  static readonly PESO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
 
   /** Formatos que acepta la subida. Se repiten en el `accept` del `<input>`. */
   static readonly FORMATOS_IMAGEN = [

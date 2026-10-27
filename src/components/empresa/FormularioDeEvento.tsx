@@ -149,7 +149,7 @@ export function FormularioDeEvento({
               ? "Cambiar la imagen (opcional)"
               : "Imagen (opcional)"
           }
-          ayuda="JPG, PNG o WebP de hasta 2 MB. Se ve en la tarjeta del evento."
+          ayuda="JPG, PNG o WebP de hasta 5 MB. Se ve en la tarjeta del evento."
           error={error.imagen}
         >
           <input

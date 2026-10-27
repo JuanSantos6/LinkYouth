@@ -77,13 +77,20 @@ export async function subirImagenDePerfil(
     };
   }
 
+  // Si antes había una imagen con otra extensión (subió un JPG y ahora un
+  // PNG), queda huérfana. No es grave y no corta nada si falla.
+  const otras = Object.values(EXTENSIONES)
+    .filter((e) => e !== extension)
+    .map((e) => `${usuarioId}/${nombre}.${e}`);
+  await supabase.storage.from(BUCKET_IMAGENES).remove(otras);
+
   const { data } = supabase.storage.from(BUCKET_IMAGENES).getPublicUrl(camino);
 
-  // Se guarda la ruta relativa: ver `rutaDeImagen`.
-  return {
-    url: rutaDeImagen(data.publicUrl) ?? data.publicUrl,
-    problema: null,
-  };
+  // Se guarda la ruta relativa: ver `rutaDeImagen`. El `?v=` cambia con cada
+  // subida: el archivo se reemplaza en la misma ruta, y sin él el navegador
+  // seguiría mostrando la foto anterior hasta que venza su caché.
+  const ruta = rutaDeImagen(data.publicUrl) ?? data.publicUrl;
+  return { url: `${ruta}?v=${Date.now()}`, problema: null };
 }
 
 /**

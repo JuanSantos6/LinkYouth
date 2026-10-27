@@ -13,6 +13,41 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-27 — Acceso, confirmación de correo, imágenes y fotos reales
+
+- **Nadie podía iniciar sesión** (ni con usuario ni con correo) por la
+  dirección pública: el WAF devolvía 403 al POST de `/login`. La regla CRS
+  922130 rechaza el nombre de campo `1_$ACTION_1:0` (React prefija los campos
+  al serializar el formulario con JS) y la excepción `10001` solo reconocía
+  `^\$ACTION_`. Se amplió esa excepción, sin tocar nada más del WAF
+  (`~/waf/Caddyfile`, `~/SERVIDOR.md`). También era la causa de «después de
+  confirmar el correo no puedo entrar». Por qué esa y no otra salida:
+  [`decisiones.md`](./decisiones.md), 2026-10-27 (`7ad0e9c`).
+- **El alta se completa al confirmar el correo** (`/auth/callback`,
+  `completarAltaPendiente` en `src/lib/acciones/alta.ts`), no en el primer
+  inicio de sesión; `iniciarSesion` la repite por si falla. Los fallos del
+  alta se dicen en una frase, no con el mensaje de Postgres, y los avisos del
+  registro y del login ya no prometen «terminar el alta al iniciar sesión».
+  Cierra la deuda de §7.3 (`7ad0e9c`).
+- **Subida de foto del joven** (RF1.5.6): `AvatarEditable` estaba a medias y
+  decía que Storage no estaba configurado; ahora sube con
+  `cambiarFotoDePerfil` y reemplaza la foto de Unsplash o las iniciales. El
+  logo de la empresa ya subía, pero ninguna imagen de más de 1 MB: Next
+  rechaza por defecto cuerpos de acciones de más de 1 MB. Tope de 5 MB en la
+  regla, el bucket (migración 011) y `serverActions.bodySizeLimit` (6 MB);
+  `?v=` en la URL guardada para que se vea la nueva (`7ad0e9c`).
+- **Fotos de personas y de empresas** (Unsplash, hotlink, 11 consultas y 16
+  avisos): jóvenes de 18 a 30 años en contexto, una distinta por perfil y con
+  el género del nombre, y una foto de lugar de trabajo del rubro de cada
+  empresa. La cinta de la portada muestra esas fotos con el nombre de cada
+  organización en vez de logos inventados, y avisa que ilustran el rubro. La
+  recarga de la demo las mantiene (`scripts/fotos/`, `docs/imagenes.md`).
+- **e2e**: `acceso-publico` (a través del WAF, con `E2E_URL_PUBLICA`),
+  `confirmacion-correo` (registro → enlace → correo → cierre → usuario, joven
+  y empresa) e `imagenes` (foto y logo de 3 MB).
+
+---
+
 ## 2026-10-22 — Interview Lab
 
 - **Interview Lab** (migración 010, `/interview-lab`, `resultados_de_tests`,
