@@ -26,6 +26,26 @@ Cada entrada lleva el hash del commit para poder ir al diff.
   construcción» (ya se puede) y la revisión «pendiente» de la Ley 18.331 en
   Legales.
 
+## 2026-10-27 — La imagen elegida en el registro ya no se pierde
+
+- **La foto o el logo del registro se descartaban** (migración 012,
+  `imagenPendiente.ts`): con la confirmación de correo obligatoria no hay
+  sesión al registrarse, la subida a `avatars` (RLS por `auth.uid()`) no
+  corría y nada la recuperaba al confirmar. Ahora la acción de registro, del
+  lado del servidor, valida la imagen (5 MB, JPG/PNG/WebP por los bytes, no
+  por el tipo que declara el navegador) y la deja en el bucket privado
+  `pendientes`; `completarAltaPendiente` la mueve a `avatars/<id>/` y la
+  asocia a `perfiles.foto_url` o `empresas.logo_url` al confirmar. Si falla,
+  el registro se completa y `/inicio` y el panel de empresa dicen «No pudimos
+  guardar tu imagen; podés subirla desde tu perfil» hasta que se sube una.
+  `scripts/mantenimiento/limpiar-imagenes-pendientes.mjs` borra las de
+  registros que no se confirmaron. Por qué así:
+  [`decisiones.md`](./decisiones.md), 2026-10-27.
+- **Todas las subidas validan el formato real** (`ReglasDeRegistro.formatoReal`):
+  antes un HTML con `type: image/png` pasaba.
+- **e2e** `imagen-del-registro`: registro con imagen local → confirmación →
+  panel, perfil y perfil público, para joven y empresa, y el camino de fallo.
+
 ## 2026-10-27 — Acceso, confirmación de correo, imágenes y fotos reales
 
 - **Nadie podía iniciar sesión** (ni con usuario ni con correo) por la

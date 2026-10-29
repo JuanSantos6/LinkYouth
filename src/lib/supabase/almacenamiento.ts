@@ -16,7 +16,7 @@ export const BUCKET_IMAGENES = "avatars";
 export type SubidaDeImagen =
   { url: string; problema: null } | { url: null; problema: string };
 
-const EXTENSIONES: Record<string, string> = {
+export const EXTENSIONES: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
@@ -51,8 +51,10 @@ export async function subirImagenDePerfil(
   const problema = ReglasDeRegistro.problemaDeImagen(archivo);
   if (problema) return { url: null, problema };
 
-  const extension = EXTENSIONES[archivo.type];
-  if (!extension) {
+  // El formato sale de los bytes, no del `type` que declaró el navegador.
+  const formato = await ReglasDeRegistro.formatoReal(archivo);
+  const extension = formato && EXTENSIONES[formato];
+  if (!formato || !extension) {
     return { url: null, problema: "La imagen tiene que ser JPG, PNG o WebP." };
   }
 
@@ -62,7 +64,7 @@ export async function subirImagenDePerfil(
     .from(BUCKET_IMAGENES)
     .upload(camino, archivo, {
       upsert: true,
-      contentType: archivo.type,
+      contentType: formato,
       cacheControl: "60",
     });
 

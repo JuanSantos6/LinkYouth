@@ -8,6 +8,7 @@ import {
   leerArchivo,
   subirImagenDePerfil,
 } from "@/lib/supabase/almacenamiento";
+import { limpiarAvisoDeImagen } from "./imagenPendiente";
 
 import { mensajeDeError, sesionDeEmpresa } from "./sesion";
 import { CLAVE_DUPLICADA, type EstadoFormulario, valoresDe } from "./tipos";
@@ -107,6 +108,7 @@ export async function actualizarPerfilDeEmpresa(
         .from("empresas")
         .update({ logo_url: url })
         .eq("id", usuarioId);
+      await limpiarAvisoDeImagen(supabase);
     } else {
       aviso = ` El logo no se pudo subir: ${problema}`;
     }

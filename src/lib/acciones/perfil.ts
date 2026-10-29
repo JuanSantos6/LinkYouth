@@ -7,6 +7,7 @@ import {
   leerArchivo,
   subirImagenDePerfil,
 } from "@/lib/supabase/almacenamiento";
+import { limpiarAvisoDeImagen } from "./imagenPendiente";
 import { createClient } from "@/lib/supabase/server";
 
 import { mensajeDeError, sesionDePostulante } from "./sesion";
@@ -126,6 +127,7 @@ export async function cambiarFotoDePerfil(
     return { estado: "error", mensaje: "No pudimos guardar la foto." };
   }
 
+  await limpiarAvisoDeImagen(supabase);
   revalidatePath("/", "layout");
   return { estado: "ok", mensaje: "Foto actualizada." };
 }

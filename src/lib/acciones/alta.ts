@@ -4,6 +4,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { BUCKET_IMAGENES } from "@/lib/supabase/almacenamiento";
 import { rutaDeImagen } from "@/lib/supabase/rutaDeImagen";
+import { aplicarImagenPendiente } from "./imagenPendiente";
 import type { Database } from "@/types/database";
 
 import {
@@ -316,6 +317,10 @@ export async function completarAltaPendiente(
     const fallo = await completarAltaEmpresa(supabase, user, empresa);
     if (fallo) return fallo;
   }
+
+  // La foto o el logo que se eligió al registrarse, ya con sesión. Un fallo
+  // acá no deshace el alta: queda el aviso para subirla desde el perfil.
+  await aplicarImagenPendiente(supabase, user);
 
   return null;
 }

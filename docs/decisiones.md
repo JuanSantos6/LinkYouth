@@ -6,6 +6,35 @@ se eligió esa opción.
 
 ---
 
+## 2026-10-27 — La imagen del registro espera en un bucket privado
+
+**Decisión.** La acción de registro sube la imagen, con la clave de servicio, a
+`pendientes/<id del usuario nuevo>/imagen.<ext>` (bucket privado, sin
+políticas, 5 MB, JPG/PNG/WebP; migración 012). Al confirmar el correo,
+`completarAltaPendiente` la copia a `avatars/<id>/perfil.<ext>` con la sesión
+de la propia cuenta, la asocia a `perfiles.foto_url` o `empresas.logo_url` y
+borra la pendiente. `user_metadata.imagen_pendiente` dice que hay una esperando
+(así el login normal no consulta Storage) e `imagen_fallida` dispara el aviso
+del panel. Un script diario borra las de cuentas inexistentes, confirmadas
+sin mover (más de 1 día) o sin confirmar (más de 7).
+
+**Alternativas consideradas.**
+
+- Abrir `avatars` a usuarios anónimos para que suban sin sesión.
+- Guardar la imagen en `user_metadata` (base64) hasta confirmar.
+- Pedirla de nuevo después de confirmar.
+
+**Motivo.** Abrir `avatars` rompe la regla de que el acceso vive en la base y
+cualquiera llenaría el bucket público; la política por carpeta no puede
+verificar una cuenta que todavía no existe para el cliente. La metadata
+viaja en el token de sesión, y 5 MB ahí es inviable. Pedirla de nuevo pierde
+justo lo que el registro ya había recibido. El bucket privado deja la regla
+intacta: lo único que escribe ahí es código del servidor, y con el destino ya
+fijado al id que devolvió `signUp`. Con un correo ya registrado `signUp`
+devuelve un usuario sin identidades: en ese caso no se guarda nada. Además, la
+validación pasó a mirar los bytes del archivo: el tipo que declara el
+navegador lo puede poner cualquiera.
+
 ## 2026-10-27 — WAF: la excepción de `$ACTION_` acepta el prefijo numérico
 
 **Decisión.** En `~/waf/Caddyfile`, la regla propia `10001` (que apaga la 922130
