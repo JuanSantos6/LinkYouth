@@ -5,7 +5,7 @@ import { expect, type Page, test } from "@playwright/test";
  * Con sesión, la portada no se muestra y cada cuenta ve solo su menú.
  *
  * Antes `/` se renderizaba igual con sesión, y la cabecera de una empresa
- * ofrecía «Nosotros», «Cómo funciona», «Búsquedas», «Opiniones» y
+ * ofrecía «Nosotros», «Cómo funciona», «Búsquedas», «Beneficios» y
  * «Preguntas»: el menú de la portada pública.
  *
  * Crea una empresa y un joven descartables (dominio `.invalid`) con la clave
@@ -30,7 +30,7 @@ const MENU_DE_PORTADA = [
   "Nosotros",
   "Cómo funciona",
   "Búsquedas",
-  "Opiniones",
+  "Beneficios",
   "Preguntas",
 ];
 

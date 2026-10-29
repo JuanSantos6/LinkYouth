@@ -29,7 +29,7 @@ const PREGUNTAS = [
   {
     pregunta: "Soy una organización, ¿ya puedo publicar?",
     respuesta:
-      "Podés crear la cuenta y ver tu panel con tus búsquedas y eventos. El formulario para publicar desde ahí todavía está en construcción: mientras tanto, la primera búsqueda la cargamos con vos desde Contacto.",
+      "Sí. Creás la cuenta de empresa y desde tu panel publicás búsquedas y eventos, y gestionás las postulaciones que llegan. Si tenés dudas para empezar, escribinos desde Contacto.",
   },
 ];
 

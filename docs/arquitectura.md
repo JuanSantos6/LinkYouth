@@ -1073,6 +1073,8 @@ para que no se lea como permiso general.
 | `AnimacionesDePortada` | — | Carga GSAP, ScrollTrigger y Lenis con `import()` y arma las animaciones ligadas al scroll: bienvenida que se opaca, tarjetas con parallax, recorte de la imagen de búsquedas, bloques que aparecen. Inercia solo con mouse o trackpad; con «reducir movimiento» no carga nada. |
 | `SliderBienvenida` | `diapositivas` | Slider que cambia solo, con pausa, anterior, siguiente y puntos (WCAG 2.2.2). Sin JavaScript, scroll horizontal. |
 | `TarjetasPasos` | `pasos` | Las tres tarjetas de «Así funciona», del mismo tamaño; «Ver más» / «Ver menos» con `aria-expanded`. |
+| `TarjetasDeBeneficios` | `beneficios`, `etiquetaDelCarrusel`, `controlesArriba` | «Lo que LinkYouth hace por vos»: tarjetas en un `Carrusel`, cada una con etiqueta «Para jóvenes» (lavanda) o «Para empresas» (turquesa suave), ícono, título y frase. |
+| `Opiniones` | `opiniones` | Carrusel de opiniones reales (`landing/`). **Sin uso hoy**: se enchufa en la portada cuando haya opiniones con permiso; sin datos no dibuja nada. |
 | `Carrusel` | `etiqueta`, `children`, `claro?`, `controlesArriba?`, `className?` | Fila con `scroll-snap` y flechas que aparecen con JavaScript. |
 | `FotoProvisional` | `que`, `tono?`, `semilla?`, `src?`, `conRotulo?` | Espacio para una foto real, con una composición provisional rotulada. Con `src`, la foto con `object-fit: cover`. Exporta también `RotuloFotoProvisional`. |
 
@@ -1151,7 +1153,7 @@ para que no se lea como permiso general.
 
 | Ruta | Función | Qué hace |
 | --- | --- | --- |
-| `/` | `Portada` | Portada narrativa: slider de bienvenida, panel que emerge, «Así funciona», búsquedas abiertas, quiénes publican, opiniones de ejemplo, preguntas y llamada final. La única pantalla con animaciones ligadas al scroll. |
+| `/` | `Portada` | Portada narrativa: slider de bienvenida, panel que emerge, «Así funciona», búsquedas abiertas, quiénes publican, beneficios para jóvenes y empresas, preguntas y llamada final. La única pantalla con animaciones ligadas al scroll. |
 | `/login` | `PaginaLogin` | Inicio de sesión. Layout propio de `(auth)/`: una columna centrada, sin barra lateral. |
 | `/registro` | `PaginaRegistro` | Alta de cuenta individual. |
 | `/recuperar` | `PaginaRecuperar` | RF1.8: pide el correo y manda el enlace. `?motivo=vencido` explica por qué hay que pedir otro. |
@@ -1555,8 +1557,10 @@ todas rotuladas en pantalla:
    con el teléfono sin la pantalla de la app. `FotoProvisional` queda solo de
    respaldo, si la base no tiene las fotos. Las fotos del equipo y de un taller
    propio siguen pendientes. Ver `docs/imagenes.md`.
-2. **Opiniones.** Son de ejemplo y lo dicen en cada tarjeta. Se reemplazan
-   por opiniones verdaderas, con permiso.
+2. **Opiniones.** Desde el 2026-10-29 no están en la portada: en su lugar
+   va «Lo que LinkYouth hace por vos» (solo funciones que existen). El
+   componente `landing/Opiniones` queda en el código, sin uso, para cuando
+   haya opiniones verdaderas, con permiso.
 3. **Canal de contacto.** Desde la Etapa 2, `/contacto`, el pie y Legales
    muestran el correo de `src/lib/contacto.ts`. **Hoy es una dirección
    provisoria de dominio reservado** (`contacto@linkyouth.example`): falta que

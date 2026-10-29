@@ -167,8 +167,8 @@ ScrollTrigger + Lenis, cargados con `import()` en
 - **Personas y empresas sin foto**: `Avatar` con `semilla` (el id), que da
   las iniciales sobre un color de la paleta, siempre el mismo para la misma
   cuenta (`src/lib/diseno/avatar.ts`). Nadie queda sin imagen.
-- **Opiniones**: no se inventan. Las de la portada son de ejemplo y lo dicen
-  en cada tarjeta.
+- **Opiniones**: no se inventan ni se muestran como ejemplo. La portada no
+  las lleva; `landing/Opiniones` espera a que haya reales, con permiso.
 - Ningún enlace lleva a una página vacía ni a una función que no existe.
 
 ## Cómo se escriben los textos

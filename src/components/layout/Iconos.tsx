@@ -156,3 +156,13 @@ export function IconoCamara(props: IconoProps) {
     </Base>
   );
 }
+
+/** Un candado: lo que la empresa define y el postulante no ve. */
+export function IconoCandado(props: IconoProps) {
+  return (
+    <Base {...props}>
+      <rect x="5" y="10.5" width="14" height="10" rx="2" />
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+    </Base>
+  );
+}

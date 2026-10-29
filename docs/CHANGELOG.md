@@ -13,6 +13,19 @@ Cada entrada lleva el hash del commit para poder ir al diff.
 
 ---
 
+## 2026-10-29 — Portada: beneficios en lugar de opiniones de ejemplo
+
+- **«Lo que LinkYouth hace por vos»** reemplaza a «Lo que cuentan quienes la
+  usan»: seis tarjetas (tres «Para jóvenes», tres «Para empresas») en el mismo
+  carrusel, solo con funciones que existen. La portada se veía en desarrollo
+  (avisos de ejemplo, nombres entre corchetes, círculos de cámara vacíos) y no
+  se inventan testimonios. `landing/Opiniones` queda sin uso, lista para
+  opiniones reales. El menú de la portada pasa de «Opiniones» a «Beneficios».
+- **Textos que delataban desarrollo**, corregidos: «En qué estamos» (Cómo
+  funciona), la pregunta de empresas que decía que publicar «está en
+  construcción» (ya se puede) y la revisión «pendiente» de la Ley 18.331 en
+  Legales.
+
 ## 2026-10-27 — Acceso, confirmación de correo, imágenes y fotos reales
 
 - **Nadie podía iniciar sesión** (ni con usuario ni con correo) por la

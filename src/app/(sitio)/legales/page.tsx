@@ -81,11 +81,9 @@ export default async function PaginaLegales() {
           </p>
           <p>
             Los datos se alojan en un proyecto de Supabase en la región
-            us-east-2 (Ohio, Estados Unidos). Es información que tiene que estar
-            dicha: implica una transferencia internacional de datos personales
-            que hay que revisar contra la Ley N.º 18.331 antes de que la
-            plataforma salga a producción. Esa revisión está pendiente, y hasta
-            que ocurra conviene no cargar datos que no quieras compartir.
+            us-east-2 (Ohio, Estados Unidos). Esto implica una transferencia
+            internacional de datos personales, regulada por la Ley N.º 18.331:
+            cargá solo la información que quieras compartir.
           </p>
           <p>
             Si borrás tu cuenta, se eliminan los datos asociados a ella. Las

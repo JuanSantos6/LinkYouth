@@ -176,12 +176,20 @@ test.describe("portada", () => {
     }
   });
 
-  test("las opiniones están marcadas como ejemplo", async ({ page }) => {
+  test("los beneficios no llevan marcas de desarrollo", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText("Opiniones de ejemplo.")).toBeVisible();
     await expect(
-      page.getByText("Ejemplo · no es una opinión real"),
-    ).toHaveCount(4);
+      page.getByRole("heading", { name: "Lo que LinkYouth hace por vos" }),
+    ).toBeVisible();
+    await expect(
+      page.locator("#beneficios").getByText("Para jóvenes"),
+    ).toHaveCount(3);
+    await expect(
+      page.locator("#beneficios").getByText("Para empresas"),
+    ).toHaveCount(3);
+    await expect(
+      page.getByText(/Opiniones de ejemplo|\[.*ejemplo.*\]/i),
+    ).toHaveCount(0);
   });
 });
 

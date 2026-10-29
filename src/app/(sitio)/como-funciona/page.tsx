@@ -53,14 +53,12 @@ export default function PaginaComoFunciona() {
       </div>
 
       <section className="mt-12">
-        <h2 className="text-[20px] text-tinta">En qué estamos</h2>
+        <h2 className="text-[20px] text-tinta">Qué podés hacer</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-apagado">
-          El proyecto está en construcción. Ya podés crear tu cuenta, como
-          persona o como empresa, e iniciar sesión. Con tu cuenta recorrés el
-          feed de vacantes y eventos, armás tu ficha y seguís tus postulaciones.
-          Mientras la plataforma se va llenando de búsquedas y eventos, algunas
-          pantallas pueden mostrar contenido de demostración, y lo aclaran cada
-          vez que lo es.
+          Podés crear tu cuenta, como persona o como empresa, e iniciar sesión.
+          Con tu cuenta recorrés las búsquedas y los eventos, armás tu ficha y
+          seguís tus postulaciones. Si sos empresa, publicás búsquedas y eventos
+          y gestionás a quienes se postulan.
         </p>
       </section>
 

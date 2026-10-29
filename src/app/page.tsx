@@ -4,7 +4,14 @@ import Link from "next/link";
 import { CintaDeOrganizaciones } from "@/components/landing/CintaDeOrganizaciones";
 import { PreguntasFrecuentes } from "@/components/landing/PreguntasFrecuentes";
 import { CabeceraGlobal } from "@/components/layout/CabeceraGlobal";
-import { IconoCamara } from "@/components/layout/Iconos";
+import {
+  IconoBusqueda,
+  IconoCandado,
+  IconoEventos,
+  IconoInterviewLab,
+  IconoPerfil,
+  IconoPostulaciones,
+} from "@/components/layout/Iconos";
 import { PieDeSitio } from "@/components/layout/PieDeSitio";
 import { AnimacionesDePortada } from "@/components/portada/AnimacionesDePortada";
 import { Carrusel } from "@/components/portada/Carrusel";
@@ -13,6 +20,10 @@ import {
   SliderBienvenida,
   type Diapositiva,
 } from "@/components/portada/SliderBienvenida";
+import {
+  TarjetasDeBeneficios,
+  type Beneficio,
+} from "@/components/portada/TarjetasDeBeneficios";
 import { TarjetasPasos, type Paso } from "@/components/portada/TarjetasPasos";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Foto } from "@/components/ui/Foto";
@@ -39,7 +50,7 @@ const SECCIONES = [
   { href: "#nosotros", etiqueta: "Nosotros" },
   { href: "#como-funciona", etiqueta: "Cómo funciona" },
   { href: "#busquedas", etiqueta: "Búsquedas" },
-  { href: "#opiniones", etiqueta: "Opiniones" },
+  { href: "#beneficios", etiqueta: "Beneficios" },
   { href: "#preguntas", etiqueta: "Preguntas" },
 ] as const;
 
@@ -159,36 +170,51 @@ const PASOS: Paso[] = [
   },
 ];
 
-/**
- * Opiniones de EJEMPLO. Todavía no hay personas usando LinkYouth, así que no
- * hay opiniones reales: estas muestran el lugar y el formato, y la pantalla
- * lo dice en cada una. Se reemplazan por opiniones verdaderas, con permiso
- * de quien las da. Ver `docs/decisiones.md`, 2026-09-27.
- */
-const OPINIONES_DE_EJEMPLO = [
+const ICONO = "h-6 w-6";
+
+/** Solo funciones que existen hoy. */
+const LO_QUE_HACE: Beneficio[] = [
   {
+    para: "jovenes",
+    titulo: "Mostrá lo que sabés hacer",
     texto:
-      "Nunca había trabajado y no sabía qué poner en un currículum. Acá elegí lo que sé hacer y me aparecieron búsquedas que sí eran para mí.",
-    quien: "[Nombre de ejemplo]",
-    rol: "Joven que busca su primera pasantía",
+      "Tu ficha de habilidades e intereses reemplaza al currículum: no hace falta experiencia previa.",
+    icono: <IconoPerfil className={ICONO} />,
   },
   {
+    para: "jovenes",
+    titulo: "Sabé en qué estado está tu postulación",
     texto:
-      "Publicamos una pasantía y en lugar de leer currículums vimos directamente qué tenía cada persona de lo que pedíamos.",
-    quien: "[Empresa de ejemplo]",
-    rol: "Empresa de tecnología",
+      "Enviada, en revisión o resuelta: lo ves en un lugar y te llega un aviso cuando cambia.",
+    icono: <IconoPostulaciones className={ICONO} />,
   },
   {
+    para: "jovenes",
+    titulo: "Preparate para tu primera entrevista",
     texto:
-      "Me anoté a un taller de portfolio por LinkYouth y salí con devoluciones concretas para mejorar.",
-    quien: "[Nombre de ejemplo]",
-    rol: "Estudiante de diseño",
+      "En el Interview Lab hacés tests y sumás tus resultados a tu perfil, si querés.",
+    icono: <IconoInterviewLab className={ICONO} />,
   },
   {
+    para: "empresas",
+    titulo: "Encontrá a quien coincide con lo que buscás",
     texto:
-      "Saber en qué etapa estaba cada postulación me sacó la ansiedad de no tener respuesta.",
-    quien: "[Nombre de ejemplo]",
-    rol: "Joven que se postuló por primera vez",
+      "Ves, requisito por requisito, qué tiene cada postulante de lo que pediste.",
+    icono: <IconoBusqueda className={ICONO} />,
+  },
+  {
+    para: "empresas",
+    titulo: "Requisitos ocultos para filtrar mejor",
+    texto:
+      "Sumás criterios que los postulantes no ven, así comparás perfiles con más precisión.",
+    icono: <IconoCandado className={ICONO} />,
+  },
+  {
+    para: "empresas",
+    titulo: "Gestioná postulaciones y eventos en un solo lugar",
+    texto:
+      "Publicás búsquedas, organizás eventos y resolvés cada postulación desde tu panel.",
+    icono: <IconoEventos className={ICONO} />,
   },
 ];
 
@@ -468,61 +494,23 @@ export default async function Portada() {
         </section>
 
         <section
-          id="opiniones"
-          aria-labelledby="t-opiniones"
+          id="beneficios"
+          aria-labelledby="t-beneficios"
           className="relative z-[1] bg-papel py-20"
         >
           <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6">
-            <Carrusel
-              etiqueta="Opiniones de ejemplo"
+            <TarjetasDeBeneficios
+              beneficios={LO_QUE_HACE}
+              etiquetaDelCarrusel="Lo que LinkYouth hace por vos"
               controlesArriba={
-                <div className="max-w-[720px] space-y-4">
-                  <h2
-                    id="t-opiniones"
-                    className="text-[32px] leading-[1.08] font-extrabold text-tinta sm:text-[44px]"
-                  >
-                    Lo que cuentan quienes la usan
-                  </h2>
-                  <p className="flex items-start gap-2.5 rounded-ficha bg-lavanda p-4 text-[15px] text-tinta">
-                    <span aria-hidden="true">✎</span>
-                    <span>
-                      <b>Opiniones de ejemplo.</b> Todavía no hay personas
-                      usando LinkYouth, así que estos textos no son reales:
-                      muestran el lugar y el formato. Se reemplazan por
-                      opiniones verdaderas, con permiso de quien las da.
-                    </span>
-                  </p>
-                </div>
-              }
-            >
-              {OPINIONES_DE_EJEMPLO.map((opinion) => (
-                <figure
-                  key={opinion.texto}
-                  className="m-0 grid w-[min(420px,86vw)] shrink-0 snap-start content-between gap-4 rounded-[24px] border-[1.5px] border-dashed border-borde-control bg-superficie p-6"
+                <h2
+                  id="t-beneficios"
+                  className="max-w-[720px] text-[32px] leading-[1.08] font-extrabold text-tinta sm:text-[44px]"
                 >
-                  <span className="justify-self-start rounded-full border-[1.5px] border-tinta px-2.5 py-0.5 text-[12px] font-bold text-tinta">
-                    Ejemplo · no es una opinión real
-                  </span>
-                  <blockquote className="m-0 font-titulo text-[18px] leading-normal font-medium text-tinta">
-                    «{opinion.texto}»
-                  </blockquote>
-                  <figcaption className="flex items-center gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-borde-control text-apagado"
-                    >
-                      <IconoCamara className="h-5 w-5" />
-                    </span>
-                    <span>
-                      <b className="block text-tinta">{opinion.quien}</b>
-                      <span className="text-[14px] text-apagado">
-                        {opinion.rol}
-                      </span>
-                    </span>
-                  </figcaption>
-                </figure>
-              ))}
-            </Carrusel>
+                  Lo que LinkYouth hace por vos
+                </h2>
+              }
+            />
           </div>
         </section>
 
